@@ -69,6 +69,33 @@ export default async function AdminParticipantPage({
     supabase.from("teams").select("code, name"),
   ]);
 
+  // Bonus uitslagen ophalen (uit settings) + totaal doelpunten uit FINISHED matches.
+  const { data: bonusSettings } = await supabase
+    .from("settings")
+    .select("actual_top_scorer, actual_yellow_cards")
+    .eq("id", 1)
+    .single();
+  const actualTopScorer = bonusSettings?.actual_top_scorer ?? null;
+  const actualYellowCards = bonusSettings?.actual_yellow_cards ?? null;
+  const actualTotalGoals = (matchesRaw ?? [])
+    .filter((m) => m.status === "FINISHED" && m.home_score != null && m.away_score != null)
+    .reduce((s, m) => s + (m.home_score ?? 0) + (m.away_score ?? 0), 0);
+
+  function normalize(s: string | null | undefined): string {
+    return (s ?? "").trim().toLowerCase();
+  }
+  function scoreNumber(pick: number | null | undefined, actual: number | null, exact: number, close: number): number {
+    if (pick == null || actual == null) return 0;
+    const diff = Math.abs(pick - actual);
+    if (diff === 0) return exact;
+    if (diff <= 3) return close;
+    return 0;
+  }
+  const bonusTopScorerPts = actualTopScorer && bonusRow?.top_scorer && normalize(bonusRow.top_scorer) === normalize(actualTopScorer) ? 15 : 0;
+  const bonusYellowPts = scoreNumber(bonusRow?.total_yellow_cards_tiebreak, actualYellowCards, 10, 5);
+  const bonusGoalsPts = scoreNumber(bonusRow?.total_goals_tiebreak, actualTotalGoals, 15, 8);
+  const bonusTotalPts = bonusTopScorerPts + bonusYellowPts + bonusGoalsPts;
+
   if (!profile) notFound();
 
   const teamName = new Map((teamsRaw ?? []).map((t) => [t.code, t.name]));
@@ -149,7 +176,7 @@ export default async function AdminParticipantPage({
     );
   }, 0);
 
-  const grandTotal = groupTotalPts + koTotalPts;
+  const grandTotal = groupTotalPts + koTotalPts + bonusTotalPts;
 
   const fmt = (kickoff: string) =>
     new Intl.DateTimeFormat("nl-NL", {
@@ -373,51 +400,79 @@ export default async function AdminParticipantPage({
 
         {/* ── Bonus ── */}
         <section className="space-y-4">
-          <h2 className="text-xl font-bold">Bonus</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold">Bonus</h2>
+            <span className="text-sm font-semibold text-pitch tabular-nums">
+              +{bonusTotalPts} pt
+            </span>
+          </div>
           <div className="bg-surface border border-border rounded-lg overflow-hidden">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border text-xs text-muted uppercase tracking-wide bg-bg/30">
-                  <th className="px-4 py-2 text-left">Vraag</th>
-                  <th className="px-4 py-2 text-left">Antwoord</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="border-b border-border">
-                  <td className="px-4 py-3 text-muted">Topscorer</td>
-                  <td className="px-4 py-3 font-medium">
-                    {bonusRow?.top_scorer || (
-                      <span className="text-muted italic text-xs">
-                        niet ingevuld
+            {/* Desktop header */}
+            <div className="hidden sm:grid grid-cols-[1fr_1fr_1fr_3rem] gap-2 px-4 py-2 border-b border-border text-xs text-muted uppercase tracking-wide bg-bg/30">
+              <div>Vraag</div>
+              <div>Antwoord</div>
+              <div>Uitslag</div>
+              <div className="text-right">Pt</div>
+            </div>
+            <ul className="divide-y divide-border">
+              {[
+                {
+                  label: "Topscorer",
+                  answer: bonusRow?.top_scorer,
+                  actual: actualTopScorer,
+                  pts: bonusTopScorerPts,
+                  format: (v: string | number | null | undefined) => v || null,
+                },
+                {
+                  label: "Gele kaarten",
+                  answer: bonusRow?.total_yellow_cards_tiebreak,
+                  actual: actualYellowCards,
+                  pts: bonusYellowPts,
+                  format: (v: string | number | null | undefined) => v != null ? String(v) : null,
+                },
+                {
+                  label: "Doelpunten",
+                  sub: "(beslisser)",
+                  answer: bonusRow?.total_goals_tiebreak,
+                  actual: actualTotalGoals,
+                  pts: bonusGoalsPts,
+                  format: (v: string | number | null | undefined) => v != null ? String(v) : null,
+                },
+              ].map((r) => {
+                const answerStr = r.format(r.answer);
+                const actualStr = r.format(r.actual);
+                return (
+                  <li
+                    key={r.label}
+                    className="px-3 sm:px-4 py-3 sm:grid sm:grid-cols-[1fr_1fr_1fr_3rem] sm:gap-2 sm:items-center"
+                  >
+                    <div className="text-muted">
+                      {r.label}
+                      {r.sub && <span className="text-[10px] text-amber-600 ml-1">{r.sub}</span>}
+                    </div>
+                    <div className="flex items-center gap-2 mt-1 sm:mt-0">
+                      <span className="sm:hidden text-[10px] text-muted">Antwoord:</span>
+                      <span className="font-medium tabular-nums">
+                        {answerStr ?? <span className="text-muted italic text-xs not-italic font-normal">niet ingevuld</span>}
                       </span>
-                    )}
-                  </td>
-                </tr>
-                <tr className="border-b border-border">
-                  <td className="px-4 py-3 text-muted">Gele kaarten</td>
-                  <td className="px-4 py-3 tabular-nums font-medium">
-                    {bonusRow?.total_yellow_cards_tiebreak ?? (
-                      <span className="text-muted italic text-xs">
-                        niet ingevuld
+                    </div>
+                    <div className="flex items-center gap-2 mt-1 sm:mt-0">
+                      <span className="sm:hidden text-[10px] text-muted">Uitslag:</span>
+                      <span className="font-medium tabular-nums">
+                        {actualStr ?? <span className="text-muted">—</span>}
                       </span>
-                    )}
-                  </td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-3 text-muted">
-                    Doelpunten{" "}
-                    <span className="text-[10px] text-amber-600">(beslisser)</span>
-                  </td>
-                  <td className="px-4 py-3 tabular-nums font-medium">
-                    {bonusRow?.total_goals_tiebreak ?? (
-                      <span className="text-muted italic text-xs">
-                        niet ingevuld
-                      </span>
-                    )}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+                    </div>
+                    <div className="sm:text-right mt-1 sm:mt-0">
+                      {r.pts > 0 ? (
+                        <PtsChip pts={r.pts} />
+                      ) : (
+                        <span className="text-muted text-xs">—</span>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
           </div>
         </section>
 
