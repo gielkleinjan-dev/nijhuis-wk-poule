@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import LockToggle from "@/app/components/LockToggle";
 
 const BASE_TABS = [
   { href: "/invullen", label: "Invullen" },
@@ -17,12 +16,10 @@ const SUBTABS = [
 
 export default function InvullenNav({
   isAdmin,
-  isLocked,
-  lockAt,
 }: {
   isAdmin: boolean;
-  isLocked: boolean;
-  lockAt: string;
+  isLocked?: boolean;
+  lockAt?: string;
 }) {
   const path = usePathname();
   const mainTabs = [
@@ -52,7 +49,6 @@ export default function InvullenNav({
             );
           })}
         </div>
-        {isAdmin && <LockToggle isLocked={isLocked} lockAt={lockAt} />}
       </div>
       {/* Subtabs */}
       <div className="mx-auto max-w-4xl px-6 flex gap-2">

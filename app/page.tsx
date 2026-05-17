@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { isAdmin } from "@/lib/admin";
 import BrandLogo from "@/app/components/BrandLogo";
+import UserHeader from "@/app/components/UserHeader";
 
 export default async function HomePage() {
   const supabase = await createSupabaseServerClient();
@@ -8,25 +10,30 @@ export default async function HomePage() {
     data: { user },
   } = await supabase.auth.getUser();
 
+  let lockAt = "2026-06-11T17:00:00Z";
+  let isLocked = false;
+  if (user) {
+    const { data: settings } = await supabase
+      .from("settings")
+      .select("lock_at")
+      .eq("id", 1)
+      .single();
+    lockAt = settings?.lock_at ?? lockAt;
+    isLocked = new Date(lockAt) <= new Date();
+  }
+
   return (
     <main className="min-h-screen flex flex-col">
       <header className="border-b border-border bg-surface">
-        <div className="mx-auto max-w-5xl px-6 py-4 flex items-center justify-between">
+        <div className="mx-auto max-w-5xl px-6 py-4 flex items-center justify-between gap-4">
           <BrandLogo />
           {user && (
-            <div className="flex items-center gap-4">
-              <Link href="/ranglijst" className="text-sm font-medium hover:text-brand">
-                Ranglijst
-              </Link>
-              <form action="/api/logout" method="post">
-                <button
-                  type="submit"
-                  className="px-3 py-1.5 text-xs font-medium text-muted hover:text-brand transition border border-border rounded-md hover:border-brand"
-                >
-                  Uitloggen
-                </button>
-              </form>
-            </div>
+            <UserHeader
+              displayName={user.user_metadata?.display_name || user.email || ""}
+              isAdmin={isAdmin(user.email)}
+              isLocked={isLocked}
+              lockAt={lockAt}
+            />
           )}
         </div>
       </header>

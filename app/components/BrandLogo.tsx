@@ -22,7 +22,7 @@ export default function BrandLogo({
           className="w-48 h-auto object-contain"
           priority
         />
-        <span className="text-lg font-bold tracking-tight">WK Poule 2026</span>
+        <span className="text-lg font-bold tracking-tight">Nijhuis Bouw WK Poule 2026</span>
       </div>
     );
   }

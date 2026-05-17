@@ -5,6 +5,7 @@ import { DEPARTMENTS } from "@/lib/departments";
 import { isAdmin } from "@/lib/admin";
 import MainNav from "@/app/components/MainNav";
 import BrandLogo from "@/app/components/BrandLogo";
+import UserHeader from "@/app/components/UserHeader";
 
 export default async function RanglijstPage({
   searchParams,
@@ -83,27 +84,13 @@ export default async function RanglijstPage({
     <main className="min-h-screen">
       <header className="border-b border-border bg-surface">
         <div className="mx-auto max-w-4xl px-6 py-4 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <BrandLogo href="/invullen" />
-          </div>
-          <div className="text-right text-xs">
-            <div className="font-medium">
-              {user.user_metadata?.display_name || user.email}
-            </div>
-            {isLocked ? (
-              <div className="text-brand font-semibold">Gesloten</div>
-            ) : (
-              <div className="text-muted">
-                Sluit{" "}
-                {new Intl.DateTimeFormat("nl-NL", {
-                  day: "numeric",
-                  month: "short",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                }).format(new Date(lockAt))}
-              </div>
-            )}
-          </div>
+          <BrandLogo href="/invullen" />
+          <UserHeader
+            displayName={user.user_metadata?.display_name || user.email || ""}
+            isAdmin={userIsAdmin}
+            isLocked={isLocked}
+            lockAt={lockAt}
+          />
         </div>
       </header>
 

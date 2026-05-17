@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { isAdmin } from "@/lib/admin";
 import MainNav from "@/app/components/MainNav";
 import BrandLogo from "@/app/components/BrandLogo";
+import UserHeader from "@/app/components/UserHeader";
 
 export default async function AdminLayout({
   children,
@@ -24,6 +25,7 @@ export default async function AdminLayout({
 
   const lockAt = settings?.lock_at ?? "2026-06-11T17:00:00Z";
   const isLocked = new Date(lockAt) <= new Date();
+  const displayName = user.user_metadata?.display_name || user.email || "";
 
   return (
     <main className="min-h-screen">
@@ -35,7 +37,12 @@ export default async function AdminLayout({
               Admin
             </span>
           </div>
-          <span className="text-xs text-muted hidden sm:block">{user.email}</span>
+          <UserHeader
+            displayName={displayName}
+            isAdmin={true}
+            isLocked={isLocked}
+            lockAt={lockAt}
+          />
         </div>
       </header>
       <MainNav isAdmin={true} isLocked={isLocked} lockAt={lockAt} maxWidth="max-w-5xl" />

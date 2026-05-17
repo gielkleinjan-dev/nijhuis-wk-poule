@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import LockToggle from "./LockToggle";
 
 const BASE_TABS = [
   { href: "/invullen", label: "Invullen" },
@@ -11,13 +10,11 @@ const BASE_TABS = [
 
 export default function MainNav({
   isAdmin,
-  isLocked,
-  lockAt,
   maxWidth = "max-w-5xl",
 }: {
   isAdmin: boolean;
-  isLocked: boolean;
-  lockAt: string;
+  isLocked?: boolean;
+  lockAt?: string;
   maxWidth?: string;
 }) {
   const path = usePathname();
@@ -47,15 +44,6 @@ export default function MainNav({
             );
           })}
         </div>
-        {isAdmin && <LockToggle isLocked={isLocked} lockAt={lockAt} />}
-        <form action="/api/logout" method="post">
-          <button
-            type="submit"
-            className="px-3 py-1.5 text-xs font-medium text-muted hover:text-brand transition border border-border rounded-md hover:border-brand"
-          >
-            Uitloggen
-          </button>
-        </form>
       </div>
     </nav>
   );
