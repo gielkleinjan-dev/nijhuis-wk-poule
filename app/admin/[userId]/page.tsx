@@ -206,7 +206,13 @@ export default async function AdminParticipantPage({
               <div className="px-5 py-3 border-b border-border bg-bg/50 text-sm font-bold">
                 Groep {group.replace("GROUP_", "")}
               </div>
-              <table className="w-full text-sm">
+              <table className="w-full text-sm table-fixed">
+                <colgroup>
+                  <col />
+                  <col className="w-20" />
+                  <col className="w-32" />
+                  <col className="w-12" />
+                </colgroup>
                 <thead>
                   <tr className="border-b border-border text-xs text-muted uppercase tracking-wide bg-bg/30">
                     <th className="px-4 py-2 text-left">Wedstrijd</th>

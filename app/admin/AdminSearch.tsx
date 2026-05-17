@@ -96,7 +96,7 @@ export default function AdminSearch({ participants }: { participants: Participan
                 <th className="px-3 py-3 w-20 text-center">Betaald</th>
                 <th className="px-3 py-3 w-44">Voortgang</th>
                 <th className="px-3 py-3 text-right w-16">Punten</th>
-                <th className="px-3 py-3 w-16" />
+                <th className="px-3 py-3 w-20" />
               </tr>
             </thead>
             <tbody>
@@ -153,7 +153,7 @@ export default function AdminSearch({ participants }: { participants: Participan
                     <td className="px-3 py-3 text-right">
                       <Link
                         href={`/admin/${p.user_id}`}
-                        className="text-brand text-xs font-medium hover:underline"
+                        className="text-brand text-xs font-medium hover:underline whitespace-nowrap"
                       >
                         bekijk →
                       </Link>
