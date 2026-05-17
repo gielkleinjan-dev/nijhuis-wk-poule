@@ -279,6 +279,7 @@ export default function KnockoutForm({
                     key={t.code} team={t} selected={set.has(t.code)}
                     atMax={!set.has(t.code) && full} isLocked={isLocked}
                     showGroup
+                    fromPrev={!full && !hasData && prevSet.has(t.code)}
                     onToggle={() => toggle(round.key, t.code)}
                     survivorStatus={getSurvivorStatus(t.code)}
                     pointsEarned={getPointsEarned(t.code)}
