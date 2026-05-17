@@ -70,19 +70,27 @@ const PREVIOUS_STAGE: Partial<Record<BracketRound, string>> = {
 };
 
 export function scoreGroupPrediction(p: Prediction, a: MatchResult): number {
+  const hasScores = p.home_score != null && p.away_score != null;
+  if (!hasScores && !p.toto_pick) return 0;
+
   const actualToto = a.home_score > a.away_score ? "1" : a.home_score < a.away_score ? "2" : "X";
-  if (p.home_score != null && p.away_score != null) {
-    let pts = 0;
+  let pts = 0;
+  if (hasScores) {
     if (p.home_score === a.home_score) pts += 2;
     if (p.away_score === a.away_score) pts += 2;
-    const predToto = p.home_score > p.away_score ? "1" : p.home_score < p.away_score ? "2" : "X";
-    if (predToto === actualToto) pts += 1;
-    return pts;
   }
-  if (p.toto_pick) {
-    return p.toto_pick === actualToto ? 1 : 0;
-  }
-  return 0;
+  // Explicit toto_pick wins; otherwise derive from score when available.
+  const effectiveToto =
+    p.toto_pick ??
+    (hasScores
+      ? p.home_score! > p.away_score!
+        ? "1"
+        : p.home_score! < p.away_score!
+          ? "2"
+          : "X"
+      : null);
+  if (effectiveToto && effectiveToto === actualToto) pts += 1;
+  return pts;
 }
 
 export function scoreKnockoutRound(

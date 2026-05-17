@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { PT_Sans } from "next/font/google";
 import "./globals.css";
+import TwemojiLoader from "./TwemojiLoader";
 
 // PT Sans — gratis humanist alternatief voor Officina Sans (Nijhuis huisstijl)
 const ptSans = PT_Sans({
@@ -22,7 +23,10 @@ export default function RootLayout({
       lang="nl"
       className={`${ptSans.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <TwemojiLoader />
+        {children}
+      </body>
     </html>
   );
 }

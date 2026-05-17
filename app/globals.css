@@ -48,6 +48,15 @@ h1, h2, h3, .display {
   letter-spacing: -0.01em;
 }
 
+/* Twemoji injects <img class="emoji"> tags; render them inline op tekstgrootte. */
+img.emoji {
+  height: 1em;
+  width: 1em;
+  margin: 0 0.05em 0 0.1em;
+  vertical-align: -0.1em;
+  display: inline-block;
+}
+
 /* Brand stripe — knipoog naar het Nijhuis logo (4 horizontale rode balken) */
 .brand-stripe {
   background-image: repeating-linear-gradient(

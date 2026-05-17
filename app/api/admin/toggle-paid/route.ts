@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient, createSupabaseServiceRoleClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/admin";
 
 export async function POST(req: Request) {
@@ -16,7 +16,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const { error } = await supabase.from("profiles").update({ paid }).eq("id", userId);
+  const admin = createSupabaseServiceRoleClient();
+  const { error } = await admin.from("profiles").update({ paid }).eq("id", userId);
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

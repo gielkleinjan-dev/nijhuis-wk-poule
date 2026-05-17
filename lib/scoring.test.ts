@@ -55,6 +55,14 @@ describe("scoreGroupPrediction", () => {
   it("toto-only pick wrong = 0", () => {
     expect(scoreGroupPrediction({ match_id: 1, home_score: null, away_score: null, toto_pick: "2" }, r(2, 0))).toBe(0);
   });
+  it("explicit toto_pick overrides score-derived toto: scores wrong, explicit toto right = 1", () => {
+    // pred 1-0 (derived "1"), explicit X, actual 3-3 (X). Beide scores fout, toto X = X → 1 pt.
+    expect(scoreGroupPrediction({ match_id: 1, home_score: 1, away_score: 0, toto_pick: "X" }, r(3, 3))).toBe(1);
+  });
+  it("explicit toto_pick overrides score-derived toto: scores right, explicit toto wrong = 4", () => {
+    // pred 2-2 (derived X), explicit "2", actual 2-2 (X). Scores 2+2, toto "2" ≠ X → 0 pt voor toto. Totaal 4.
+    expect(scoreGroupPrediction({ match_id: 1, home_score: 2, away_score: 2, toto_pick: "2" }, r(2, 2))).toBe(4);
+  });
 });
 
 describe("scoreKnockoutRound", () => {

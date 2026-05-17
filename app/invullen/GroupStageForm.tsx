@@ -32,26 +32,28 @@ function scoreGroup(
   a: { home: number; away: number }
 ): { pts: number; label: string } | null {
   if (!p) return null;
+  const hasScores = p.home != null && p.away != null;
+  if (!hasScores && !p.toto) return null;
+
   const actualToto = a.home > a.away ? "1" : a.home < a.away ? "2" : "X";
-  if (p.home != null && p.away != null) {
-    let pts = 0;
+  let pts = 0;
+  if (hasScores) {
     if (p.home === a.home) pts += 2;
     if (p.away === a.away) pts += 2;
-    const predToto = p.home > p.away ? "1" : p.home < p.away ? "2" : "X";
-    if (predToto === actualToto) pts += 1;
-    const label =
-      pts === 5 ? "exact" :
-      pts === 3 ? "score + uitkomst" :
-      pts === 2 ? "één score goed" :
-      pts === 1 ? "uitkomst" : "mis";
-    return { pts, label };
   }
-  if (p.toto) {
-    return p.toto === actualToto
-      ? { pts: 1, label: "uitkomst" }
-      : { pts: 0, label: "mis" };
-  }
-  return null;
+  // Explicit toto wins; fall back to score-derived toto.
+  const effectiveToto =
+    p.toto ??
+    (hasScores ? (p.home! > p.away! ? "1" : p.home! < p.away! ? "2" : "X") : null);
+  if (effectiveToto && effectiveToto === actualToto) pts += 1;
+
+  const label =
+    pts === 5 ? "exact" :
+    pts === 4 ? "score goed" :
+    pts === 3 ? "score + uitkomst" :
+    pts === 2 ? "één score goed" :
+    pts === 1 ? "uitkomst" : "mis";
+  return { pts, label };
 }
 
 function isFilled(p: Prediction | undefined): boolean {
