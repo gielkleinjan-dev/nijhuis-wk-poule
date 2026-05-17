@@ -29,14 +29,18 @@ export default function BrandLogo({
 
   const inner = (
     <div className="flex items-center gap-2.5">
-      <Image
-        src="/nijhuis-logo.png"
-        alt="Nijhuis Bouw"
-        width={1200}
-        height={645}
-        className="h-8 w-auto object-contain"
-        priority
-      />
+      {/* Crop bottom "Nijhuis Bouw B.V." text via overflow-hidden so de mark
+          visueel uitlijnt met de WK Poule tekst. */}
+      <div className="h-7 overflow-hidden flex items-start shrink-0">
+        <Image
+          src="/nijhuis-logo.png"
+          alt="Nijhuis Bouw"
+          width={1200}
+          height={645}
+          className="h-10 w-auto max-w-none"
+          priority
+        />
+      </div>
       <span className="font-bold text-sm leading-tight">WK Poule</span>
     </div>
   );

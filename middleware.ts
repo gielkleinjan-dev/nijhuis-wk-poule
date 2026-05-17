@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/", "/login", "/wachtwoord-vergeten", "/wachtwoord-instellen", "/auth/callback", "/api/register", "/api/login", "/api/forgot-password", "/api/cron", "/styleguide"];
+const PUBLIC_PATHS = ["/", "/login", "/wachtwoord-vergeten", "/wachtwoord-instellen", "/auth/callback", "/api/register", "/api/login", "/api/logout", "/api/forgot-password", "/api/cron", "/styleguide"];
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });

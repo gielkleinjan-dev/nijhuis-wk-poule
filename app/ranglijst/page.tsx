@@ -68,10 +68,11 @@ export default async function RanglijstPage({
     return { ...t, delta: prev != null ? prev - (i + 1) : null };
   });
   const hasTeamMovement = teamStandingsWithDelta.some((t) => t.delta != null);
-  const teamRisers = teamStandingsWithDelta.filter((t) => (t.delta ?? 0) > 0).sort((a, b) => (b.delta ?? 0) - (a.delta ?? 0)).slice(0, 3);
-  const teamFallers = teamStandingsWithDelta.filter((t) => (t.delta ?? 0) < 0).sort((a, b) => (a.delta ?? 0) - (b.delta ?? 0)).slice(0, 3);
-  const rocketDepMap = new Map(teamRisers.map((t, i) => [t.dep, 3 - i]));
-  const chuteDepMap  = new Map(teamFallers.map((t, i) => [t.dep, 3 - i]));
+  // Team ranglijst is klein — alleen de allergrootste stijger en daler markeren, beide met 3 emoji's.
+  const teamTopRiser = teamStandingsWithDelta.filter((t) => (t.delta ?? 0) > 0).sort((a, b) => (b.delta ?? 0) - (a.delta ?? 0))[0];
+  const teamTopFaller = teamStandingsWithDelta.filter((t) => (t.delta ?? 0) < 0).sort((a, b) => (a.delta ?? 0) - (b.delta ?? 0))[0];
+  const rocketDepMap = new Map(teamTopRiser ? [[teamTopRiser.dep, 3]] : []);
+  const chuteDepMap  = new Map(teamTopFaller ? [[teamTopFaller.dep, 3]] : []);
 
   const lockAt = settings?.lock_at ?? "2026-06-11T17:00:00Z";
   const isLocked = new Date(lockAt) <= new Date();
@@ -169,6 +170,11 @@ export default async function RanglijstPage({
             <p className="text-xs text-muted">
               Gemiddeld aantal punten per teamlid. Zo telt iedereen even zwaar mee.
             </p>
+            {hasTeamMovement && (teamTopRiser || teamTopFaller) && (
+              <p className="text-xs text-muted mt-2">
+                🚀🚀🚀 grootste stijger &nbsp;·&nbsp; 🪂🪂🪂 grootste daler
+              </p>
+            )}
           </div>
 
           {/* ── Individueel table ── row 2 col 1 */}

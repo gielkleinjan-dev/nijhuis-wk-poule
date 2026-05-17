@@ -14,9 +14,19 @@ export default async function HomePage() {
         <div className="mx-auto max-w-5xl px-6 py-4 flex items-center justify-between">
           <BrandLogo />
           {user && (
-            <Link href="/ranglijst" className="text-sm font-medium hover:text-brand">
-              Ranglijst
-            </Link>
+            <div className="flex items-center gap-4">
+              <Link href="/ranglijst" className="text-sm font-medium hover:text-brand">
+                Ranglijst
+              </Link>
+              <form action="/api/logout" method="post">
+                <button
+                  type="submit"
+                  className="px-3 py-1.5 text-xs font-medium text-muted hover:text-brand transition border border-border rounded-md hover:border-brand"
+                >
+                  Uitloggen
+                </button>
+              </form>
+            </div>
           )}
         </div>
       </header>
