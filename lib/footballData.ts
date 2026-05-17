@@ -32,6 +32,11 @@ export type MatchUpdate = {
   home_score: number | null;
   away_score: number | null;
   status: string;
+  // Voor knock-outwedstrijden vult football-data de teams pas in zodra de bracket
+  // gezet is (groepsfase klaar). Null tot dat moment — cron-RPC gebruikt coalesce
+  // zodat null nooit een bestaande waarde wist.
+  home_team: string | null;
+  away_team: string | null;
 };
 
 export async function fetchWcMatches(apiKey: string): Promise<FootballDataMatch[]> {
@@ -53,6 +58,8 @@ export function toMatchUpdates(matches: FootballDataMatch[]): MatchUpdate[] {
     home_score: m.score.fullTime.home,
     away_score: m.score.fullTime.away,
     status: m.status,
+    home_team: m.homeTeam.tla,
+    away_team: m.awayTeam.tla,
   }));
 }
 

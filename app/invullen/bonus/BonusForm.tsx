@@ -139,7 +139,7 @@ export default function BonusForm({
         <div>
           <h1 className="text-2xl font-bold mb-1">Bonusvragen</h1>
           <p className="text-sm text-muted">
-            De topscorer levert <span className="font-medium text-ink">15 punten</span> op. Doelpunten: exact = <span className="font-medium text-ink">15 pt</span>, binnen ±3 = <span className="font-medium text-ink">8 pt</span>. Gele kaarten: exact = <span className="font-medium text-ink">10 pt</span>, binnen ±3 = <span className="font-medium text-ink">5 pt</span>. Het aantal doelpunten is ook de <span className="font-medium text-ink">beslisser</span>: bij een gelijke eindstand wint wie het dichtst bij het werkelijke aantal zit.
+            De topscorer levert <span className="font-medium text-ink">15 punten</span> op. Doelpunten: exact = <span className="font-medium text-ink">15 pt</span>, binnen ±3 = <span className="font-medium text-ink">8 pt</span>. Gele kaarten: exact = <span className="font-medium text-ink">15 pt</span>, binnen ±3 = <span className="font-medium text-ink">8 pt</span>. Het aantal doelpunten is ook de <span className="font-medium text-ink">beslisser</span>: bij een gelijke eindstand wint wie het dichtst bij het werkelijke aantal zit.
           </p>
         </div>
         {(totalPoints ?? 0) > 0 && (
@@ -192,8 +192,8 @@ export default function BonusForm({
         value={values.total_yellow_cards_tiebreak}
         disabled={isLocked}
         placeholder="bv. 210"
-        exactPts={10}
-        closePts={5}
+        exactPts={15}
+        closePts={8}
         actual={actualYellowCards}
         onChange={(v) => patch("total_yellow_cards_tiebreak", v)}
       />

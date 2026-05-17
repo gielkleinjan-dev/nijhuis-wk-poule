@@ -135,7 +135,7 @@ export function scoreBonus(
       ? 15
       : 0;
   const totalGoals = scoreNumeric(picks.total_goals_tiebreak, result.totalGoals, 15, 8);
-  const totalYellowCards = scoreNumeric(picks.total_yellow_cards_tiebreak, result.totalYellowCards, 10, 5);
+  const totalYellowCards = scoreNumeric(picks.total_yellow_cards_tiebreak, result.totalYellowCards, 15, 8);
   return { topScorer, totalGoals, totalYellowCards };
 }
 

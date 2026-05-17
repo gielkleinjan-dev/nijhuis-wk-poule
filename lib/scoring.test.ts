@@ -136,21 +136,21 @@ describe("scoreBonus", () => {
       ).totalGoals,
     ).toBe(0);
   });
-  it("yellow cards exact → 10", () => {
+  it("yellow cards exact → 15", () => {
     expect(
       scoreBonus(
         { top_scorer: null, total_goals_tiebreak: null, total_yellow_cards_tiebreak: 80 },
         { topScorer: null, totalYellowCards: 80 },
       ).totalYellowCards,
-    ).toBe(10);
+    ).toBe(15);
   });
-  it("yellow cards within ±3 → 5", () => {
+  it("yellow cards within ±3 → 8", () => {
     expect(
       scoreBonus(
         { top_scorer: null, total_goals_tiebreak: null, total_yellow_cards_tiebreak: 82 },
         { topScorer: null, totalYellowCards: 80 },
       ).totalYellowCards,
-    ).toBe(5);
+    ).toBe(8);
   });
   it("all nulls → all 0", () => {
     expect(
