@@ -2,13 +2,15 @@
 
 Interne WK-poule voor ~150 collega's. Deelnemers voorspellen alle 104 wedstrijden (groepsfase + knock-out + bonusvragen) vóór 11 juni 2026 17:00. Punten worden automatisch bijgehouden via de football-data.org API.
 
+**Live**: https://nijhuis-wk-poule.vercel.app · **Invite-code**: `WKNIJHUIS2026`
+
 ## Stack
 
 - **Next.js 16** — App Router, server components, TypeScript
 - **Tailwind v4** — design tokens via `@theme {}`
-- **Supabase** — Postgres + magic-link auth + RLS
+- **Supabase** — Postgres + email+wachtwoord auth + RLS
 - **Vitest** — scoring engine unit tests
-- **Vercel** — hosting + cron jobs
+- **Vercel** — hosting + cron jobs (1×/dag op Hobby plan)
 
 ## Lokaal draaien
 
@@ -38,7 +40,7 @@ npm run test:watch  # vitest watch
 
 ## Cron
 
-De `/api/cron/fetch-results` route wordt door Vercel elke 10 minuten aangeroepen tijdens het toernooi. Lokaal testen:
+De `/api/cron/fetch-results` route wordt door Vercel elke dag om 06:00 UTC aangeroepen (Hobby plan limiet: 1×/dag). Lokaal testen:
 
 ```bash
 curl -H "Authorization: Bearer <CRON_SECRET>" http://localhost:3010/api/cron/fetch-results
