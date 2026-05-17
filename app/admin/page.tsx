@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { isAdmin } from "@/lib/admin";
 import AdminSearch from "./AdminSearch";
 import LockToggle from "@/app/components/LockToggle";
+import TopScorerField from "./TopScorerField";
 
 async function updateTournamentResults(formData: FormData) {
   "use server";
@@ -187,13 +188,12 @@ export default async function AdminPage() {
               <form action={updateTournamentResults} className="space-y-3">
                 <div className="flex items-center gap-3 flex-wrap">
                   <label className="text-xs text-muted w-32 shrink-0">Topscorer</label>
-                  <input
-                    type="text"
-                    name="actual_top_scorer"
-                    defaultValue={settings?.actual_top_scorer ?? ""}
-                    placeholder="bijv. Kylian Mbappé"
-                    className="border border-border rounded-md px-3 py-2 text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-brand flex-1 min-w-48"
-                  />
+                  <div className="flex-1 min-w-48">
+                    <TopScorerField
+                      initial={settings?.actual_top_scorer ?? ""}
+                      name="actual_top_scorer"
+                    />
+                  </div>
                 </div>
                 <div className="flex items-center gap-3 flex-wrap">
                   <label className="text-xs text-muted w-32 shrink-0">Gele kaarten</label>
