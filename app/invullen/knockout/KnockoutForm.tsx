@@ -205,7 +205,7 @@ export default function KnockoutForm({
         <div>
           <h1 className="text-2xl font-bold mb-1">Knock-out</h1>
           <p className="text-sm text-muted mb-3">
-            Kies per ronde welke teams doorgaan. Punten per juist team, oplopend per ronde:
+            Kies per ronde welke teams doorgaan. Elke ronde levert meer punten op per goed team:
           </p>
           <div className="flex flex-wrap gap-2 text-xs">
             {ROUNDS.map((r) => (
@@ -269,7 +269,7 @@ export default function KnockoutForm({
               <GroupedTeamPicker
                 teams={teams} set={set} full={full} isLocked={isLocked}
                 onToggle={(code) => toggle(round.key, code)} maxPerGroup={3}
-                warnText="maximaal 3 teams per poule kunnen doorgaan (nr. 1, nr. 2 en eventueel de nr. 3 als die bij de 8 beste nrs. 3 hoort)."
+                warnText="er kunnen maximaal 3 teams per poule doorgaan (nummer 1, nummer 2 en eventueel nummer 3 als die bij de 8 beste nummers 3 hoort)."
                 getSurvivorStatus={getSurvivorStatus} getPointsEarned={getPointsEarned}
               />
             ) : (

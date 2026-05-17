@@ -139,7 +139,7 @@ export default function BonusForm({
         <div>
           <h1 className="text-2xl font-bold mb-1">Bonusvragen</h1>
           <p className="text-sm text-muted">
-            De topscorer levert <span className="font-medium text-ink">15 punten</span> op. Doelpunten: exact = <span className="font-medium text-ink">15 pt</span>, binnen ±3 = <span className="font-medium text-ink">8 pt</span>. Gele kaarten: exact = <span className="font-medium text-ink">10 pt</span>, binnen ±3 = <span className="font-medium text-ink">5 pt</span>. Het aantal doelpunten is ook <span className="font-medium text-ink">beslisser</span>: bij gelijke eindstand wint diegene die het dichtst bij het werkelijke aantal zit.
+            De topscorer levert <span className="font-medium text-ink">15 punten</span> op. Doelpunten: exact = <span className="font-medium text-ink">15 pt</span>, binnen ±3 = <span className="font-medium text-ink">8 pt</span>. Gele kaarten: exact = <span className="font-medium text-ink">10 pt</span>, binnen ±3 = <span className="font-medium text-ink">5 pt</span>. Het aantal doelpunten is ook de <span className="font-medium text-ink">beslisser</span>: bij een gelijke eindstand wint wie het dichtst bij het werkelijke aantal zit.
           </p>
         </div>
         {(totalPoints ?? 0) > 0 && (
@@ -162,7 +162,7 @@ export default function BonusForm({
           <span className="text-xs font-normal bg-pitch-soft text-pitch px-1.5 py-0.5 rounded">15 punten</span>
         </span>
         <span className="block text-xs text-muted mb-2">
-          Begin te typen om een speler te zoeken. 15 punten als correct.
+          Begin te typen om een speler te zoeken. 15 punten als je 'm goed hebt.
         </span>
         <PlayerCombobox
           value={values.top_scorer}
@@ -188,7 +188,7 @@ export default function BonusForm({
 
       <NumberQuestion
         label="Totaal aantal gele kaarten in het toernooi"
-        hint="Bij WK 2022 werden er 219 gele kaarten uitgedeeld."
+        hint="Op het WK 2022 werden er 219 gele kaarten uitgedeeld."
         value={values.total_yellow_cards_tiebreak}
         disabled={isLocked}
         placeholder="bv. 210"
@@ -200,7 +200,7 @@ export default function BonusForm({
 
       <NumberQuestion
         label="Totaal aantal doelpunten in het toernooi"
-        hint="Is de stand gelijk? Dan wint diegene die het dichtst bij het werkelijke aantal zit. Bij WK 2022 vielen er 172 doelpunten."
+        hint="Staat het gelijk in eindpunten? Dan wint wie het dichtst bij het werkelijke aantal zit. Op het WK 2022 vielen er 172 doelpunten."
         value={values.total_goals_tiebreak}
         disabled={isLocked}
         placeholder="bv. 175"

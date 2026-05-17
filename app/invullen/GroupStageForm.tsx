@@ -50,9 +50,9 @@ function scoreGroup(
   const label =
     pts === 5 ? "exact" :
     pts === 4 ? "score goed" :
-    pts === 3 ? "score + uitkomst" :
+    pts === 3 ? "score + toto" :
     pts === 2 ? "één score goed" :
-    pts === 1 ? "uitkomst" : "mis";
+    pts === 1 ? "toto" : "mis";
   return { pts, label };
 }
 
@@ -148,7 +148,7 @@ export default function GroupStageForm({
         <div>
           <h1 className="text-2xl font-bold mb-1">Groepsfase</h1>
           <p className="text-sm text-muted">
-            Elke score los beoordeeld — thuisscore, uitscore en uitkomst (1/X/2) geven elk apart punten.
+            Elk onderdeel telt apart: thuisscore, uitscore en de toto (1/X/2) leveren los punten op.
           </p>
           <div className="mt-2 flex flex-wrap gap-2 text-xs">
             <span className="bg-pitch-soft text-pitch px-1.5 py-0.5 rounded font-semibold">2 pt</span>
@@ -156,10 +156,10 @@ export default function GroupStageForm({
             <span className="bg-pitch-soft text-pitch px-1.5 py-0.5 rounded font-semibold">2 pt</span>
             <span className="text-muted self-center">uitscore goed ·</span>
             <span className="bg-pitch-soft text-pitch px-1.5 py-0.5 rounded font-semibold">1 pt</span>
-            <span className="text-muted self-center">uitkomst (1/X/2) goed · max 5 pt</span>
+            <span className="text-muted self-center">toto goed · max 5 pt</span>
           </div>
           <p className="mt-1.5 text-xs text-muted">
-            De 1/X/2 volgt automatisch uit je uitslag — maar je kunt hem ook handmatig aanpassen, bijvoorbeeld voor spreiding.
+            De toto volgt automatisch uit je uitslag, maar je kunt 'm ook handmatig kiezen — bijvoorbeeld als je een gelijkspel verwacht maar voor de zekerheid op winst gokt.
           </p>
         </div>
         <div className="shrink-0 flex flex-row sm:flex-col items-start sm:items-end gap-6 sm:gap-2 text-left sm:text-right">

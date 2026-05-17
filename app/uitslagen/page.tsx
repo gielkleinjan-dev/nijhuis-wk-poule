@@ -179,7 +179,7 @@ export default async function UitslagenPage() {
                   <tr className="border-b border-border text-xs text-muted uppercase tracking-wide bg-bg/30">
                     <th className="px-4 py-2 text-left">Wedstrijd</th>
                     <th className="px-4 py-2 text-center">Uitslag</th>
-                    <th className="px-4 py-2 text-center">1/X/2</th>
+                    <th className="px-4 py-2 text-center">Toto</th>
                     <th className="px-4 py-2 text-center">Jouw voorspelling</th>
                     <th className="px-4 py-2 text-right">Punten</th>
                   </tr>

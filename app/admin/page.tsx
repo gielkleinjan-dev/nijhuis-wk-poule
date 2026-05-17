@@ -183,7 +183,7 @@ export default async function AdminPage() {
             <div className="p-5">
               <p className="text-sm font-semibold mb-1">Toernooiresultaten (bonusvragen)</p>
               <p className="text-xs text-muted mb-3">
-                Vul in na het toernooi. Worden direct zichtbaar als uitslag bij de bonusvragen.
+                In te vullen na het toernooi. Verschijnen direct als uitslag bij de bonusvragen.
               </p>
               <form action={updateTournamentResults} className="space-y-3">
                 <div className="flex items-center gap-3 flex-wrap">

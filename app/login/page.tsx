@@ -156,7 +156,7 @@ export default function LoginPage() {
                   hint="Minstens 6 tekens. Onthoud 'm — je hebt 'm elke keer nodig."
                 />
                 <div className="bg-amber-50 border border-amber-300 text-amber-900 rounded-md px-3 py-2 text-xs">
-                  <strong>LET OP!!</strong> Gebruik <u>niet</u> je normale Nijhuis-inloggen wachtwoord.
+                  <strong>Let op:</strong> gebruik <u>niet</u> je gewone Nijhuis-wachtwoord.
                 </div>
                 <button
                   type="submit"

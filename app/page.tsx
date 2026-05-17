@@ -85,12 +85,12 @@ export default async function HomePage() {
           <Feature
             emoji="⚡"
             title="Automatische punten"
-            text="Uitslagen komen live binnen, je stand ziet je direct."
+            text="Uitslagen komen live binnen, je ziet je stand meteen."
           />
           <Feature
-            emoji="📬"
-            title="Dagelijkse mail"
-            text="Wie steeg, wie zakte, wat zei de AI-commentator?"
+            emoji="📈"
+            title="Stijgers en dalers"
+            text="Pijltjes per deelnemer en team — zie wie de grootste sprong maakt."
           />
         </div>
       </section>
