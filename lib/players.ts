@@ -114,9 +114,11 @@ export const PLAYERS: Player[] = [
   { name: "Frantzdy Pierrot", tla: "HAI" },
   { name: "Duckens Nazon", tla: "HAI" },
 
-  // Indonesië
-  { name: "Ragnar Oratmangoen", tla: "IDN" },
-  { name: "Rafael Struick", tla: "IDN" },
+  // Iran
+  { name: "Mehdi Taremi", tla: "IRN" },
+  { name: "Sardar Azmoun", tla: "IRN" },
+  { name: "Karim Ansarifard", tla: "IRN" },
+  { name: "Saman Ghoddos", tla: "IRN" },
 
   // Irak
   { name: "Amjed Attwan", tla: "IRQ" },
@@ -168,11 +170,11 @@ export const PLAYERS: Player[] = [
   { name: "Chris Wood", tla: "NZL" },
   { name: "Oli Sail", tla: "NZL" },
 
-  // Nigeria
-  { name: "Victor Osimhen", tla: "NGA" },
-  { name: "Samuel Chukwueze", tla: "NGA" },
-  { name: "Alex Iwobi", tla: "NGA" },
-  { name: "Taiwo Awoniyi", tla: "NGA" },
+  // Oostenrijk
+  { name: "Marko Arnautović", tla: "AUT" },
+  { name: "Marcel Sabitzer", tla: "AUT" },
+  { name: "Michael Gregoritsch", tla: "AUT" },
+  { name: "Christoph Baumgartner", tla: "AUT" },
 
   // Noorwegen
   { name: "Erling Haaland", tla: "NOR" },
@@ -184,9 +186,9 @@ export const PLAYERS: Player[] = [
   { name: "Cecilio Waterman", tla: "PAN" },
 
   // Paraguay
-  { name: "Miguel Almirón", tla: "PRY" },
-  { name: "Julio Enciso", tla: "PRY" },
-  { name: "Antonio Sanabria", tla: "PRY" },
+  { name: "Miguel Almirón", tla: "PAR" },
+  { name: "Julio Enciso", tla: "PAR" },
+  { name: "Antonio Sanabria", tla: "PAR" },
 
   // Portugal
   { name: "Cristiano Ronaldo", tla: "POR" },
@@ -211,11 +213,6 @@ export const PLAYERS: Player[] = [
   { name: "Ismaïla Sarr", tla: "SEN" },
   { name: "Nicolas Jackson", tla: "SEN" },
   { name: "Habib Diallo", tla: "SEN" },
-
-  // Slovenië
-  { name: "Benjamin Šeško", tla: "SVN" },
-  { name: "Jan Oblak", tla: "SVN" },
-  { name: "Andraž Šporar", tla: "SVN" },
 
   // Zweden
   { name: "Viktor Gyökeres", tla: "SWE" },
@@ -254,12 +251,6 @@ export const PLAYERS: Player[] = [
   { name: "Baris Alper Yilmaz", tla: "TUR" },
   { name: "Burak Yılmaz", tla: "TUR" },
 
-  // Oekraïne
-  { name: "Artem Dovbyk", tla: "UKR" },
-  { name: "Mykhailo Mudryk", tla: "UKR" },
-  { name: "Viktor Tsygankov", tla: "UKR" },
-  { name: "Roman Yaremchuk", tla: "UKR" },
-
   // Uruguay
   { name: "Darwin Núñez", tla: "URY" },
   { name: "Federico Valverde", tla: "URY" },
@@ -281,11 +272,6 @@ export const PLAYERS: Player[] = [
   { name: "Islam Slimani", tla: "ALG" },
   { name: "Andy Delort", tla: "ALG" },
   { name: "Said Benrahma", tla: "ALG" },
-
-  // Kameroen
-  { name: "Vincent Aboubakar", tla: "CMR" },
-  { name: "Karl Toko Ekambi", tla: "CMR" },
-  { name: "Bryan Mbeumo", tla: "CMR" },
 ];
 
 export function searchPlayers(query: string): Player[] {
