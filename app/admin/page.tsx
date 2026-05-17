@@ -31,10 +31,14 @@ async function updateLockAt(formData: FormData) {
   if (!user || !checkAdmin(user.email)) return;
   const val = formData.get("lock_at") as string;
   if (!val) return;
-  // datetime-local is in local time — interpret as Amsterdam
   const dt = new Date(val + ":00");
   await supabase.rpc("admin_set_lock_at", { new_lock_at: dt.toISOString() });
 }
+
+const MAX_GROUP = 72;
+const MAX_KNOCKOUT = 31;
+const MAX_BONUS = 3;
+const MAX_TOTAL = MAX_GROUP + MAX_KNOCKOUT + MAX_BONUS;
 
 export default async function AdminPage() {
   const supabase = await createSupabaseServerClient();
@@ -44,13 +48,71 @@ export default async function AdminPage() {
   if (!user) redirect("/login");
   if (!isAdmin(user.email)) redirect("/ranglijst");
 
-  const [{ data: participants }, { data: settings }] = await Promise.all([
+  const [
+    { data: leaderboard },
+    { data: profiles },
+    { data: predictions },
+    { data: brackets },
+    { data: bonuses },
+    { data: settings },
+  ] = await Promise.all([
     supabase
       .from("leaderboard")
       .select("user_id, display_name, department, total_points, rank")
       .order("rank", { ascending: true }),
-    supabase.from("settings").select("lock_at, actual_top_scorer, actual_yellow_cards").eq("id", 1).single(),
+    supabase.from("profiles").select("id, paid"),
+    supabase.from("predictions").select("user_id"),
+    supabase.from("bracket_picks").select("user_id"),
+    supabase
+      .from("bonus_picks")
+      .select("user_id, top_scorer, total_goals_tiebreak, total_yellow_cards_tiebreak"),
+    supabase
+      .from("settings")
+      .select("lock_at, actual_top_scorer, actual_yellow_cards")
+      .eq("id", 1)
+      .single(),
   ]);
+
+  const paidById = new Map<string, boolean>();
+  (profiles ?? []).forEach((p) => paidById.set(p.id, !!p.paid));
+
+  const groupCount = new Map<string, number>();
+  (predictions ?? []).forEach((p) =>
+    groupCount.set(p.user_id, (groupCount.get(p.user_id) ?? 0) + 1)
+  );
+
+  const knockoutCount = new Map<string, number>();
+  (brackets ?? []).forEach((b) =>
+    knockoutCount.set(b.user_id, (knockoutCount.get(b.user_id) ?? 0) + 1)
+  );
+
+  const bonusCount = new Map<string, number>();
+  (bonuses ?? []).forEach((b) => {
+    let n = 0;
+    if (b.top_scorer && b.top_scorer.trim() !== "") n++;
+    if (b.total_goals_tiebreak !== null && b.total_goals_tiebreak !== undefined) n++;
+    if (b.total_yellow_cards_tiebreak !== null && b.total_yellow_cards_tiebreak !== undefined) n++;
+    bonusCount.set(b.user_id, n);
+  });
+
+  const participants = (leaderboard ?? []).map((p) => {
+    const g = Math.min(groupCount.get(p.user_id) ?? 0, MAX_GROUP);
+    const k = Math.min(knockoutCount.get(p.user_id) ?? 0, MAX_KNOCKOUT);
+    const b = Math.min(bonusCount.get(p.user_id) ?? 0, MAX_BONUS);
+    const total = g + k + b;
+    return {
+      user_id: p.user_id,
+      display_name: p.display_name,
+      department: p.department,
+      total_points: p.total_points,
+      rank: p.rank,
+      paid: paidById.get(p.user_id) ?? false,
+      group_filled: g,
+      knockout_filled: k,
+      bonus_filled: b,
+      progress_pct: Math.round((total / MAX_TOTAL) * 100),
+    };
+  });
 
   const lockAt = settings?.lock_at ?? "2026-06-11T17:00:00+02:00";
   const lockAtLocal = new Date(lockAt)
@@ -61,6 +123,9 @@ export default async function AdminPage() {
   const resendSet = !!process.env.RESEND_API_KEY;
   const anthropicSet = !!process.env.ANTHROPIC_API_KEY;
   const serviceRoleSet = !!process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  const paidCount = participants.filter((p) => p.paid).length;
+  const fullyDone = participants.filter((p) => p.progress_pct === 100).length;
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-8 space-y-10">
@@ -74,7 +139,6 @@ export default async function AdminPage() {
 
           <div className="bg-surface border border-border rounded-lg divide-y divide-border">
 
-            {/* Lock datum */}
             <div className="p-5">
               <p className="text-sm font-semibold mb-1">Sluitingstijd poule</p>
               <p className="text-xs text-muted mb-3">
@@ -106,7 +170,6 @@ export default async function AdminPage() {
               </form>
             </div>
 
-            {/* Toernooiresultaten (bonus) */}
             <div className="p-5">
               <p className="text-sm font-semibold mb-1">Toernooiresultaten (bonusvragen)</p>
               <p className="text-xs text-muted mb-3">
@@ -142,33 +205,16 @@ export default async function AdminPage() {
               </form>
             </div>
 
-            {/* API keys */}
             <div className="p-5">
               <p className="text-sm font-semibold mb-3">API-sleutels (.env.local)</p>
               <div className="space-y-2">
                 {[
-                  {
-                    key: "SUPABASE_SERVICE_ROLE_KEY",
-                    set: serviceRoleSet,
-                    missing: "cron kan geen punten berekenen",
-                  },
-                  {
-                    key: "RESEND_API_KEY",
-                    set: resendSet,
-                    missing: "dagelijkse mails uitgeschakeld",
-                  },
-                  {
-                    key: "ANTHROPIC_API_KEY",
-                    set: anthropicSet,
-                    missing: "AI-functies uitgeschakeld",
-                  },
+                  { key: "SUPABASE_SERVICE_ROLE_KEY", set: serviceRoleSet, missing: "cron kan geen punten berekenen" },
+                  { key: "RESEND_API_KEY", set: resendSet, missing: "dagelijkse mails uitgeschakeld" },
+                  { key: "ANTHROPIC_API_KEY", set: anthropicSet, missing: "AI-functies uitgeschakeld" },
                 ].map(({ key, set, missing }) => (
                   <div key={key} className="flex items-center gap-2.5 text-sm">
-                    <span
-                      className={`w-2 h-2 rounded-full shrink-0 ${
-                        set ? "bg-pitch" : "bg-brand"
-                      }`}
-                    />
+                    <span className={`w-2 h-2 rounded-full shrink-0 ${set ? "bg-pitch" : "bg-brand"}`} />
                     <span className="font-mono text-xs">{key}</span>
                     <span className="text-muted text-xs">
                       {set ? "ingesteld" : `ontbreekt — ${missing}`}
@@ -186,10 +232,10 @@ export default async function AdminPage() {
         <div className="bg-surface border border-border rounded-lg p-5">
           <h2 className="text-xl font-bold mb-0.5">Deelnemers</h2>
           <p className="text-sm text-muted">
-            {participants?.length ?? 0} ingeschreven · klik op een naam om het ingevulde formulier te bekijken
+            {participants.length} ingeschreven · {paidCount} betaald · {fullyDone} volledig ingevuld
           </p>
         </div>
-        <AdminSearch participants={participants ?? []} />
+        <AdminSearch participants={participants} />
       </section>
 
       </div>

@@ -2,14 +2,15 @@ import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function POST(req: Request) {
-  const { code, email, name, department } = await req.json();
+  const { code, email, name, department, password } = await req.json();
 
-  if (!code || !email || !name) {
+  if (!code || !email || !name || !password) {
     return NextResponse.json({ error: "Vul alle velden in" }, { status: 400 });
   }
+  if (typeof password !== "string" || password.length < 6) {
+    return NextResponse.json({ error: "Wachtwoord moet minstens 6 tekens zijn" }, { status: 400 });
+  }
 
-  // Server client met cookies — nodig zodat PKCE code_verifier opgeslagen wordt
-  // en de /auth/callback hem kan uitwisselen voor een sessie.
   const supabase = await createSupabaseServerClient();
 
   const { data: valid, error: rpcError } = await supabase.rpc("validate_invite_code", {
@@ -23,16 +24,30 @@ export async function POST(req: Request) {
     );
   }
 
-  const origin = new URL(req.url).origin;
-  const { error } = await supabase.auth.signInWithOtp({
+  const { data, error } = await supabase.auth.signUp({
     email,
+    password,
     options: {
-      emailRedirectTo: `${origin}/auth/callback`,
-      shouldCreateUser: true,
       data: { display_name: name, department: department || null },
     },
   });
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    const msg = /registered|exists/i.test(error.message)
+      ? "Dit e-mailadres is al geregistreerd. Gebruik 'Al ingeschreven' om in te loggen."
+      : error.message;
+    return NextResponse.json({ error: msg }, { status: 400 });
+  }
 
-  return NextResponse.json({ ok: true });
+  if (data.user) {
+    await supabase.from("profiles").upsert(
+      {
+        id: data.user.id,
+        display_name: name,
+        department: department || null,
+      },
+      { onConflict: "id", ignoreDuplicates: false }
+    );
+  }
+
+  return NextResponse.json({ ok: true, session: !!data.session });
 }
