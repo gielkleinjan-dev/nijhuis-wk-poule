@@ -314,19 +314,19 @@ function MatchRow({
             <span className="font-medium text-sm truncate leading-tight">{match.away.name}</span>
           </div>
         </div>
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-[11px] text-muted">{fmt}</span>
-          <TotoButtons value={activeToto} derived={hasScore} disabled={disabled}
-            onClick={(t) => onTotoChange(match.id, t)} />
-          <span className="text-xs min-w-[2rem] text-right">
-            {match.actual ? resultBlock : resultBlock}
-          </span>
-        </div>
-        {match.actual && (
-          <div className="text-[11px] text-muted tabular-nums text-center">
-            uitslag <span className="font-semibold text-ink">{match.actual.home}–{match.actual.away}</span>
+        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+          <span className="text-[11px] text-muted truncate">{fmt}</span>
+          <div className="flex flex-col items-center gap-0.5">
+            <TotoButtons value={activeToto} derived={hasScore} disabled={disabled}
+              onClick={(t) => onTotoChange(match.id, t)} />
+            {match.actual && (
+              <div className="text-[11px] text-muted tabular-nums">
+                uitslag <span className="font-semibold text-ink">{match.actual.home}–{match.actual.away}</span>
+              </div>
+            )}
           </div>
-        )}
+          <span className="text-xs text-right">{resultBlock}</span>
+        </div>
       </div>
     </li>
   );
