@@ -135,7 +135,6 @@ export default function LoginPage() {
                       value={code}
                       onChange={(v) => setCode(v.toUpperCase())}
                       required
-                      placeholder="WKNIJHUIS2026"
                       hint="Vraag de poule-beheerder als je deze niet hebt."
                     />
                     <Field label="Jouw naam" value={name} onChange={setName} required />
