@@ -155,7 +155,7 @@ export default async function RanglijstPage({
           <div className="order-3 lg:order-2 bg-surface border border-border rounded-lg p-5">
             <h2 className="text-xl font-bold mb-1">Team klassement</h2>
             <p className="text-xs text-muted">
-              Gemiddeld aantal punten per teamlid. Zo telt iedereen even zwaar mee.
+              Gemiddeld aantal punten per teamlid.
             </p>
             {hasTeamMovement && (teamTopRiser || teamTopFaller) && (
               <p className="text-xs text-muted mt-2">
