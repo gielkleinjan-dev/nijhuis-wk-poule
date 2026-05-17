@@ -1,36 +1,49 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# WK Poule 2026 — Nijhuis Bouw
 
-## Getting Started
+Interne WK-poule voor ~150 collega's. Deelnemers voorspellen alle 104 wedstrijden (groepsfase + knock-out + bonusvragen) vóór 11 juni 2026 17:00. Punten worden automatisch bijgehouden via de football-data.org API.
 
-First, run the development server:
+## Stack
+
+- **Next.js 16** — App Router, server components, TypeScript
+- **Tailwind v4** — design tokens via `@theme {}`
+- **Supabase** — Postgres + magic-link auth + RLS
+- **Vitest** — scoring engine unit tests
+- **Vercel** — hosting + cron jobs
+
+## Lokaal draaien
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev -- --port 3010
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Vereist een `.env.local` met (zie `STATUS.md` voor alle vars):
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=...
+SUPABASE_SERVICE_ROLE_KEY=...
+FOOTBALL_DATA_API_KEY=...
+CRON_SECRET=...
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Tests
 
-## Learn More
+```bash
+npm run test        # vitest run (eenmalig)
+npm run test:watch  # vitest watch
+```
 
-To learn more about Next.js, take a look at the following resources:
+32 tests voor de scoring engine in `lib/scoring.test.ts`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Cron
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+De `/api/cron/fetch-results` route wordt door Vercel elke 10 minuten aangeroepen tijdens het toernooi. Lokaal testen:
 
-## Deploy on Vercel
+```bash
+curl -H "Authorization: Bearer <CRON_SECRET>" http://localhost:3010/api/cron/fetch-results
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Documentatie
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Zie `STATUS.md` voor de volledige handoff-documentatie: wat af is, wat nog moet, database schema, env vars en kritische aandachtspunten.
