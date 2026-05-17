@@ -1,16 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { DEPARTMENTS } from "@/lib/departments";
 import BrandLogo from "@/app/components/BrandLogo";
 
 type Mode = "new" | "returning";
+type Step = "form" | "code";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [mode, setMode] = useState<Mode>("new");
+  const [step, setStep] = useState<Step>("form");
 
   // New user form
-  const [code, setCode] = useState("");
+  const [inviteCode, setInviteCode] = useState("");
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [department, setDepartment] = useState("");
@@ -18,23 +22,30 @@ export default function LoginPage() {
   // Returning user form
   const [returnEmail, setReturnEmail] = useState("");
 
-  const [status, setStatus] = useState<"idle" | "loading" | "sent" | "error">("idle");
+  // OTP code (6 digits)
+  const [otp, setOtp] = useState("");
+
+  const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
     const u = new URL(window.location.href);
     const err = u.searchParams.get("error");
     if (err) {
-      setErrorMsg(`Inloglink mislukt: ${err}. Probeer opnieuw.`);
+      setErrorMsg(`Inloggen mislukt: ${err}. Probeer opnieuw.`);
       setStatus("error");
     }
   }, []);
 
   function switchMode(next: Mode) {
     setMode(next);
+    setStep("form");
     setStatus("idle");
     setErrorMsg("");
+    setOtp("");
   }
+
+  const sentEmail = mode === "new" ? email : returnEmail;
 
   async function onSubmitNew(e: React.FormEvent) {
     e.preventDefault();
@@ -43,10 +54,12 @@ export default function LoginPage() {
     const res = await fetch("/api/register", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ code, email, name, department }),
+      body: JSON.stringify({ code: inviteCode, email, name, department }),
     });
-    if (res.ok) setStatus("sent");
-    else {
+    if (res.ok) {
+      setStep("code");
+      setStatus("idle");
+    } else {
       const body = await res.json().catch(() => ({}));
       setErrorMsg(body.error || "Er ging iets mis");
       setStatus("error");
@@ -62,15 +75,34 @@ export default function LoginPage() {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ email: returnEmail }),
     });
-    if (res.ok) setStatus("sent");
-    else {
+    if (res.ok) {
+      setStep("code");
+      setStatus("idle");
+    } else {
       const body = await res.json().catch(() => ({}));
       setErrorMsg(body.error || "Er ging iets mis");
       setStatus("error");
     }
   }
 
-  const sentEmail = mode === "new" ? email : returnEmail;
+  async function onSubmitOtp(e: React.FormEvent) {
+    e.preventDefault();
+    setStatus("loading");
+    setErrorMsg("");
+    const res = await fetch("/api/verify-otp", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email: sentEmail, token: otp }),
+    });
+    if (res.ok) {
+      router.push("/invullen");
+      router.refresh();
+    } else {
+      const body = await res.json().catch(() => ({}));
+      setErrorMsg(body.error || "Code klopt niet");
+      setStatus("error");
+    }
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12">
@@ -79,22 +111,58 @@ export default function LoginPage() {
       </header>
 
       <div className="w-full max-w-md bg-surface border border-border rounded-lg shadow-sm overflow-hidden">
-        {status === "sent" ? (
-          <div className="p-8 text-center space-y-3 py-10">
-            <div className="text-4xl">📬</div>
-            <h1 className="text-2xl font-bold">Check je mail</h1>
-            <p className="text-muted">
-              Een inloglink is verstuurd naar
-              <br />
-              <b className="text-ink">{sentEmail}</b>
-            </p>
-            <p className="text-sm text-muted pt-2">Niets gekregen? Check je spam.</p>
-            <button
-              onClick={() => setStatus("idle")}
-              className="text-sm text-brand underline pt-1"
-            >
-              Opnieuw proberen
-            </button>
+        {step === "code" ? (
+          <div className="p-8 space-y-5">
+            <div className="text-center space-y-2">
+              <div className="text-4xl">📬</div>
+              <h1 className="text-2xl font-bold">Vul de code in</h1>
+              <p className="text-muted text-sm">
+                We stuurden een 6-cijferige code naar
+                <br />
+                <b className="text-ink">{sentEmail}</b>
+              </p>
+            </div>
+            <form onSubmit={onSubmitOtp} className="space-y-4">
+              <label className="block">
+                <span className="sr-only">6-cijferige code</span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  autoComplete="one-time-code"
+                  autoFocus
+                  maxLength={6}
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  className="w-full text-center text-3xl tracking-[0.5em] font-mono border border-border bg-surface rounded-md px-3 py-3 focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand"
+                  placeholder="······"
+                />
+              </label>
+              <button
+                type="submit"
+                disabled={status === "loading" || otp.length !== 6}
+                className="w-full bg-brand text-white py-3 rounded-md font-semibold hover:opacity-90 transition disabled:opacity-50"
+              >
+                {status === "loading" ? "Controleren…" : "Inloggen"}
+              </button>
+              {errorMsg && <ErrorMsg msg={errorMsg} />}
+              <p className="text-xs text-muted text-center pt-2">
+                Niets gekregen? Check je spam, of{" "}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStep("form");
+                    setStatus("idle");
+                    setErrorMsg("");
+                    setOtp("");
+                  }}
+                  className="text-brand underline"
+                >
+                  begin opnieuw
+                </button>
+                .
+              </p>
+            </form>
           </div>
         ) : (
           <>
@@ -127,13 +195,13 @@ export default function LoginPage() {
                 <>
                   <h1 className="text-2xl font-bold mb-1">Registreren</h1>
                   <p className="text-muted text-sm mb-6">
-                    Vul je gegevens in en je krijgt een inloglink per mail.
+                    Vul je gegevens in en je krijgt een code per mail.
                   </p>
                   <form onSubmit={onSubmitNew} className="space-y-4">
                     <Field
                       label="Invite-code"
-                      value={code}
-                      onChange={(v) => setCode(v.toUpperCase())}
+                      value={inviteCode}
+                      onChange={(v) => setInviteCode(v.toUpperCase())}
                       required
                       hint="Vraag de poule-beheerder als je deze niet hebt."
                     />
@@ -165,7 +233,7 @@ export default function LoginPage() {
                       disabled={status === "loading"}
                       className="w-full bg-brand text-white py-3 rounded-md font-semibold hover:opacity-90 transition disabled:opacity-50"
                     >
-                      {status === "loading" ? "Versturen…" : "Stuur inloglink"}
+                      {status === "loading" ? "Versturen…" : "Stuur code"}
                     </button>
                     {errorMsg && <ErrorMsg msg={errorMsg} />}
                   </form>
@@ -174,7 +242,7 @@ export default function LoginPage() {
                 <>
                   <h1 className="text-2xl font-bold mb-1">Inloggen</h1>
                   <p className="text-muted text-sm mb-6">
-                    Vul je e-mailadres in en je ontvangt een inloglink.
+                    Vul je e-mailadres in en je ontvangt een code.
                   </p>
                   <form onSubmit={onSubmitReturning} className="space-y-4">
                     <Field
@@ -190,7 +258,7 @@ export default function LoginPage() {
                       disabled={status === "loading"}
                       className="w-full bg-brand text-white py-3 rounded-md font-semibold hover:opacity-90 transition disabled:opacity-50"
                     >
-                      {status === "loading" ? "Versturen…" : "Stuur inloglink"}
+                      {status === "loading" ? "Versturen…" : "Stuur code"}
                     </button>
                     {errorMsg && <ErrorMsg msg={errorMsg} />}
                   </form>
