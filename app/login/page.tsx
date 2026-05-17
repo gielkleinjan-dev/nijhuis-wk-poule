@@ -148,6 +148,9 @@ export default function LoginPage() {
                   type="email"
                   required
                 />
+                <div className="bg-amber-50 border border-amber-300 text-amber-900 rounded-md px-3 py-2 text-xs">
+                  <strong>LET OP!!</strong> Kies <u>niet</u> je Nijhuis-inlogwachtwoord.
+                </div>
                 <Field
                   label="Wachtwoord"
                   value={password}
