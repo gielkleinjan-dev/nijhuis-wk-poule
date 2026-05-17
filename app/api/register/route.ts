@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient, createSupabaseServiceRoleClient } from "@/lib/supabase/server";
 
 export async function POST(req: Request) {
   const { code, email, name, department, password } = await req.json();
@@ -39,7 +39,13 @@ export async function POST(req: Request) {
   }
 
   if (data.user) {
-    await supabase.from("profiles").upsert(
+    // Service-role omdat PostgREST upsert een DO UPDATE clause genereert die
+    // UPDATE-rechten vereist op kolommen waar 'authenticated' die bewust niet meer
+    // heeft (paid/is_admin/rank_prev). Zonder service-role faalt deze stap silent en
+    // krijgt de nieuwe gebruiker geen profielrij — waardoor latere predictions
+    // upserts (FK naar profiles) crashen met 'opslaan mislukt'.
+    const admin = createSupabaseServiceRoleClient();
+    const { error: profileErr } = await admin.from("profiles").upsert(
       {
         id: data.user.id,
         display_name: name,
@@ -47,6 +53,12 @@ export async function POST(req: Request) {
       },
       { onConflict: "id", ignoreDuplicates: false }
     );
+    if (profileErr) {
+      return NextResponse.json(
+        { error: `profielaanmaak mislukt: ${profileErr.message}` },
+        { status: 500 }
+      );
+    }
   }
 
   return NextResponse.json({ ok: true, session: !!data.session });

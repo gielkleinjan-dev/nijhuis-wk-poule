@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient, createSupabaseServiceRoleClient } from "@/lib/supabase/server";
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
@@ -29,12 +29,16 @@ export async function GET(req: Request) {
     return NextResponse.redirect(`${url.origin}/login?error=missing_code`);
   }
 
-  // Upsert profile with user's own session (RLS allows insert/update self)
+  // Profile upsert via service-role: PostgREST's upsert genereert een DO UPDATE
+  // clause die UPDATE-rechten op alle kolommen vereist. 'authenticated' heeft die
+  // bewust niet op id/paid/is_admin/rank_prev (security), dus de user-session
+  // upsert faalt silent voor nieuwe registraties.
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (user) {
-    await supabase.from("profiles").upsert(
+    const admin = createSupabaseServiceRoleClient();
+    await admin.from("profiles").upsert(
       {
         id: user.id,
         display_name: user.user_metadata?.display_name || user.email!.split("@")[0],
