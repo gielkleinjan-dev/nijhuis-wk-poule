@@ -14,32 +14,47 @@ export default function LockToggle({
   const router = useRouter();
 
   async function toggle() {
+    const next = locked ? "unlock" : "lock";
+    if (next === "lock") {
+      const ok = confirm(
+        "Weet je zeker dat je de poule wilt SLUITEN? Daarna kunnen deelnemers niets meer wijzigen."
+      );
+      if (!ok) return;
+    }
     setLoading(true);
-    const res = await fetch("/api/admin/lock", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ action: locked ? "unlock" : "lock" }),
-    });
-    if (res.ok) {
+    try {
+      const res = await fetch("/api/admin/lock", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ action: next }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        alert(`Mislukt (${res.status}): ${body.error ?? "onbekende fout"}`);
+        return;
+      }
       setLocked(!locked);
       router.refresh();
+    } catch (e) {
+      alert(`Netwerkfout: ${(e as Error).message}`);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   return (
     <button
       onClick={toggle}
       disabled={loading}
-      title={locked ? "Poule gesloten — klik om te openen" : "Poule open — klik om te sluiten"}
-      className={`flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border transition shrink-0 ${
+      title={locked ? "Poule gesloten — klik om weer te openen" : "Poule open — klik om te sluiten"}
+      className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border-2 transition shrink-0 disabled:opacity-50 ${
         locked
-          ? "bg-brand-soft border-brand/30 text-brand"
-          : "bg-pitch-soft border-pitch/30 text-pitch"
-      } disabled:opacity-50`}
+          ? "bg-brand text-white border-brand hover:opacity-90"
+          : "bg-pitch-soft border-pitch/30 text-pitch hover:border-pitch/60"
+      }`}
     >
       {locked ? "🔒" : "🔓"}
-      <span className="hidden sm:inline">{locked ? "Gesloten" : "Open"}</span>
+      <span>{locked ? "Gesloten" : "Open"}</span>
     </button>
   );
 }

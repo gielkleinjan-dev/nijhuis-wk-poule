@@ -6,9 +6,9 @@ export default function LockBadge({ isLocked }: { isLocked: boolean }) {
           ? "Poule gesloten — invullen kan niet meer"
           : "Poule open — invullen kan nog"
       }
-      className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border shrink-0 ${
+      className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border-2 shrink-0 ${
         isLocked
-          ? "bg-brand-soft border-brand/30 text-brand"
+          ? "bg-brand text-white border-brand"
           : "bg-pitch-soft border-pitch/30 text-pitch"
       }`}
     >
