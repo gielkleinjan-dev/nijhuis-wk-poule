@@ -28,20 +28,46 @@ export default function InvullenNav({
   ];
 
   return (
-    <nav className="bg-surface border-b border-border">
+    <>
       {/* Hoofdtabs */}
-      <div className="mx-auto max-w-4xl px-6 flex items-center gap-2 border-b border-border">
-        <div className="flex gap-2 flex-1">
-          {mainTabs.map((t) => {
-            const active = path.startsWith(t.href);
+      <nav className="bg-surface border-b border-border">
+        <div className="mx-auto max-w-4xl px-6 flex items-center gap-2">
+          <div className="flex gap-2 flex-1">
+            {mainTabs.map((t) => {
+              const active = path.startsWith(t.href);
+              return (
+                <Link
+                  key={t.href}
+                  href={t.href}
+                  className={`px-4 py-3 text-sm font-medium border-b-2 transition -mb-px ${
+                    active
+                      ? "border-brand text-brand"
+                      : "border-transparent text-muted hover:text-ink"
+                  }`}
+                >
+                  {t.label}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </nav>
+      {/* Subtabs — pill-stijl op zachte achtergrond, duidelijk een sub-niveau van Invullen */}
+      <div className="bg-bg/60 border-b border-border">
+        <div className="mx-auto max-w-4xl px-6 py-2 flex gap-1.5 items-center">
+          <span className="text-[10px] uppercase tracking-wider text-muted font-semibold mr-1 hidden sm:inline">
+            Onderdeel:
+          </span>
+          {SUBTABS.map((t) => {
+            const active = path === t.href;
             return (
               <Link
                 key={t.href}
                 href={t.href}
-                className={`px-4 py-3 text-sm font-medium border-b-2 transition -mb-px ${
+                className={`px-3 py-1.5 text-xs font-semibold rounded-full transition ${
                   active
-                    ? "border-brand text-brand"
-                    : "border-transparent text-muted hover:text-ink"
+                    ? "bg-brand text-white"
+                    : "bg-surface border border-border text-muted hover:text-ink hover:border-brand/40"
                 }`}
               >
                 {t.label}
@@ -50,25 +76,6 @@ export default function InvullenNav({
           })}
         </div>
       </div>
-      {/* Subtabs */}
-      <div className="mx-auto max-w-4xl px-6 flex gap-2">
-        {SUBTABS.map((t) => {
-          const active = path === t.href;
-          return (
-            <Link
-              key={t.href}
-              href={t.href}
-              className={`px-4 py-2.5 text-sm font-medium border-b-2 transition ${
-                active
-                  ? "border-brand text-brand"
-                  : "border-transparent text-muted hover:text-ink"
-              }`}
-            >
-              {t.label}
-            </Link>
-          );
-        })}
-      </div>
-    </nav>
+    </>
   );
 }
