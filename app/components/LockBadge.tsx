@@ -13,7 +13,9 @@ export default function LockBadge({ isLocked }: { isLocked: boolean }) {
       }`}
     >
       {isLocked ? "🔒" : "🔓"}
-      <span className="hidden sm:inline">{isLocked ? "Gesloten" : "Open"}</span>
+      <span className="hidden sm:inline">
+        {isLocked ? "Invullen & wijzigen gesloten" : "Invullen & wijzigen kan nog"}
+      </span>
     </span>
   );
 }

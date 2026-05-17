@@ -127,12 +127,11 @@ export default function LoginPage() {
                 />
                 <Field label="Jouw naam" value={name} onChange={setName} required />
                 <label className="block">
-                  <span className="block text-sm font-medium mb-1.5">
-                    Afdeling (optioneel)
-                  </span>
+                  <span className="block text-sm font-medium mb-1.5">Afdeling</span>
                   <select
                     value={department}
                     onChange={(e) => setDepartment(e.target.value)}
+                    required
                     className="w-full border border-border bg-surface rounded-md px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand"
                   >
                     <option value="">— Kies je team —</option>
@@ -148,9 +147,6 @@ export default function LoginPage() {
                   type="email"
                   required
                 />
-                <div className="bg-amber-50 border border-amber-300 text-amber-900 rounded-md px-3 py-2 text-xs">
-                  <strong>LET OP!!</strong> Kies <u>niet</u> je Nijhuis-inlogwachtwoord.
-                </div>
                 <Field
                   label="Wachtwoord"
                   value={password}
@@ -159,6 +155,9 @@ export default function LoginPage() {
                   required
                   hint="Minstens 6 tekens. Onthoud 'm — je hebt 'm elke keer nodig."
                 />
+                <div className="bg-amber-50 border border-amber-300 text-amber-900 rounded-md px-3 py-2 text-xs">
+                  <strong>LET OP!!</strong> Gebruik <u>niet</u> je normale Nijhuis-inloggen wachtwoord.
+                </div>
                 <button
                   type="submit"
                   disabled={status === "loading"}

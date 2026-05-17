@@ -54,7 +54,9 @@ export default function LockToggle({
       }`}
     >
       {locked ? "🔒" : "🔓"}
-      <span>{locked ? "Gesloten" : "Open"}</span>
+      <span>
+        {locked ? "Invullen & wijzigen gesloten" : "Invullen & wijzigen kan nog"}
+      </span>
     </button>
   );
 }
