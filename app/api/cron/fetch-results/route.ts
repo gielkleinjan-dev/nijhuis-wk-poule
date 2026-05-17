@@ -87,7 +87,18 @@ export async function GET(req: Request) {
     ? finishedMatches.reduce((sum, m) => sum + (m.home_score ?? 0) + (m.away_score ?? 0), 0)
     : null;
 
-  // 5. Recompute and store points for every user.
+  // 5. Snapshot the CURRENT ranking before we recompute — drives the up/down arrows
+  // on the ranglijst page. Saves profiles.rank_prev + a team_rank_snapshots row dated
+  // yesterday. Failure is non-fatal: arrows simply won't show, but points are still
+  // recomputed correctly.
+  const { error: snapErr } = await supabase.rpc("cron_snapshot_ranks", {
+    p_secret: cronSecret,
+  });
+  if (snapErr) {
+    console.warn("snapshot_ranks_failed", snapErr.message);
+  }
+
+  // 6. Recompute and store points for every user.
   let recomputed = 0;
   const errors: { user_id: string; error: string }[] = [];
   for (const profile of profiles ?? []) {
