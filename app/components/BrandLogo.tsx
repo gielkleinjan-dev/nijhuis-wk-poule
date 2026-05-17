@@ -15,10 +15,10 @@ export default function BrandLogo({
     return (
       <div className="flex flex-col items-center gap-2">
         <Image
-          src="/nijhuis-logo.jpg"
+          src="/nijhuis-logo.png"
           alt="Nijhuis Bouw"
-          width={4640}
-          height={2497}
+          width={1200}
+          height={645}
           className="w-48 h-auto object-contain"
           priority
         />
@@ -30,10 +30,10 @@ export default function BrandLogo({
   const inner = (
     <div className="flex items-center gap-2.5">
       <Image
-        src="/nijhuis-logo.jpg"
+        src="/nijhuis-logo.png"
         alt="Nijhuis Bouw"
-        width={4640}
-        height={2497}
+        width={1200}
+        height={645}
         className="h-8 w-auto object-contain"
         priority
       />
