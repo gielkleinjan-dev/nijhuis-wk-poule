@@ -90,13 +90,13 @@ export default function AdminSearch({ participants }: { participants: Participan
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-bg/50 text-left text-xs font-semibold text-muted uppercase tracking-wide">
-                <th className="px-3 py-3 w-10">#</th>
-                <th className="px-3 py-3">Naam</th>
+                <th className="px-2 sm:px-3 py-3 w-8 sm:w-10">#</th>
+                <th className="px-2 sm:px-3 py-3">Naam</th>
                 <th className="px-3 py-3 hidden md:table-cell">Team</th>
-                <th className="px-3 py-3 w-20 text-center">Betaald</th>
-                <th className="px-3 py-3 w-44">Voortgang</th>
-                <th className="px-3 py-3 text-right w-16">Punten</th>
-                <th className="px-3 py-3 w-20" />
+                <th className="px-2 sm:px-3 py-3 w-14 sm:w-20 text-center">Betaald</th>
+                <th className="px-2 sm:px-3 py-3 w-24 sm:w-44">Voortgang</th>
+                <th className="px-2 sm:px-3 py-3 text-right w-12 sm:w-16 hidden sm:table-cell">Punten</th>
+                <th className="px-2 sm:px-3 py-3 w-14 sm:w-20" />
               </tr>
             </thead>
             <tbody>
@@ -109,17 +109,20 @@ export default function AdminSearch({ participants }: { participants: Participan
                       i % 2 === 0 ? "bg-surface" : "bg-bg/30"
                     }`}
                   >
-                    <td className="px-3 py-3 tabular-nums text-muted">{p.rank}</td>
-                    <td className="px-3 py-3 font-medium">
+                    <td className="px-2 sm:px-3 py-3 tabular-nums text-muted">{p.rank}</td>
+                    <td className="px-2 sm:px-3 py-3 font-medium">
                       {p.display_name}
                       <span className="md:hidden block text-xs text-muted">
                         {p.department ?? "—"}
+                      </span>
+                      <span className="sm:hidden block text-xs text-muted tabular-nums">
+                        {p.total_points} pt
                       </span>
                     </td>
                     <td className="px-3 py-3 text-muted text-xs hidden md:table-cell">
                       {p.department ?? "—"}
                     </td>
-                    <td className="px-3 py-3 text-center">
+                    <td className="px-2 sm:px-3 py-3 text-center">
                       <input
                         type="checkbox"
                         checked={isPaid}
@@ -129,7 +132,7 @@ export default function AdminSearch({ participants }: { participants: Participan
                         aria-label="Betaald"
                       />
                     </td>
-                    <td className="px-3 py-3">
+                    <td className="px-2 sm:px-3 py-3">
                       <div className="flex items-center gap-2">
                         <div className="flex-1 h-2 bg-bg rounded-full overflow-hidden">
                           <div
@@ -143,14 +146,14 @@ export default function AdminSearch({ participants }: { participants: Participan
                           {p.progress_pct}%
                         </span>
                       </div>
-                      <div className="text-[10px] text-muted mt-1 tabular-nums">
+                      <div className="text-[10px] text-muted mt-1 tabular-nums hidden sm:block">
                         {p.group_filled}/72 groep · {p.knockout_filled}/31 ko · {p.bonus_filled}/3 bonus
                       </div>
                     </td>
-                    <td className="px-3 py-3 text-right tabular-nums font-bold">
+                    <td className="px-2 sm:px-3 py-3 text-right tabular-nums font-bold hidden sm:table-cell">
                       {p.total_points}
                     </td>
-                    <td className="px-3 py-3 text-right">
+                    <td className="px-2 sm:px-3 py-3 text-right">
                       <Link
                         href={`/admin/${p.user_id}`}
                         className="text-brand text-xs font-medium hover:underline whitespace-nowrap"

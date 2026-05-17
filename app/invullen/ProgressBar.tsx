@@ -7,12 +7,12 @@ export default function ProgressBar({ sections }: { sections: Section[] }) {
 
   return (
     <div className="border-b border-border bg-surface">
-      <div className="mx-auto max-w-4xl px-6 py-3 flex gap-4 flex-wrap">
+      <div className="mx-auto max-w-4xl px-6 py-3 flex gap-2 sm:gap-4 flex-col sm:flex-row sm:flex-wrap">
         {sections.map((s) => {
           const pct = s.total === 0 ? 0 : Math.round((s.filled / s.total) * 100);
           const done = s.filled >= s.total;
           return (
-            <div key={s.label} className="flex items-center gap-2 min-w-0 flex-1">
+            <div key={s.label} className="flex items-center gap-2 min-w-0 sm:flex-1">
               <span
                 className={`text-xs font-medium shrink-0 ${done ? "text-pitch" : "text-muted"}`}
               >

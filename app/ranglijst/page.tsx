@@ -175,11 +175,11 @@ export default async function RanglijstPage({
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border bg-bg/50 text-left text-xs font-semibold text-muted uppercase tracking-wide">
-                      <th className="px-4 py-3 w-12">#</th>
-                      <th className="px-4 py-3">Naam</th>
-                      <th className="px-4 py-3 hidden sm:table-cell">Team</th>
-                      {hasMovement && <th className="px-3 py-3 text-center w-14">+/−</th>}
-                      <th className="px-4 py-3 text-right">Punten</th>
+                      <th className="px-2 sm:px-4 py-3 w-10 sm:w-12">#</th>
+                      <th className="px-2 sm:px-4 py-3">Naam</th>
+                      <th className="px-4 py-3 hidden md:table-cell">Team</th>
+                      {hasMovement && <th className="px-2 sm:px-3 py-3 text-center w-10 sm:w-14">+/−</th>}
+                      <th className="px-2 sm:px-4 py-3 text-right">Punten</th>
                     </tr>
                   </thead>
                   <tbody>

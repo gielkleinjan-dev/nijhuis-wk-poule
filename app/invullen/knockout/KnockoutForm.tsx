@@ -201,7 +201,7 @@ export default function KnockoutForm({
     <div className="space-y-4">
 
       {/* ── Header ── */}
-      <div className="bg-surface border border-border rounded-lg p-5 flex items-start justify-between gap-4">
+      <div className="bg-surface border border-border rounded-lg p-5 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold mb-1">Knock-out</h1>
           <p className="text-sm text-muted mb-3">
@@ -273,7 +273,7 @@ export default function KnockoutForm({
                 getSurvivorStatus={getSurvivorStatus} getPointsEarned={getPointsEarned}
               />
             ) : (
-              <div className="p-3 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+              <div className="p-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
                 {teams.map((t) => (
                   <TeamButton
                     key={t.code} team={t} selected={set.has(t.code)}

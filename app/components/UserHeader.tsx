@@ -11,8 +11,8 @@ export default function UserHeader({
   lockAt: string;
 }) {
   return (
-    <div className="flex items-center gap-3 shrink-0">
-      <div className="text-right text-xs">
+    <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+      <div className="text-right text-xs hidden sm:block">
         <div className="font-medium">{displayName}</div>
         {isLocked ? (
           <div className="text-brand font-semibold">Gesloten</div>
@@ -32,9 +32,12 @@ export default function UserHeader({
       <form action="/api/logout" method="post">
         <button
           type="submit"
-          className="px-3 py-1.5 text-xs font-medium text-muted hover:text-brand transition border border-border rounded-md hover:border-brand"
+          title="Uitloggen"
+          aria-label="Uitloggen"
+          className="inline-flex items-center justify-center text-muted hover:text-brand transition border border-border rounded-md hover:border-brand px-2 py-1.5 sm:px-3"
         >
-          Uitloggen
+          <span className="sm:hidden text-base leading-none">↪</span>
+          <span className="hidden sm:inline text-xs font-medium">Uitloggen</span>
         </button>
       </form>
     </div>

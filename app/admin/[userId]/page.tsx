@@ -161,7 +161,7 @@ export default async function AdminParticipantPage({
     }).format(new Date(kickoff));
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-8 space-y-10">
+    <div className="mx-auto max-w-5xl px-4 sm:px-6 py-6 sm:py-8 space-y-8 sm:space-y-10">
 
       {/* Breadcrumb */}
       <div>
@@ -203,104 +203,96 @@ export default async function AdminParticipantPage({
               key={group}
               className="bg-surface border border-border rounded-lg overflow-hidden"
             >
-              <div className="px-5 py-3 border-b border-border bg-bg/50 text-sm font-bold">
+              <div className="px-4 sm:px-5 py-3 border-b border-border bg-bg/50 text-sm font-bold">
                 Groep {group.replace("GROUP_", "")}
               </div>
-              <table className="w-full text-sm table-fixed">
-                <colgroup>
-                  <col />
-                  <col className="w-20" />
-                  <col className="w-32" />
-                  <col className="w-12" />
-                </colgroup>
-                <thead>
-                  <tr className="border-b border-border text-xs text-muted uppercase tracking-wide bg-bg/30">
-                    <th className="px-4 py-2 text-left">Wedstrijd</th>
-                    <th className="px-4 py-2 text-center">Uitslag</th>
-                    <th className="px-4 py-2 text-center">Voorspelling</th>
-                    <th className="px-4 py-2 text-right">Pt</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {ms.map((m) => {
-                    const pred = predByMatch.get(m.id);
-                    const finished =
-                      m.status === "FINISHED" &&
-                      m.home_score != null &&
-                      m.away_score != null;
-                    const pts =
-                      finished && pred
-                        ? scoreGroupPrediction(pred, {
-                            id: m.id,
-                            home_score: m.home_score!,
-                            away_score: m.away_score!,
-                          })
-                        : null;
-                    return (
-                      <tr
-                        key={m.id}
-                        className="border-b border-border last:border-0"
-                      >
-                        <td className="px-4 py-2.5">
-                          <div className="flex items-center gap-1.5 font-medium text-xs">
-                            <span>{flagEmoji(m.home_team ?? "")}</span>
-                            <span className="text-muted">
-                              {teamName.get(m.home_team ?? "") ?? m.home_team}
-                            </span>
-                            <span className="text-muted mx-0.5">vs</span>
-                            <span className="text-muted">
-                              {teamName.get(m.away_team ?? "") ?? m.away_team}
-                            </span>
-                            <span>{flagEmoji(m.away_team ?? "")}</span>
-                          </div>
-                          <div className="text-[10px] text-muted mt-0.5">
-                            {fmt(m.kickoff_at)}
-                          </div>
-                        </td>
-                        <td className="px-4 py-2.5 text-center tabular-nums font-bold text-sm">
+              {/* Desktop header */}
+              <div className="hidden sm:grid grid-cols-[1fr_5rem_8rem_3rem] gap-2 px-4 py-2 border-b border-border text-xs text-muted uppercase tracking-wide bg-bg/30">
+                <div>Wedstrijd</div>
+                <div className="text-center">Uitslag</div>
+                <div className="text-center">Voorspelling</div>
+                <div className="text-right">Pt</div>
+              </div>
+              <ul className="divide-y divide-border">
+                {ms.map((m) => {
+                  const pred = predByMatch.get(m.id);
+                  const finished =
+                    m.status === "FINISHED" &&
+                    m.home_score != null &&
+                    m.away_score != null;
+                  const pts =
+                    finished && pred
+                      ? scoreGroupPrediction(pred, {
+                          id: m.id,
+                          home_score: m.home_score!,
+                          away_score: m.away_score!,
+                        })
+                      : null;
+                  const hasScore = pred && pred.home_score != null && pred.away_score != null;
+                  const toto = pred ? (pred.toto_pick ??
+                    (hasScore
+                      ? pred.home_score! > pred.away_score! ? "1"
+                        : pred.home_score! < pred.away_score! ? "2"
+                        : "X"
+                      : null)) : null;
+                  return (
+                    <li
+                      key={m.id}
+                      className="px-3 sm:px-4 py-2.5 sm:grid sm:grid-cols-[1fr_5rem_8rem_3rem] sm:gap-2 sm:items-center"
+                    >
+                      <div>
+                        <div className="flex items-center gap-1.5 font-medium text-xs flex-wrap">
+                          <span>{flagEmoji(m.home_team ?? "")}</span>
+                          <span className="text-muted">
+                            {teamName.get(m.home_team ?? "") ?? m.home_team}
+                          </span>
+                          <span className="text-muted mx-0.5">vs</span>
+                          <span className="text-muted">
+                            {teamName.get(m.away_team ?? "") ?? m.away_team}
+                          </span>
+                          <span>{flagEmoji(m.away_team ?? "")}</span>
+                        </div>
+                        <div className="text-[10px] text-muted mt-0.5">
+                          {fmt(m.kickoff_at)}
+                        </div>
+                      </div>
+                      {/* Mobile: één regel met labels; Desktop: aparte kolommen */}
+                      <div className="flex items-center justify-between gap-3 mt-2 sm:mt-0 sm:contents">
+                        <div className="sm:text-center tabular-nums font-bold text-sm">
+                          <span className="sm:hidden text-[10px] text-muted font-normal mr-1">Uitslag:</span>
                           {finished ? (
-                            <span>
-                              {m.home_score}–{m.away_score}
-                            </span>
+                            <span>{m.home_score}–{m.away_score}</span>
                           ) : (
                             <span className="text-muted font-normal">—</span>
                           )}
-                        </td>
-                        <td className="px-4 py-2.5 text-center tabular-nums text-sm">
-                          {pred ? (() => {
-                            const hasScore = pred.home_score != null && pred.away_score != null;
-                            const toto = pred.toto_pick ??
-                              (hasScore
-                                ? pred.home_score! > pred.away_score! ? "1"
-                                  : pred.home_score! < pred.away_score! ? "2"
-                                  : "X"
-                                : null);
-                            return (
-                              <span className="inline-flex items-center gap-1.5">
-                                {hasScore && (
-                                  <span className="font-semibold">{pred.home_score}–{pred.away_score}</span>
-                                )}
-                                {toto && (
-                                  <span className="inline-block bg-brand text-white rounded px-1.5 py-0.5 text-xs font-bold">{toto}</span>
-                                )}
-                              </span>
-                            );
-                          })() : (
+                        </div>
+                        <div className="sm:text-center tabular-nums text-sm">
+                          <span className="sm:hidden text-[10px] text-muted font-normal mr-1">Voorsp:</span>
+                          {pred ? (
+                            <span className="inline-flex items-center gap-1.5">
+                              {hasScore && (
+                                <span className="font-semibold">{pred.home_score}–{pred.away_score}</span>
+                              )}
+                              {toto && (
+                                <span className="inline-block bg-brand text-white rounded px-1.5 py-0.5 text-xs font-bold">{toto}</span>
+                              )}
+                            </span>
+                          ) : (
                             <span className="text-muted italic text-xs">—</span>
                           )}
-                        </td>
-                        <td className="px-4 py-2.5 text-right">
+                        </div>
+                        <div className="sm:text-right">
                           {pts == null ? (
-                            <span className="text-muted">—</span>
+                            <span className="text-muted text-xs">—</span>
                           ) : (
                             <PtsChip pts={pts} />
                           )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                        </div>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
             </div>
           ))}
         </section>

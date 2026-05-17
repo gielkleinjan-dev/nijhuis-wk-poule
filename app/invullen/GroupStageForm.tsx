@@ -142,7 +142,7 @@ export default function GroupStageForm({
 
   return (
     <div className="space-y-8">
-      <div className="bg-surface border border-border rounded-lg p-5 flex items-start justify-between gap-4">
+      <div className="bg-surface border border-border rounded-lg p-5 flex flex-col-reverse sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold mb-1">Groepsfase</h1>
           <p className="text-sm text-muted">
@@ -160,7 +160,7 @@ export default function GroupStageForm({
             De 1/X/2 volgt automatisch uit je uitslag — maar je kunt hem ook handmatig aanpassen, bijvoorbeeld voor spreiding.
           </p>
         </div>
-        <div className="text-right shrink-0 flex flex-col items-end gap-2">
+        <div className="shrink-0 flex flex-row sm:flex-col items-start sm:items-end gap-6 sm:gap-2 text-left sm:text-right">
           {(totalPoints ?? 0) > 0 && (
             <div>
               <div className="text-3xl font-bold tabular-nums text-pitch">{totalPoints}</div>
@@ -239,82 +239,95 @@ function MatchRow({
 
   const result = match.actual ? scoreGroup(prediction, match.actual) : null;
 
+  const resultBlock = match.actual ? (
+    result === null ? (
+      <span className="text-xs text-muted">—</span>
+    ) : (
+      <span className={`text-xs font-bold tabular-nums ${
+        result.pts === 0 ? "text-brand" : result.pts === 1 ? "text-amber-600" : "text-pitch"
+      }`}>
+        {result.pts === 0 ? "mis" : `+${result.pts}`}
+      </span>
+    )
+  ) : (
+    <div className="text-xs h-4">
+      {saveState === "saving" && <span className="text-muted">…</span>}
+      {saveState === "saved" && <span className="text-pitch">✓</span>}
+      {saveState === "error" && <span className="text-brand">!</span>}
+    </div>
+  );
+
   return (
-    <li className="px-4 py-3">
-      <div className="flex items-center gap-2 sm:gap-3">
+    <li className="px-3 sm:px-4 py-3">
+      {/* Desktop layout (sm+): alles op één rij */}
+      <div className="hidden sm:flex items-center gap-3">
+        <div className="text-xs text-muted w-24 shrink-0 leading-tight">{fmt}</div>
 
-        {/* Datum — vaste breedte links, verborgen op mobiel */}
-        <div className="hidden sm:block text-xs text-muted w-24 shrink-0 leading-tight">{fmt}</div>
-
-        {/* Thuisploeg */}
         <div className="flex items-center justify-end gap-1.5 flex-1 min-w-0">
           <span className="font-medium text-sm truncate leading-tight text-right">{match.home.name}</span>
           <span className="text-lg leading-none shrink-0" aria-hidden>{flagEmoji(match.home.code)}</span>
         </div>
 
-        {/* Score + uitslag eronder */}
         <div className="flex flex-col items-center gap-0.5 shrink-0">
           <div className="flex items-center gap-1">
-            <ScoreInput
-              value={prediction?.home ?? undefined}
-              disabled={disabled}
-              onChange={(v) => onScoreChange(match.id, "home", v)}
-              ariaLabel={`Score ${match.home.name}`}
-            />
+            <ScoreInput value={prediction?.home ?? undefined} disabled={disabled}
+              onChange={(v) => onScoreChange(match.id, "home", v)} ariaLabel={`Score ${match.home.name}`} />
             <span className="text-muted text-sm font-bold">–</span>
-            <ScoreInput
-              value={prediction?.away ?? undefined}
-              disabled={disabled}
-              onChange={(v) => onScoreChange(match.id, "away", v)}
-              ariaLabel={`Score ${match.away.name}`}
-            />
+            <ScoreInput value={prediction?.away ?? undefined} disabled={disabled}
+              onChange={(v) => onScoreChange(match.id, "away", v)} ariaLabel={`Score ${match.away.name}`} />
           </div>
           {match.actual && (
             <div className="text-xs text-muted tabular-nums">
-              uitslag{" "}
-              <span className="font-semibold text-ink">
-                {match.actual.home}–{match.actual.away}
-              </span>
+              uitslag <span className="font-semibold text-ink">{match.actual.home}–{match.actual.away}</span>
             </div>
           )}
         </div>
 
-        {/* Uitploeg */}
         <div className="flex items-center gap-1.5 flex-1 min-w-0">
           <span className="text-lg leading-none shrink-0" aria-hidden>{flagEmoji(match.away.code)}</span>
           <span className="font-medium text-sm truncate leading-tight">{match.away.name}</span>
         </div>
 
-        {/* Toto + punten */}
         <div className="flex items-center gap-1.5 shrink-0">
-          <TotoButtons
-            value={activeToto}
-            derived={hasScore}
-            disabled={disabled}
-            onClick={(t) => onTotoChange(match.id, t)}
-          />
-          {match.actual ? (
-            result === null ? (
-              <span className="text-xs text-muted w-8 text-center">—</span>
-            ) : (
-              <span className={`text-xs font-bold tabular-nums w-8 text-center ${
-                result.pts === 0 ? "text-brand" : result.pts === 1 ? "text-amber-600" : "text-pitch"
-              }`}>
-                {result.pts === 0 ? "mis" : `+${result.pts}`}
-              </span>
-            )
-          ) : (
-            <div className="text-xs h-4 w-8 text-center">
-              {saveState === "saving" && <span className="text-muted">…</span>}
-              {saveState === "saved" && <span className="text-pitch">✓</span>}
-              {saveState === "error" && <span className="text-brand">!</span>}
-            </div>
-          )}
+          <TotoButtons value={activeToto} derived={hasScore} disabled={disabled}
+            onClick={(t) => onTotoChange(match.id, t)} />
+          <span className="w-8 text-center">{resultBlock}</span>
         </div>
-
       </div>
-      {/* Datum op mobiel onder de rij */}
-      <div className="sm:hidden text-[11px] text-muted mt-1 pl-0">{fmt}</div>
+
+      {/* Mobile layout (< sm): 2 regels — team/score/team boven, toto+datum+status onder */}
+      <div className="sm:hidden space-y-2">
+        <div className="flex items-center gap-2">
+          <div className="flex items-center justify-end gap-1 flex-1 min-w-0">
+            <span className="font-medium text-sm truncate leading-tight text-right">{match.home.name}</span>
+            <span className="text-base leading-none shrink-0" aria-hidden>{flagEmoji(match.home.code)}</span>
+          </div>
+          <div className="flex items-center gap-1 shrink-0">
+            <ScoreInput value={prediction?.home ?? undefined} disabled={disabled}
+              onChange={(v) => onScoreChange(match.id, "home", v)} ariaLabel={`Score ${match.home.name}`} />
+            <span className="text-muted text-sm font-bold">–</span>
+            <ScoreInput value={prediction?.away ?? undefined} disabled={disabled}
+              onChange={(v) => onScoreChange(match.id, "away", v)} ariaLabel={`Score ${match.away.name}`} />
+          </div>
+          <div className="flex items-center gap-1 flex-1 min-w-0">
+            <span className="text-base leading-none shrink-0" aria-hidden>{flagEmoji(match.away.code)}</span>
+            <span className="font-medium text-sm truncate leading-tight">{match.away.name}</span>
+          </div>
+        </div>
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-[11px] text-muted">{fmt}</span>
+          <TotoButtons value={activeToto} derived={hasScore} disabled={disabled}
+            onClick={(t) => onTotoChange(match.id, t)} />
+          <span className="text-xs min-w-[2rem] text-right">
+            {match.actual ? resultBlock : resultBlock}
+          </span>
+        </div>
+        {match.actual && (
+          <div className="text-[11px] text-muted tabular-nums text-center">
+            uitslag <span className="font-semibold text-ink">{match.actual.home}–{match.actual.away}</span>
+          </div>
+        )}
+      </div>
     </li>
   );
 }
