@@ -1,13 +1,12 @@
-import LockToggle from "./LockToggle";
+import LockBadge from "./LockBadge";
 
 export default function UserHeader({
   displayName,
-  isAdmin,
   isLocked,
   lockAt,
 }: {
   displayName: string;
-  isAdmin: boolean;
+  isAdmin?: boolean;
   isLocked: boolean;
   lockAt: string;
 }) {
@@ -29,7 +28,7 @@ export default function UserHeader({
           </div>
         )}
       </div>
-      {isAdmin && <LockToggle isLocked={isLocked} lockAt={lockAt} />}
+      <LockBadge isLocked={isLocked} />
       <form action="/api/logout" method="post">
         <button
           type="submit"

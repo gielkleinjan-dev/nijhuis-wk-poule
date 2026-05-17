@@ -2,6 +2,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { isAdmin } from "@/lib/admin";
 import AdminSearch from "./AdminSearch";
+import LockToggle from "@/app/components/LockToggle";
 
 async function updateTournamentResults(formData: FormData) {
   "use server";
@@ -115,6 +116,7 @@ export default async function AdminPage() {
   });
 
   const lockAt = settings?.lock_at ?? "2026-06-11T17:00:00+02:00";
+  const isLocked = new Date(lockAt) <= new Date();
   const lockAtLocal = new Date(lockAt)
     .toLocaleString("sv-SE", { timeZone: "Europe/Amsterdam" })
     .replace(" ", "T")
@@ -168,6 +170,13 @@ export default async function AdminPage() {
                   Opslaan
                 </button>
               </form>
+              <div className="mt-4 flex items-center gap-3 flex-wrap">
+                <span className="text-xs text-muted">Handmatig:</span>
+                <LockToggle isLocked={isLocked} lockAt={lockAt} />
+                <span className="text-xs text-muted">
+                  Klik om de poule direct te {isLocked ? "openen" : "sluiten"} (overschrijft de tijd).
+                </span>
+              </div>
             </div>
 
             <div className="p-5">
