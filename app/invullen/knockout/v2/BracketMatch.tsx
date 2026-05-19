@@ -2,6 +2,7 @@
 
 import { flagEmoji } from "@/lib/flags";
 import type { MatchId } from "@/lib/bracket/types";
+import { CountryDropdown } from "./CountryDropdown";
 
 type TeamLite = { code: string; name: string };
 
@@ -56,7 +57,6 @@ export function BracketMatch({
         <TeamPill
           code={homeShown}
           isWinner={winner != null && winner === homeShown}
-          isOverride={winnerIsOverride}
           isLocked={isLocked}
           teamsByCode={teamsByCode}
           allTeams={allTeams}
@@ -67,7 +67,6 @@ export function BracketMatch({
         <TeamPill
           code={awayShown}
           isWinner={winner != null && winner === awayShown}
-          isOverride={false}
           isLocked={isLocked}
           teamsByCode={teamsByCode}
           allTeams={allTeams}
@@ -84,7 +83,6 @@ export function BracketMatch({
 function TeamPill({
   code,
   isWinner,
-  isOverride,
   isLocked,
   teamsByCode,
   allTeams,
@@ -93,7 +91,6 @@ function TeamPill({
 }: {
   code: string | undefined;
   isWinner: boolean;
-  isOverride: boolean;
   isLocked: boolean;
   teamsByCode: ReadonlyMap<string, TeamLite>;
   allTeams: ReadonlyArray<TeamLite>;
@@ -102,13 +99,11 @@ function TeamPill({
 }) {
   const t = code ? teamsByCode.get(code) : undefined;
 
+  // Winnaars altijd brand-rood (geen onderscheid override vs cascade)
   const baseClass = isWinner
-    ? isOverride
-      ? "bg-amber-500 text-white border-amber-500 font-semibold"
-      : "bg-brand text-white border-brand font-semibold"
+    ? "bg-brand text-white border-brand font-semibold"
     : "bg-bg border-border hover:border-brand";
 
-  // Voor lege slots: ook dropdown beschikbaar (om handmatig een land te kiezen)
   const emptySlot = !code;
 
   return (
@@ -129,25 +124,16 @@ function TeamPill({
         </button>
       )}
 
-      {/* Dropdown chevron: ander land kiezen voor deze slot */}
       {!isLocked && (
-        <label className={`relative flex items-center justify-center px-1.5 cursor-pointer border-l ${isWinner ? "border-white/30 hover:bg-white/15" : "border-border hover:bg-bg/60"}`} aria-label="Kies ander land">
-          <span className={`text-xs leading-none ${isWinner ? "text-white/80" : "text-muted"}`}>▾</span>
-          <select
-            value={code ?? ""}
-            onChange={(e) => {
-              const v = e.target.value;
-              if (v) onPickFromList(v);
-            }}
-            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-            aria-label="Land kiezen"
-          >
-            <option value="">— kies een land —</option>
-            {allTeams.map((tt) => (
-              <option key={tt.code} value={tt.code}>{tt.name}</option>
-            ))}
-          </select>
-        </label>
+        <CountryDropdown
+          teams={allTeams}
+          selectedCode={code}
+          onPick={onPickFromList}
+          triggerClassName={`flex items-center justify-center px-1.5 cursor-pointer border-l ${
+            isWinner ? "border-white/30 hover:bg-white/15" : "border-border hover:bg-bg/60"
+          }`}
+          triggerLabelClassName={`text-xs leading-none ${isWinner ? "text-white/80" : "text-muted"}`}
+        />
       )}
     </div>
   );

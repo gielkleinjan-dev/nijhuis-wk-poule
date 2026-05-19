@@ -94,7 +94,7 @@ export default function KnockoutFormV2({
       </div>
 
       {s.toast && (
-        <div className="bg-yellow-50 border border-yellow-300 text-yellow-800 rounded-md px-3 py-2 text-xs flex items-start gap-2">
+        <div className="fixed top-4 right-4 z-40 max-w-sm bg-yellow-50 border border-yellow-300 text-yellow-800 rounded-md px-3 py-2 text-xs shadow-lg flex items-start gap-2">
           <span>⚠️</span><span>{s.toast}</span>
         </div>
       )}
