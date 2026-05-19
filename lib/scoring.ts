@@ -177,6 +177,31 @@ export type PointsRow = {
   points: number;
 };
 
+// Splitst bracket_picks-rijen in (a) LAST_32-teams (afgeleid uit V2-rijen
+// GROUP_TOP_2 + BEST_THIRDS, of als die ontbreken: uit V1-rijen met round=LAST_32),
+// en (b) de overige picks (R16+). Wanneer een gebruiker tegelijk V1- en V2-rijen
+// heeft, winnen V2-rijen — V1-LAST_32 wordt genegeerd om dubbele punten te
+// voorkomen tijdens migratie.
+export function expandBracketPicksForScoring(
+  bracketPicks: ReadonlyArray<{ round: string; team_code: string }>,
+): { last32Teams: Set<string>; otherPicks: Array<{ round: string; team_code: string }> } {
+  const hasV2Picks = bracketPicks.some(
+    (p) => p.round === "GROUP_TOP_2" || p.round === "BEST_THIRDS",
+  );
+  const last32Teams = new Set<string>();
+  const otherPicks: Array<{ round: string; team_code: string }> = [];
+  for (const pick of bracketPicks) {
+    if (pick.round === "GROUP_TOP_2" || pick.round === "BEST_THIRDS") {
+      last32Teams.add(pick.team_code);
+    } else if (pick.round === "LAST_32") {
+      if (!hasV2Picks) last32Teams.add(pick.team_code);
+    } else {
+      otherPicks.push(pick);
+    }
+  }
+  return { last32Teams, otherPicks };
+}
+
 export type RecomputeContext = {
   winnerByMatchId: Map<number, string>;
   topScorer: string | null;
@@ -240,7 +265,22 @@ export async function computeUserPointRows(
   }
 
   const survivors = deriveSurvivors(matches ?? [], ctx.winnerByMatchId);
-  for (const pick of bracketPicks ?? []) {
+
+  const { last32Teams, otherPicks } = expandBracketPicksForScoring(bracketPicks ?? []);
+
+  // Score LAST_32 (dedupe op team)
+  for (const team of last32Teams) {
+    if (survivors["LAST_32"].has(team)) {
+      rows.push({
+        source: "knockout",
+        ref_id: `LAST_32:${team}`,
+        points: KO_POINTS["LAST_32"],
+      });
+    }
+  }
+
+  // Score overige rondes (R16 t/m CHAMPION)
+  for (const pick of otherPicks) {
     const round = pick.round as BracketRound;
     if (!(round in KO_POINTS)) continue;
     if (survivors[round].has(pick.team_code)) {

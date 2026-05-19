@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   KO_POINTS,
   deriveSurvivors,
+  expandBracketPicksForScoring,
   scoreBonus,
   scoreGroupPrediction,
   scoreKnockoutRound,
@@ -225,5 +226,76 @@ describe("deriveSurvivors", () => {
     expect(s.SEMI_FINALS).toEqual(new Set(["C"]));
     expect(s.FINAL).toEqual(new Set(["D"]));
     expect(s.CHAMPION).toEqual(new Set(["E"]));
+  });
+});
+
+describe("expandBracketPicksForScoring (V2)", () => {
+  it("lege input → lege last32Teams + lege otherPicks", () => {
+    const r = expandBracketPicksForScoring([]);
+    expect(r.last32Teams.size).toBe(0);
+    expect(r.otherPicks).toEqual([]);
+  });
+
+  it("alleen V1 LAST_32 picks → komen in last32Teams", () => {
+    const r = expandBracketPicksForScoring([
+      { round: "LAST_32", team_code: "BRA" },
+      { round: "LAST_32", team_code: "ARG" },
+    ]);
+    expect(r.last32Teams).toEqual(new Set(["BRA", "ARG"]));
+    expect(r.otherPicks).toEqual([]);
+  });
+
+  it("alleen V2 GROUP_TOP_2 + BEST_THIRDS → samen in last32Teams", () => {
+    const r = expandBracketPicksForScoring([
+      { round: "GROUP_TOP_2", team_code: "BRA" },
+      { round: "GROUP_TOP_2", team_code: "MEX" },
+      { round: "BEST_THIRDS", team_code: "MAR" },
+    ]);
+    expect(r.last32Teams).toEqual(new Set(["BRA", "MEX", "MAR"]));
+    expect(r.otherPicks).toEqual([]);
+  });
+
+  it("V1 LAST_32 + V2 picks → V2 wint, V1 LAST_32 wordt genegeerd", () => {
+    const r = expandBracketPicksForScoring([
+      { round: "LAST_32", team_code: "OUDE_V1" },
+      { round: "GROUP_TOP_2", team_code: "NIEUW_V2" },
+    ]);
+    expect(r.last32Teams).toEqual(new Set(["NIEUW_V2"]));
+    expect(r.otherPicks).toEqual([]);
+  });
+
+  it("LAST_16/QF/SF/FINAL/CHAMPION picks komen in otherPicks", () => {
+    const picks = [
+      { round: "LAST_16", team_code: "BRA" },
+      { round: "QUARTER_FINALS", team_code: "ARG" },
+      { round: "SEMI_FINALS", team_code: "FRA" },
+      { round: "FINAL", team_code: "ESP" },
+      { round: "CHAMPION", team_code: "NED" },
+    ];
+    const r = expandBracketPicksForScoring(picks);
+    expect(r.last32Teams.size).toBe(0);
+    expect(r.otherPicks).toEqual(picks);
+  });
+
+  it("V2 + R16 picks samen werken correct", () => {
+    const r = expandBracketPicksForScoring([
+      { round: "GROUP_TOP_2", team_code: "BRA" },
+      { round: "BEST_THIRDS", team_code: "MAR" },
+      { round: "LAST_16", team_code: "BRA" },
+      { round: "FINAL", team_code: "BRA" },
+    ]);
+    expect(r.last32Teams).toEqual(new Set(["BRA", "MAR"]));
+    expect(r.otherPicks).toEqual([
+      { round: "LAST_16", team_code: "BRA" },
+      { round: "FINAL", team_code: "BRA" },
+    ]);
+  });
+
+  it("duplicate team-codes in last32Teams worden gededupliceerd (Set-gedrag)", () => {
+    const r = expandBracketPicksForScoring([
+      { round: "GROUP_TOP_2", team_code: "BRA" },
+      { round: "BEST_THIRDS", team_code: "BRA" }, // duplicate (zou normaal niet voorkomen)
+    ]);
+    expect(r.last32Teams).toEqual(new Set(["BRA"]));
   });
 });

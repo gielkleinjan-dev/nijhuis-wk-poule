@@ -18,7 +18,7 @@ import type { GroupCode, MatchId } from "./types";
 
 export type PhaseA = Partial<Record<GroupCode, { rank1?: string; rank2?: string }>>;
 export type PhaseB = ReadonlySet<string>;        // 8 team-codes
-export type Bracket = Record<MatchId, string | undefined>;
+export type Bracket = Partial<Record<MatchId, string>>;
 export type TeamGroupMap = ReadonlyMap<string, GroupCode>; // team-code → groep waarin team speelt
 
 // Returnt voor elke R32-match welke 2 landen erin staan op basis van phaseA + phaseB.
