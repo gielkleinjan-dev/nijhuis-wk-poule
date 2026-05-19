@@ -1,19 +1,25 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import KnockoutForm from "./KnockoutForm";
+import KnockoutFormV2 from "./v2/KnockoutFormV2";
 import { ROUNDS, type Team, type Picks } from "./rounds";
 import { deriveSurvivors } from "@/lib/scoring";
+import { type GroupCode, isGroupCode, type MatchId } from "@/lib/bracket/types";
+import type { PhaseA, Bracket } from "@/lib/bracket/cascade";
+import { ALL_MATCH_IDS } from "@/lib/bracket/bracket-graph";
 
 export default async function KnockoutPage() {
   const supabase = await createSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
 
+  const v2Enabled = process.env.NEXT_PUBLIC_BRACKET_V2 === "true";
+
   const [{ data: teamsRaw }, { data: picksRaw }, { data: settings }, { data: groupMatches }, { data: koMatchesRaw }, { data: pointRows }] =
     await Promise.all([
       supabase.from("teams").select("code, name").order("name"),
       supabase
         .from("bracket_picks")
-        .select("round, team_code")
+        .select("round, slot, team_code")
         .eq("user_id", user.id),
       supabase.from("settings").select("lock_at").eq("id", 1).single(),
       supabase
@@ -30,13 +36,68 @@ export default async function KnockoutPage() {
 
   const totalPoints = (pointRows ?? []).reduce((s, r) => s + (r.points ?? 0), 0);
 
-  // Build code → group_name map from group stage fixtures
   const teamGroup = new Map<string, string>();
   for (const m of groupMatches ?? []) {
     if (m.home_team && m.group_name) teamGroup.set(m.home_team, m.group_name);
     if (m.away_team && m.group_name) teamGroup.set(m.away_team, m.group_name);
   }
 
+  const lockAt = settings?.lock_at ?? "2026-06-11T17:00:00Z";
+  const isLocked = new Date(lockAt) <= new Date();
+
+  if (v2Enabled) {
+    const teamsV2: { code: string; name: string; group: GroupCode }[] = [];
+    for (const t of teamsRaw ?? []) {
+      const raw = teamGroup.get(t.code) ?? "";
+      const letter = raw.startsWith("GROUP_") ? raw.slice(6) : raw;
+      if (!isGroupCode(letter)) continue;
+      teamsV2.push({ code: t.code, name: t.name, group: letter });
+    }
+
+    const phaseA: PhaseA = {};
+    const phaseB = new Set<string>();
+    const bracket: Bracket = {};
+    const validMatchIds = new Set<string>(ALL_MATCH_IDS);
+
+    for (const p of picksRaw ?? []) {
+      if (!p.team_code) continue;
+      if (p.round === "GROUP_TOP_2") {
+        const raw = teamGroup.get(p.team_code) ?? "";
+        const g = raw.startsWith("GROUP_") ? raw.slice(6) : raw;
+        if (!isGroupCode(g)) continue;
+        phaseA[g] = phaseA[g] ?? {};
+        if (p.slot === 1) phaseA[g]!.rank1 = p.team_code;
+        else if (p.slot === 2) phaseA[g]!.rank2 = p.team_code;
+      } else if (p.round === "BEST_THIRDS") {
+        phaseB.add(p.team_code);
+      } else if (p.round === "LAST_32" && typeof p.slot === "number") {
+        const id = `R32-${p.slot}`;
+        if (validMatchIds.has(id)) bracket[id as MatchId] = p.team_code;
+      } else if (p.round === "LAST_16" && typeof p.slot === "number") {
+        const id = `R16-${p.slot}`;
+        if (validMatchIds.has(id)) bracket[id as MatchId] = p.team_code;
+      } else if (p.round === "QUARTER_FINALS" && typeof p.slot === "number") {
+        const id = `QF-${p.slot}`;
+        if (validMatchIds.has(id)) bracket[id as MatchId] = p.team_code;
+      } else if (p.round === "SEMI_FINALS" && typeof p.slot === "number") {
+        const id = `SF-${p.slot}`;
+        if (validMatchIds.has(id)) bracket[id as MatchId] = p.team_code;
+      } else if (p.round === "FINAL") {
+        bracket["F-1"] = p.team_code;
+      }
+    }
+
+    return (
+      <KnockoutFormV2
+        teams={teamsV2}
+        initial={{ phaseA, phaseB, bracket }}
+        isLocked={isLocked}
+        totalPoints={totalPoints}
+      />
+    );
+  }
+
+  // ── V1 (default) ──────────────────────────────────────────────────────────
   const teams: Team[] = (teamsRaw || []).map((t) => ({
     code: t.code,
     name: t.name,
@@ -49,14 +110,11 @@ export default async function KnockoutPage() {
     if (picks[p.round]) picks[p.round].add(p.team_code);
   }
 
-  const lockAt = settings?.lock_at ?? "2026-06-11T17:00:00Z";
-  const isLocked = new Date(lockAt) <= new Date();
-
   const koMatchesForSurvivors = koMatchesRaw ?? [];
   const winnerByMatchId = new Map<number, string>();
   for (const m of koMatchesForSurvivors) {
     if (m.status !== "FINISHED" || m.home_score == null || m.away_score == null) continue;
-    if (m.home_score === m.away_score) continue; // penalty data missing, skip
+    if (m.home_score === m.away_score) continue;
     const winner = m.home_score > m.away_score ? m.home_team : m.away_team;
     if (winner) winnerByMatchId.set(m.id, winner);
   }
