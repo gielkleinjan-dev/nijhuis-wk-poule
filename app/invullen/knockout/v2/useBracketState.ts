@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
-import { smartClear, smartClearAfterMatchChange, type PhaseA, type Bracket } from "@/lib/bracket/cascade";
+import type { PhaseA, Bracket } from "@/lib/bracket/cascade";
 import type { GroupCode, MatchId } from "@/lib/bracket/types";
 import { useDebouncedSave } from "./useDebouncedSave";
 
@@ -12,7 +12,10 @@ export type V2InitialPicks = {
   bracket: Bracket;
 };
 
-export function useBracketState(initial: V2InitialPicks, teamGroupMap: ReadonlyMap<string, GroupCode>) {
+export function useBracketState(
+  initial: V2InitialPicks,
+  teamGroupMap: ReadonlyMap<string, GroupCode>,
+) {
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
 
   const [phaseA, setPhaseA] = useState<PhaseA>(initial.phaseA);
@@ -35,93 +38,105 @@ export function useBracketState(initial: V2InitialPicks, teamGroupMap: ReadonlyM
       return { ok: !error };
     }
     if (key.startsWith("match:")) {
-      const { matchId, winner, clear } = payload as { matchId: MatchId; winner: string | undefined; clear: MatchId[] };
+      const { matchId, winner } = payload as { matchId: MatchId; winner: string | undefined };
       const { error } = await supabase.rpc("bracket_v2_save_match", {
         p_match_id: matchId,
         p_winner: winner ?? null,
-        p_clear_descendants: clear,
+        p_clear_descendants: [],
       });
       return { ok: !error };
     }
     return { ok: false };
   });
 
-  // Centrale helper: bereken nieuwe phase A + B state, cascade-clear de bracket,
-  // en save alles. Werkt buiten setState-updaters om strict-mode dubbele effects
-  // te vermijden.
-  const commitPhaseChange = useCallback(
-    (nextA: PhaseA, nextB: Set<string>, opts?: { saveA?: boolean; saveB?: boolean }) => {
-      setPhaseA(nextA);
-      setPhaseB(nextB);
-      if (opts?.saveA !== false) schedule("phaseA", nextA);
-      if (opts?.saveB !== false) schedule("phaseB", Array.from(nextB));
-
-      const { bracket: nextBracket, cleared } = smartClear(bracket, nextA, nextB, teamGroupMap);
-      if (cleared.length > 0) {
-        setBracket(nextBracket);
-        for (const id of cleared) {
-          schedule(`match:${id}`, { matchId: id, winner: undefined, clear: [] });
-        }
-        showToast(`${cleared.length} bracket-keuze${cleared.length > 1 ? "s" : ""} gewist — kandidaten zijn veranderd.`);
-      }
-    },
-    [bracket, teamGroupMap, schedule, showToast],
-  );
-
+  // ── Fase A — rank 1 of 2 per groep ────────────────────────────────────────
   const setPhaseARank = useCallback(
     (group: GroupCode, rank: 1 | 2, teamCode: string | undefined) => {
-      const nextA: PhaseA = { ...phaseA, [group]: { ...phaseA[group] } };
-      const entry = nextA[group]!;
+      const prev = phaseA;
+      const entry = { ...(prev[group] ?? {}) };
+
       if (teamCode == null) {
         if (rank === 1) delete entry.rank1;
         else delete entry.rank2;
       } else {
-        // Team kan niet tweemaal in dezelfde groep zitten
-        if (rank === 1 && entry.rank2 === teamCode) delete entry.rank2;
-        if (rank === 2 && entry.rank1 === teamCode) delete entry.rank1;
+        // Team kan binnen één groep niet beide ranks vullen
+        if (entry.rank1 === teamCode) delete entry.rank1;
+        if (entry.rank2 === teamCode) delete entry.rank2;
         if (rank === 1) entry.rank1 = teamCode;
         else entry.rank2 = teamCode;
       }
-      // Een team kan niet tegelijk top-2 én best-3 zijn
+
+      const nextA: PhaseA = { ...prev, [group]: entry };
+
+      // Als nieuw rank1/2 land eerder als "3e doorgaande" gemarkeerd was, daar weg
       let nextB = phaseB;
       if (teamCode && phaseB.has(teamCode)) {
         nextB = new Set(phaseB);
         nextB.delete(teamCode);
+        setPhaseB(nextB);
+        schedule("phaseB", Array.from(nextB));
       }
-      commitPhaseChange(nextA, nextB);
+
+      setPhaseA(nextA);
+      schedule("phaseA", nextA);
+
+      if (Object.values(bracket).filter(Boolean).length > 0) {
+        showToast("Poule-keuzes gewijzigd — check je bracket.");
+      }
     },
-    [phaseA, phaseB, commitPhaseChange],
+    [phaseA, phaseB, bracket, schedule, showToast],
   );
 
+  const nextFreeRank = useCallback(
+    (group: GroupCode): 1 | 2 | null => {
+      const e = phaseA[group] ?? {};
+      if (!e.rank1) return 1;
+      if (!e.rank2) return 2;
+      return null;
+    },
+    [phaseA],
+  );
+
+  // ── Fase B — "3e doorgaande" markering per groep ──────────────────────────
+  // Click-UX: per groep maximaal 1 markering, totaal maximaal 8.
   const togglePhaseB = useCallback(
     (teamCode: string) => {
-      const nextB = new Set(phaseB);
-      if (nextB.has(teamCode)) {
-        nextB.delete(teamCode);
+      const groupOfNew = teamGroupMap.get(teamCode);
+      const next = new Set(phaseB);
+
+      if (next.has(teamCode)) {
+        next.delete(teamCode);
       } else {
-        if (nextB.size >= 8) return;
-        nextB.add(teamCode);
+        if (next.size >= 8) return;
+        // Verwijder eventueel ander team uit dezelfde groep (max 1 per groep)
+        if (groupOfNew) {
+          for (const t of Array.from(next)) {
+            if (teamGroupMap.get(t) === groupOfNew) next.delete(t);
+          }
+        }
+        next.add(teamCode);
       }
-      commitPhaseChange(phaseA, nextB, { saveA: false });
+
+      setPhaseB(next);
+      schedule("phaseB", Array.from(next));
+
+      if (Object.values(bracket).filter(Boolean).length > 0) {
+        showToast("Selectie 3e doorgaande gewijzigd — check je bracket.");
+      }
     },
-    [phaseA, phaseB, commitPhaseChange],
+    [phaseB, bracket, teamGroupMap, schedule, showToast],
   );
 
+  // ── Bracket — winnaar per wedstrijd, override-vrij ────────────────────────
   const setMatchWinner = useCallback(
     (matchId: MatchId, winner: string | undefined) => {
-      const { bracket: nextBracket, cleared } = smartClearAfterMatchChange(
-        matchId, winner, bracket, phaseA, phaseB, teamGroupMap,
-      );
-      setBracket(nextBracket);
-      schedule(`match:${matchId}`, { matchId, winner, clear: cleared });
-      for (const id of cleared) {
-        schedule(`match:${id}`, { matchId: id, winner: undefined, clear: [] });
-      }
-      if (cleared.length > 0) {
-        showToast(`${cleared.length} latere wedstrijd${cleared.length > 1 ? "en zijn" : " is"} gewist — winnaar veranderd.`);
-      }
+      const next: Bracket = { ...bracket };
+      if (winner == null) delete next[matchId];
+      else next[matchId] = winner;
+      setBracket(next);
+      schedule(`match:${matchId}`, { matchId, winner });
     },
-    [bracket, phaseA, phaseB, teamGroupMap, schedule, showToast],
+    [bracket, schedule],
   );
 
   const phaseACount = useMemo(() => {
@@ -143,7 +158,9 @@ export function useBracketState(initial: V2InitialPicks, teamGroupMap: ReadonlyM
     phaseACount, phaseAComplete,
     phaseBComplete,
     bracketCount, bracketComplete,
-    setPhaseARank, togglePhaseB, setMatchWinner,
+    setPhaseARank, nextFreeRank,
+    togglePhaseB,
+    setMatchWinner,
     saveStates: states,
     toast,
   };

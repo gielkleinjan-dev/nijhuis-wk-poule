@@ -17,11 +17,13 @@ export default function KnockoutFormV2({
   initial,
   isLocked,
   totalPoints,
+  matchDatesByFifaNo,
 }: {
   teams: Team[];
   initial: V2InitialPicks;
   isLocked: boolean;
   totalPoints?: number;
+  matchDatesByFifaNo: ReadonlyMap<number, Date>;
 }) {
   const teamGroupMap = useMemo(() => {
     const m = new Map<string, GroupCode>();
@@ -42,6 +44,11 @@ export default function KnockoutFormV2({
     return m;
   }, [teams]);
 
+  const allTeams = useMemo(
+    () => [...teams].sort((a, b) => a.name.localeCompare(b.name, "nl")),
+    [teams],
+  );
+
   const s = useBracketState(initial, teamGroupMap);
 
   const [activePhase, setActivePhase] = useState<Phase>(() => {
@@ -55,13 +62,13 @@ export default function KnockoutFormV2({
 
   return (
     <div className="space-y-4">
-      {/* Header */}
       <div className="bg-surface border border-border rounded-lg p-5 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold mb-1">Knock-out — bracket</h1>
           <p className="text-sm text-muted">
-            Drie stappen: kies eerst nr 1+2 per poule, dan de 8 beste nummers 3, daarna vul je per
-            wedstrijd de winnaar in. Eerdere keuzes bepalen wie er per wedstrijd kan staan.
+            Drie stappen: kies eerst per poule nummer 1 en 2, dan in welke 8 poules de nummer 3
+            doorgaat, daarna vul je per wedstrijd de winnaar in. Je mag in elke wedstrijd ook een
+            ander land kiezen via de dropdown ▾.
           </p>
         </div>
         {(totalPoints ?? 0) > 0 && (
@@ -78,7 +85,6 @@ export default function KnockoutFormV2({
         </div>
       )}
 
-      {/* Save status */}
       <div className="text-xs h-4 flex justify-end px-1">
         {anyError ? (
           <span className="text-brand font-semibold">opslaan mislukt — probeer opnieuw</span>
@@ -87,14 +93,12 @@ export default function KnockoutFormV2({
         ) : null}
       </div>
 
-      {/* Toast */}
       {s.toast && (
         <div className="bg-yellow-50 border border-yellow-300 text-yellow-800 rounded-md px-3 py-2 text-xs flex items-start gap-2">
           <span>⚠️</span><span>{s.toast}</span>
         </div>
       )}
 
-      {/* Phase tabs */}
       <div className="bg-surface border border-border rounded-lg overflow-hidden">
         <nav className="flex border-b border-border text-sm">
           <PhaseTab
@@ -127,7 +131,8 @@ export default function KnockoutFormV2({
             teamsByGroup={teamsByGroup}
             phaseA={s.phaseA}
             isLocked={isLocked}
-            onSet={s.setPhaseARank}
+            onSetRank={s.setPhaseARank}
+            nextFreeRank={s.nextFreeRank}
           />
         )}
         {activePhase === "B" && (
@@ -148,6 +153,8 @@ export default function KnockoutFormV2({
               isLocked={isLocked}
               teamsByCode={teamsByCode}
               teamGroupMap={teamGroupMap}
+              allTeams={allTeams}
+              matchDatesByFifaNo={matchDatesByFifaNo}
               onPick={s.setMatchWinner}
             />
           </div>

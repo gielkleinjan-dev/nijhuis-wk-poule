@@ -29,7 +29,7 @@ export default async function KnockoutPage() {
         .not("group_name", "is", null),
       supabase
         .from("matches")
-        .select("id, stage, status, home_team, away_team, home_score, away_score")
+        .select("id, stage, status, home_team, away_team, home_score, away_score, kickoff_at")
         .in("stage", ["LAST_32", "LAST_16", "QUARTER_FINALS", "SEMI_FINALS", "FINAL"]),
       supabase.from("points").select("points").eq("user_id", user.id).eq("source", "knockout"),
     ]);
@@ -87,12 +87,18 @@ export default async function KnockoutPage() {
       }
     }
 
+    const matchDatesByFifaNo = new Map<number, Date>();
+    for (const m of koMatchesRaw ?? []) {
+      if (m.id && m.kickoff_at) matchDatesByFifaNo.set(m.id, new Date(m.kickoff_at));
+    }
+
     return (
       <KnockoutFormV2
         teams={teamsV2}
         initial={{ phaseA, phaseB, bracket }}
         isLocked={isLocked}
         totalPoints={totalPoints}
+        matchDatesByFifaNo={matchDatesByFifaNo}
       />
     );
   }

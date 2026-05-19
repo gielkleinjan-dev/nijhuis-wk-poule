@@ -6,98 +6,91 @@ import type { PhaseA } from "@/lib/bracket/cascade";
 
 type TeamLite = { code: string; name: string };
 
+const RANK_BADGE: Record<1 | 2, { label: string; bg: string; text: string; border: string }> = {
+  1: { label: "1e", bg: "bg-pitch", text: "text-white", border: "border-pitch" },
+  2: { label: "2e", bg: "bg-brand", text: "text-white", border: "border-brand" },
+};
+
 export function PhaseAPicker({
   teamsByGroup,
   phaseA,
   isLocked,
-  onSet,
+  onSetRank,
+  nextFreeRank,
 }: {
   teamsByGroup: ReadonlyMap<GroupCode, TeamLite[]>;
   phaseA: PhaseA;
   isLocked: boolean;
-  onSet: (group: GroupCode, rank: 1 | 2, teamCode: string | undefined) => void;
+  onSetRank: (group: GroupCode, rank: 1 | 2, teamCode: string | undefined) => void;
+  nextFreeRank: (group: GroupCode) => 1 | 2 | null;
 }) {
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3">
-      {GROUP_CODES.map((g) => {
-        const teams = teamsByGroup.get(g) ?? [];
-        const entry = phaseA[g] ?? {};
-        const rank1 = entry.rank1;
-        const rank2 = entry.rank2;
-        return (
-          <div key={g} className="border border-border rounded-md p-3 bg-bg/30">
-            <div className="flex items-center justify-between mb-2">
-              <h4 className="font-bold text-sm">Poule {g}</h4>
-              <span className="text-[10px] text-muted">
-                {(rank1 ? 1 : 0) + (rank2 ? 1 : 0)}/2
-              </span>
-            </div>
+  function rankOf(group: GroupCode, code: string): 1 | 2 | null {
+    const e = phaseA[group] ?? {};
+    if (e.rank1 === code) return 1;
+    if (e.rank2 === code) return 2;
+    return null;
+  }
 
-            <RankRow
-              label="1e plaats"
-              rank={1}
-              group={g}
-              teams={teams}
-              selected={rank1}
-              otherSelected={rank2}
-              isLocked={isLocked}
-              onSet={onSet}
-            />
-            <div className="mt-2">
-              <RankRow
-                label="2e plaats"
-                rank={2}
-                group={g}
-                teams={teams}
-                selected={rank2}
-                otherSelected={rank1}
-                isLocked={isLocked}
-                onSet={onSet}
-              />
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
+  function handleClick(group: GroupCode, code: string) {
+    const cur = rankOf(group, code);
+    if (cur != null) {
+      onSetRank(group, cur, undefined);
+      return;
+    }
+    const next = nextFreeRank(group);
+    if (next == null) return;
+    onSetRank(group, next, code);
+  }
 
-function RankRow({
-  label, rank, group, teams, selected, otherSelected, isLocked, onSet,
-}: {
-  label: string;
-  rank: 1 | 2;
-  group: GroupCode;
-  teams: TeamLite[];
-  selected: string | undefined;
-  otherSelected: string | undefined;
-  isLocked: boolean;
-  onSet: (group: GroupCode, rank: 1 | 2, teamCode: string | undefined) => void;
-}) {
   return (
-    <div>
-      <p className="text-[10px] uppercase tracking-wide text-muted mb-1">{label}</p>
-      <div className="grid grid-cols-2 gap-1.5">
-        {teams.map((t) => {
-          const isSelected = selected === t.code;
-          const blocked = !isSelected && otherSelected === t.code;
+    <div className="p-3 space-y-3">
+      <div className="text-xs text-muted bg-bg/40 rounded-md px-3 py-2">
+        <p className="font-semibold mb-0.5">Hoe het werkt</p>
+        <p>
+          Klik per poule eerst de nummer 1 aan en daarna de nummer 2. Klik op een gemarkeerd land
+          om de keuze ongedaan te maken.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {GROUP_CODES.map((g) => {
+          const teams = teamsByGroup.get(g) ?? [];
+          const e = phaseA[g] ?? {};
+          const ranks = (e.rank1 ? 1 : 0) + (e.rank2 ? 1 : 0);
           return (
-            <button
-              key={t.code}
-              type="button"
-              disabled={isLocked || blocked}
-              onClick={() => onSet(group, rank, isSelected ? undefined : t.code)}
-              className={`flex items-center gap-1.5 px-2 py-1.5 rounded text-xs border transition text-left ${
-                isSelected
-                  ? "bg-brand text-white border-brand font-semibold"
-                  : blocked
-                  ? "bg-bg border-border text-muted opacity-40 cursor-not-allowed"
-                  : "bg-surface border-border hover:border-brand"
-              }`}
-            >
-              <span className="text-sm leading-none" aria-hidden>{flagEmoji(t.code)}</span>
-              <span className="truncate flex-1">{t.name}</span>
-            </button>
+            <div key={g} className="border border-border rounded-md p-3 bg-bg/30">
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="font-bold text-sm">Poule {g}</h4>
+                <span className="text-[10px] tabular-nums text-muted">{ranks}/2</span>
+              </div>
+              <div className="grid grid-cols-1 gap-1.5">
+                {teams.map((t) => {
+                  const r = rankOf(g, t.code);
+                  const badge = r ? RANK_BADGE[r] : null;
+                  return (
+                    <button
+                      key={t.code}
+                      type="button"
+                      disabled={isLocked}
+                      onClick={() => handleClick(g, t.code)}
+                      className={`flex items-center gap-2 px-2 py-2 rounded text-sm border transition text-left ${
+                        badge
+                          ? `${badge.bg} ${badge.text} ${badge.border} font-semibold`
+                          : "bg-surface border-border hover:border-brand"
+                      } ${isLocked ? "cursor-not-allowed opacity-70" : ""}`}
+                    >
+                      {badge && (
+                        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-white/30 text-xs font-bold shrink-0">
+                          {badge.label}
+                        </span>
+                      )}
+                      <span className="text-base leading-none" aria-hidden>{flagEmoji(t.code)}</span>
+                      <span className="truncate flex-1">{t.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           );
         })}
       </div>
