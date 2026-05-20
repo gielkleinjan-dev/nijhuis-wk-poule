@@ -91,17 +91,22 @@ export function BracketMatch({
     lockClicksBriefly();
   }
 
+  // Pill body clicks zetten een winnaar maar wissen 'm nooit (geen toggle).
+  // Bij actieve override worden ze genegeerd: pas na ↺-reset kun je via klik
+  // weer een cascade-default kiezen. Reset gaat alleen via de ↺-knop.
   function clickHome() {
     if (Date.now() < clickLockUntil.current) return;
+    if (winnerIsOverride) return;
     if (!homeShown) return;
     setOverrideSide("home");
-    onPick(winner === homeShown ? undefined : homeShown);
+    if (winner !== homeShown) onPick(homeShown);
   }
   function clickAway() {
     if (Date.now() < clickLockUntil.current) return;
+    if (winnerIsOverride) return;
     if (!awayShown) return;
     setOverrideSide("away");
-    onPick(winner === awayShown ? undefined : awayShown);
+    if (winner !== awayShown) onPick(awayShown);
   }
 
   return (
