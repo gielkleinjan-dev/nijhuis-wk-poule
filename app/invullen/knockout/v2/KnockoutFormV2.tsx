@@ -163,9 +163,9 @@ export default function KnockoutFormV2({
               subtitle="Het complete knock-out schema. Tik op het land dat volgens jou wint."
               legend={[
                 { sw: "bg-pitch", text: "winnaar" },
-                { sw: "bg-pitch-soft border border-pitch/40", text: "jouw keuze in pill, niet de winnaar" },
-                { ico: "▾", text: "tik om een ander land in deze pill te zetten" },
-                { ico: "↺", text: "tik om die pill (en winnaar) te wissen" },
+                { sw: "bg-pitch-soft border border-pitch/40", text: "afwijkende keuze t.o.v. het automatische schema (geen winnaar)" },
+                { ico: "▾", text: "tik om af te wijken van het standaard schema en een ander land te kiezen" },
+                { ico: "↺", text: "tik om die keuze te wissen" },
               ]}
             />
             <div className="p-3">
