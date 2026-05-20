@@ -45,8 +45,8 @@ export function PhaseAPicker({
   return (
     <div className="p-3 space-y-3">
       <p className="text-xs text-muted px-1">
-        Tik in elke poule eerst de nummer 1 (<span className="font-semibold text-pitch">donkergroen</span>), daarna de nummer 2
-        (<span className="font-semibold text-pitch/80">lichter groen</span>). Per ongeluk fout? Tik nogmaals op het gemarkeerde land om de keuze te wissen.
+        Per poule: tik eerst je nummer 1 aan (<span className="font-semibold text-pitch">donkergroen</span>), daarna je nummer 2
+        (<span className="font-semibold text-pitch/80">lichter groen</span>). Fout? Tik nogmaals op het land om te wissen.
       </p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">

@@ -153,8 +153,8 @@ export default async function RanglijstPage({
 
           {/* ── Team header ── row 1 col 2 (desktop) / after ind-table on mobile */}
           <div className="order-3 lg:order-2 bg-surface border border-border rounded-lg p-5">
-            <h2 className="text-xl font-bold mb-1">Team klassement</h2>
-            <p className="text-xs text-muted">
+            <h2 className="text-2xl font-bold mb-1">Team klassement</h2>
+            <p className="text-sm text-muted">
               Gemiddeld aantal punten per teamlid.
             </p>
             {hasTeamMovement && (teamTopRiser || teamTopFaller) && (

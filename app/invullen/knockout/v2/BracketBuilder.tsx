@@ -12,27 +12,27 @@ type TeamLite = { code: string; name: string };
 const ROUND_META: Record<Round, { title: string; hint: string; full: number; half: number }> = {
   LAST_32: {
     title: "1/16e finale",
-    hint: "De 32 geplaatste landen spelen 16 wedstrijden. Kies in elke wedstrijd de winnaar.",
+    hint: "32 landen, 16 wedstrijden. Kies per wedstrijd de winnaar.",
     full: 8, half: 4,
   },
   LAST_16: {
     title: "1/8e finale",
-    hint: "De 16 overgebleven landen spelen 8 wedstrijden. Kies in elke wedstrijd de winnaar.",
+    hint: "16 landen, 8 wedstrijden. Kies per wedstrijd de winnaar.",
     full: 14, half: 7,
   },
   QUARTER_FINALS: {
     title: "Kwartfinale",
-    hint: "Vier wedstrijden tussen de 8 landen die de 1/8e finale overleven. Kies de winnaars.",
+    hint: "8 landen, 4 wedstrijden. Kies per wedstrijd de winnaar.",
     full: 24, half: 12,
   },
   SEMI_FINALS: {
     title: "Halve finale",
-    hint: "De 4 kwartfinalewinnaars spelen 2 wedstrijden. De winnaars staan in de finale.",
+    hint: "4 landen, 2 wedstrijden. De winnaars spelen de finale.",
     full: 36, half: 18,
   },
   FINAL: {
     title: "Finale",
-    hint: "De winnaar van deze wedstrijd wordt wereldkampioen.",
+    hint: "Eén wedstrijd. De winnaar is wereldkampioen.",
     full: 96, half: 0,
   },
 };

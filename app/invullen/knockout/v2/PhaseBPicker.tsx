@@ -28,8 +28,8 @@ export function PhaseBPicker({
   return (
     <div className="p-3 space-y-3">
       <p className="text-xs text-muted px-1">
-        Tik in maximaal 8 poules op een land dat geen nummer 1 of 2 is.
-        Dat land krijgt een <span className="font-semibold text-amber-600">oranje 3e-badge</span> en plaatst zich volgens jou als beste nummer 3.
+        Markeer in 8 poules het land dat als beste nummer 3 doorgaat. Tik op een land dat in stap 1 geen 1 of 2 was — het krijgt een
+        <span className="font-semibold text-amber-600"> oranje badge</span>.
       </p>
 
       <div className="flex items-center justify-between px-1">

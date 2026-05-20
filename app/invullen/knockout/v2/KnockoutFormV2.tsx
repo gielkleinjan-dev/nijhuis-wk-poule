@@ -65,10 +65,21 @@ export default function KnockoutFormV2({
       <div className="bg-surface border border-border rounded-lg p-5 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold mb-1">Knock-out</h1>
-          <p className="text-sm text-muted">
-            Voorspel het hele knock-out schema in drie stappen. Vul ze in volgorde in —
-            stap 2 opent zodra stap 1 af is, stap 3 opent zodra stap 2 af is.
-          </p>
+          <div className="text-sm text-muted space-y-2">
+            <p>
+              In drie stappen voorspel je het knock-out schema. Elke volgende stap opent zodra
+              de vorige klaar is.
+            </p>
+            <p>
+              <span className="font-medium text-fg">Stap 1 en 2</span> bepalen welke 32 landen
+              aan jouw knock-out beginnen — top 2 per poule en jouw 8 beste nummers 3. Daarop
+              bouwen we automatisch jouw persoonlijke schema. Daarvoor krijg je nog geen punten.
+            </p>
+            <p>
+              <span className="font-medium text-fg">Stap 3</span> is waar je punten verdient:
+              kies per wedstrijd wie wint. Goed gegokt op de juiste plek levert de volle punten op.
+            </p>
+          </div>
         </div>
         <div className="shrink-0 flex flex-row sm:flex-col items-start sm:items-end gap-6 sm:gap-2 text-left sm:text-right">
           {(totalPoints ?? 0) > 0 && (
@@ -128,7 +139,7 @@ export default function KnockoutFormV2({
             <StepHeader
               num={1}
               title="Top 2 per poule"
-              subtitle="Voor alle 12 poules: kies wie er volgens jou eerste en tweede wordt. Dat zijn 24 picks."
+              subtitle="Wijs per poule de nummer 1 en de nummer 2 aan. Samen 24 landen."
             />
             <PhaseAPicker
               teamsByGroup={teamsByGroup}
@@ -144,7 +155,7 @@ export default function KnockoutFormV2({
             <StepHeader
               num={2}
               title="Beste nummers 3"
-              subtitle="Van de 12 nummers 3 plaatsen er 8 zich. Markeer in welke 8 poules de nummer 3 doorgaat naar de knock-out."
+              subtitle="Niet elke nummer 3 plaatst zich — alleen de 8 beste. Markeer in welke 8 poules dat lukt."
             />
             <PhaseBPicker
               teamsByGroup={teamsByGroup}
@@ -160,12 +171,12 @@ export default function KnockoutFormV2({
             <StepHeader
               num={3}
               title="Winnaars per wedstrijd"
-              subtitle="Het complete knock-out schema. Tik op het land dat volgens jou wint."
+              subtitle="Hieronder staat jouw persoonlijke knock-out schema, opgebouwd uit stap 1 en 2. Kies per wedstrijd wie wint — dit is waar je punten voor verdient."
               legend={[
-                { sw: "bg-pitch", text: "winnaar" },
-                { sw: "bg-pitch-soft border border-pitch/40", text: "afwijkende keuze t.o.v. het automatische schema" },
-                { ico: "▾", text: "tik om af te wijken van het standaard schema en een ander land te kiezen" },
-                { ico: "↺", text: "tik om die keuze te wissen" },
+                { sw: "bg-pitch", text: "winnaar van de wedstrijd" },
+                { sw: "bg-pitch-soft border border-pitch/40", text: "ander land op deze plek gezet" },
+                { ico: "▾", text: "kies een ander land voor deze plek" },
+                { ico: "↺", text: "wis deze keuze" },
               ]}
             />
             <div className="p-3">
