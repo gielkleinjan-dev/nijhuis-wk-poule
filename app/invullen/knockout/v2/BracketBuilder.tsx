@@ -82,34 +82,57 @@ export function BracketBuilder({
               </div>
             </div>
             <ul>
-              {ids.map((id) => {
-                const node = BRACKET_GRAPH[id];
-                let home: string | undefined;
-                let away: string | undefined;
-                if (node.round === "LAST_32") {
-                  const s = r32Slots[id];
-                  home = s?.home;
-                  away = s?.away;
-                } else {
-                  home = bracket[node.homeFromMatch];
-                  away = bracket[node.awayFromMatch];
+              {(() => {
+                // Bereken per match home + away (cascade voor R32, parent-winnaars voor R16+).
+                // Verzamel daarna alle landen die binnen deze ronde "in" de bracket staan
+                // (home, away of winnaar). Een land mag maar in 1 wedstrijd per ronde voorkomen,
+                // dus filter dat uit de dropdown van álle andere wedstrijden.
+                type MatchSlots = { id: MatchId; node: typeof BRACKET_GRAPH[MatchId]; home?: string; away?: string };
+                const matchSlots: MatchSlots[] = ids.map((id) => {
+                  const node = BRACKET_GRAPH[id];
+                  if (node.round === "LAST_32") {
+                    const s = r32Slots[id];
+                    return { id, node, home: s?.home, away: s?.away };
+                  }
+                  return { id, node, home: bracket[node.homeFromMatch], away: bracket[node.awayFromMatch] };
+                });
+                const takenByMatch = new Map<MatchId, Set<string>>();
+                for (const ms of matchSlots) {
+                  const set = new Set<string>();
+                  if (ms.home) set.add(ms.home);
+                  if (ms.away) set.add(ms.away);
+                  const w = bracket[ms.id];
+                  if (w) set.add(w);
+                  takenByMatch.set(ms.id, set);
                 }
-                return (
-                  <BracketMatch
-                    key={id}
-                    matchId={id}
-                    fifaMatchNo={node.fifaMatchNo}
-                    homeCand={home}
-                    awayCand={away}
-                    kickoff={matchDatesByFifaNo.get(node.fifaMatchNo)}
-                    winner={bracket[id]}
-                    allTeams={allTeams}
-                    isLocked={isLocked}
-                    teamsByCode={teamsByCode}
-                    onPick={(w) => onPick(id, w)}
-                  />
-                );
-              })}
+                return matchSlots.map(({ id, node, home, away }) => {
+                  // Dropdown-landen voor deze wedstrijd: alle teams MIN alles wat in
+                  // andere wedstrijden van deze ronde is opgenomen. Eigen home/away/winner
+                  // blijft uiteraard staan.
+                  const own = takenByMatch.get(id) ?? new Set<string>();
+                  const taken = new Set<string>();
+                  for (const [mid, codes] of takenByMatch) {
+                    if (mid === id) continue;
+                    for (const c of codes) taken.add(c);
+                  }
+                  const allowedTeams = allTeams.filter((t) => own.has(t.code) || !taken.has(t.code));
+                  return (
+                    <BracketMatch
+                      key={id}
+                      matchId={id}
+                      fifaMatchNo={node.fifaMatchNo}
+                      homeCand={home}
+                      awayCand={away}
+                      kickoff={matchDatesByFifaNo.get(node.fifaMatchNo)}
+                      winner={bracket[id]}
+                      allTeams={allowedTeams}
+                      isLocked={isLocked}
+                      teamsByCode={teamsByCode}
+                      onPick={(w) => onPick(id, w)}
+                    />
+                  );
+                });
+              })()}
             </ul>
           </section>
         );
