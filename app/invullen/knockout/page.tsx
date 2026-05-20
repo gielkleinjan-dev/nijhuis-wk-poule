@@ -12,7 +12,9 @@ export default async function KnockoutPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const v2Enabled = process.env.NEXT_PUBLIC_BRACKET_V2 === "true";
+  // Knock-out V2 is per default actief (productie-flip).
+  // Zet env-var op "0" of "false" om tijdelijk terug te vallen op V1 (KnockoutForm.tsx).
+  const v2Enabled = process.env.NEXT_PUBLIC_BRACKET_V2 !== "false" && process.env.NEXT_PUBLIC_BRACKET_V2 !== "0";
 
   const [{ data: teamsRaw }, { data: picksRaw }, { data: settings }, { data: groupMatches }, { data: koMatchesRaw }, { data: pointRows }] =
     await Promise.all([
