@@ -66,9 +66,8 @@ export default function KnockoutFormV2({
         <div>
           <h1 className="text-2xl font-bold mb-1">Knock-out</h1>
           <p className="text-sm text-muted">
-            Drie stappen: (1) wijs per poule je nummer 1 en 2 aan, (2) kies in welke 8 poules de
-            nummer 3 doorgaat, (3) vul per wedstrijd de winnaar in. Met het ▾-pijltje kun je in
-            een wedstrijd ook een ander land kiezen dan de standaard-bracket voorstelt.
+            Voorspel het hele knock-out schema in drie stappen. Vul ze in volgorde in —
+            stap 2 opent zodra stap 1 af is, stap 3 opent zodra stap 2 af is.
           </p>
         </div>
         <div className="shrink-0 flex flex-row sm:flex-col items-start sm:items-end gap-6 sm:gap-2 text-left sm:text-right">
@@ -108,101 +107,151 @@ export default function KnockoutFormV2({
         </div>
       )}
 
+      {/* Visuele stappen-indicator met cijfers, voortgangsverbinder en status */}
+      <StepProgress
+        steps={[
+          { num: 1, label: "Top 2 per poule", count: s.phaseACount, total: 24, complete: s.phaseAComplete, active: activePhase === "A" },
+          { num: 2, label: "Beste nummers 3", count: s.phaseB.size, total: 8, complete: s.phaseBComplete, active: activePhase === "B", locked: !s.phaseAComplete },
+          { num: 3, label: "Winnaars per wedstrijd", count: s.bracketCount, total: 31, complete: s.bracketComplete, active: activePhase === "C", locked: !s.phaseBComplete },
+        ]}
+        onSelect={(num) => {
+          if (num === 1) setActivePhase("A");
+          else if (num === 2 && s.phaseAComplete) setActivePhase("B");
+          else if (num === 3 && s.phaseBComplete) setActivePhase("C");
+        }}
+      />
+
       <div className="bg-surface border border-border rounded-lg overflow-hidden">
-        <nav className="flex border-b border-border text-sm">
-          <PhaseTab
-            label="1. Top 2 per poule"
-            count={`${s.phaseACount}/24`}
-            active={activePhase === "A"}
-            complete={s.phaseAComplete}
-            onClick={() => setActivePhase("A")}
-          />
-          <PhaseTab
-            label="2. Beste nummers 3"
-            count={`${s.phaseB.size}/8`}
-            active={activePhase === "B"}
-            complete={s.phaseBComplete}
-            disabled={!s.phaseAComplete}
-            onClick={() => s.phaseAComplete && setActivePhase("B")}
-          />
-          <PhaseTab
-            label="3. Bracket"
-            count={`${s.bracketCount}/31`}
-            active={activePhase === "C"}
-            complete={s.bracketComplete}
-            disabled={!s.phaseBComplete}
-            onClick={() => s.phaseBComplete && setActivePhase("C")}
-          />
-        </nav>
 
         {activePhase === "A" && (
-          <PhaseAPicker
-            teamsByGroup={teamsByGroup}
-            phaseA={s.phaseA}
-            isLocked={isLocked}
-            onSetRank={s.setPhaseARank}
-            nextFreeRank={s.nextFreeRank}
-          />
+          <>
+            <StepHeader
+              num={1}
+              title="Top 2 per poule"
+              subtitle="Voor alle 12 poules: kies wie er volgens jou eerste en tweede wordt. Dat zijn 24 picks."
+            />
+            <PhaseAPicker
+              teamsByGroup={teamsByGroup}
+              phaseA={s.phaseA}
+              isLocked={isLocked}
+              onSetRank={s.setPhaseARank}
+              nextFreeRank={s.nextFreeRank}
+            />
+          </>
         )}
         {activePhase === "B" && (
-          <PhaseBPicker
-            teamsByGroup={teamsByGroup}
-            phaseA={s.phaseA}
-            phaseB={s.phaseB}
-            isLocked={isLocked}
-            onToggle={s.togglePhaseB}
-          />
-        )}
-        {activePhase === "C" && (
-          <div className="p-3">
-            <BracketBuilder
+          <>
+            <StepHeader
+              num={2}
+              title="Beste nummers 3"
+              subtitle="Van de 12 nummers 3 plaatsen er 8 zich. Markeer in welke 8 poules de nummer 3 doorgaat naar de knock-out."
+            />
+            <PhaseBPicker
+              teamsByGroup={teamsByGroup}
               phaseA={s.phaseA}
               phaseB={s.phaseB}
-              bracket={s.bracket}
-              overrides={s.overrides}
               isLocked={isLocked}
-              teamsByCode={teamsByCode}
-              teamGroupMap={teamGroupMap}
-              allTeams={allTeams}
-              matchDatesByFifaNo={matchDatesByFifaNo}
-              onPick={s.setMatchWinner}
-              onSetOverride={s.setOverride}
+              onToggle={s.togglePhaseB}
             />
-          </div>
+          </>
+        )}
+        {activePhase === "C" && (
+          <>
+            <StepHeader
+              num={3}
+              title="Winnaars per wedstrijd"
+              subtitle="Het complete knock-out schema. Tik op het land dat volgens jou wint. Wil je een land buiten je stap 1+2 keuze hebben? Tik ▾ in een pill om dat land in te vullen."
+            />
+            <div className="p-3">
+              <BracketBuilder
+                phaseA={s.phaseA}
+                phaseB={s.phaseB}
+                bracket={s.bracket}
+                overrides={s.overrides}
+                isLocked={isLocked}
+                teamsByCode={teamsByCode}
+                teamGroupMap={teamGroupMap}
+                allTeams={allTeams}
+                matchDatesByFifaNo={matchDatesByFifaNo}
+                onPick={s.setMatchWinner}
+                onSetOverride={s.setOverride}
+              />
+            </div>
+          </>
         )}
       </div>
     </div>
   );
 }
 
-function PhaseTab({
-  label, count, active, complete, disabled, onClick,
-}: {
-  label: string;
-  count: string;
-  active: boolean;
-  complete: boolean;
-  disabled?: boolean;
-  onClick: () => void;
-}) {
+function StepHeader({ num, title, subtitle }: { num: number; title: string; subtitle: string }) {
   return (
-    <button
-      type="button"
-      disabled={disabled}
-      onClick={onClick}
-      className={`flex-1 px-3 py-3 text-left transition border-b-2 ${
-        active
-          ? "border-brand text-fg font-semibold bg-bg/30"
-          : disabled
-          ? "border-transparent text-muted opacity-40 cursor-not-allowed"
-          : "border-transparent text-muted hover:text-fg hover:bg-bg/30"
-      }`}
-    >
-      <div className="flex items-center gap-2">
-        <span>{label}</span>
-        {complete && <span className="text-pitch text-xs">✓</span>}
+    <div className="px-5 py-4 border-b border-border bg-bg/30">
+      <div className="flex items-center gap-2 mb-1">
+        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-brand text-white text-xs font-bold">
+          {num}
+        </span>
+        <h2 className="text-base font-bold">{title}</h2>
       </div>
-      <div className="text-[10px] tabular-nums text-muted">{count}</div>
-    </button>
+      <p className="text-xs text-muted">{subtitle}</p>
+    </div>
+  );
+}
+
+type Step = {
+  num: 1 | 2 | 3;
+  label: string;
+  count: number;
+  total: number;
+  complete: boolean;
+  active: boolean;
+  locked?: boolean;
+};
+
+function StepProgress({ steps, onSelect }: { steps: Step[]; onSelect: (num: 1 | 2 | 3) => void }) {
+  return (
+    <div className="bg-surface border border-border rounded-lg p-3 sm:p-4">
+      <div className="flex items-center gap-1 sm:gap-2">
+        {steps.map((step, i) => (
+          <div key={step.num} className="flex items-center gap-1 sm:gap-2 flex-1 min-w-0">
+            <button
+              type="button"
+              disabled={step.locked}
+              onClick={() => onSelect(step.num)}
+              className={`flex-1 min-w-0 px-2 sm:px-3 py-2 rounded-md border transition text-left ${
+                step.active
+                  ? "border-brand bg-brand-soft"
+                  : step.locked
+                  ? "border-border bg-bg/30 cursor-not-allowed opacity-50"
+                  : "border-border bg-bg hover:border-brand hover:bg-bg/60"
+              }`}
+            >
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <span
+                  className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-[11px] font-bold shrink-0 ${
+                    step.complete
+                      ? "bg-pitch text-white"
+                      : step.active
+                      ? "bg-brand text-white"
+                      : "bg-border text-muted"
+                  }`}
+                >
+                  {step.complete ? "✓" : step.num}
+                </span>
+                <span className={`text-[11px] sm:text-xs font-semibold truncate ${step.active ? "text-brand" : "text-fg"}`}>
+                  {step.label}
+                </span>
+              </div>
+              <div className="text-[10px] tabular-nums text-muted ml-6 sm:ml-7">
+                {step.count}/{step.total}
+              </div>
+            </button>
+            {i < steps.length - 1 && (
+              <div className={`h-0.5 w-2 sm:w-3 shrink-0 ${steps[i].complete ? "bg-pitch" : "bg-border"}`} aria-hidden />
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }

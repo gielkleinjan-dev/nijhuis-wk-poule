@@ -44,13 +44,10 @@ export function PhaseAPicker({
 
   return (
     <div className="p-3 space-y-3">
-      <div className="text-xs text-muted bg-bg/40 rounded-md px-3 py-2">
-        <p className="font-semibold mb-0.5">Hoe vul je dit in</p>
-        <p>
-          Klik per poule eerst je nummer 1 aan (donkergroen) en daarna je nummer 2 (lichter groen).
-          Klik nog een keer op een gemarkeerd land om die keuze te wissen.
-        </p>
-      </div>
+      <p className="text-xs text-muted px-1">
+        Tik in elke poule eerst de nummer 1 (<span className="font-semibold text-pitch">donkergroen</span>), daarna de nummer 2
+        (<span className="font-semibold text-pitch/80">lichter groen</span>). Per ongeluk fout? Tik nogmaals op het gemarkeerde land om de keuze te wissen.
+      </p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {GROUP_CODES.map((g) => {

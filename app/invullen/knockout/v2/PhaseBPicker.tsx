@@ -27,17 +27,13 @@ export function PhaseBPicker({
 
   return (
     <div className="p-3 space-y-3">
-      <div className="text-xs text-muted bg-bg/40 rounded-md px-3 py-2">
-        <p className="font-semibold mb-0.5">Hoe vul je dit in</p>
-        <p>
-          Niet alle 12 nummers 3 plaatsen zich — alleen de 8 beste gaan door naar de 1/16e finale.
-          Markeer in elke poule waar jij een sterke nummer 3 verwacht het land dat doorgaat (oranje
-          3e-badge). Maximaal 1 per poule, maximaal 8 in totaal.
-        </p>
-      </div>
+      <p className="text-xs text-muted px-1">
+        Tik in maximaal 8 poules op een land dat geen nummer 1 of 2 is.
+        Dat land krijgt een <span className="font-semibold text-amber-600">oranje 3e-badge</span> en plaatst zich volgens jou als beste nummer 3.
+      </p>
 
       <div className="flex items-center justify-between px-1">
-        <div className="text-sm font-semibold">Selectie {phaseB.size}/8</div>
+        <div className="text-sm font-semibold tabular-nums">Geselecteerd: {phaseB.size}/8</div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
