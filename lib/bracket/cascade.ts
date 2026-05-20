@@ -16,7 +16,7 @@ import { BRACKET_GRAPH, ALL_MATCH_IDS, MATCH_IDS_BY_ROUND, descendantMatches } f
 import { getThirdsRouting } from "./fifa-thirds-table";
 import type { GroupCode, MatchId } from "./types";
 
-export type PhaseA = Partial<Record<GroupCode, { rank1?: string; rank2?: string }>>;
+export type PhaseA = Partial<Record<GroupCode, { rank1?: string; rank2?: string; rank3?: string }>>;
 export type PhaseB = ReadonlySet<string>;        // 8 team-codes
 export type Bracket = Partial<Record<MatchId, string>>;
 export type TeamGroupMap = ReadonlyMap<string, GroupCode>; // team-code → groep waarin team speelt

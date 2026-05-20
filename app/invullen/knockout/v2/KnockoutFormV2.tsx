@@ -64,19 +64,29 @@ export default function KnockoutFormV2({
     <div className="space-y-4">
       <div className="bg-surface border border-border rounded-lg p-5 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold mb-1">Knock-out — bracket</h1>
+          <h1 className="text-2xl font-bold mb-1">Knock-out</h1>
           <p className="text-sm text-muted">
-            Drie stappen: kies eerst per poule nummer 1 en 2, dan in welke 8 poules de nummer 3
-            doorgaat, daarna vul je per wedstrijd de winnaar in. Je mag in elke wedstrijd ook een
-            ander land kiezen via de dropdown ▾.
+            In drie stappen vul je je bracket in. Stap 1: wijs in elke poule de nummer 1 en 2 aan.
+            Stap 2: kies in welke 8 poules de nummer 3 zich ook plaatst. Stap 3: vul per wedstrijd
+            de winnaar in. Tip: met het pijltje ▾ in een wedstrijd kun je elk land kiezen, ook
+            eentje die volgens de standaard-bracket daar niet zou staan.
           </p>
         </div>
-        {(totalPoints ?? 0) > 0 && (
-          <div className="text-right shrink-0">
-            <div className="text-3xl font-bold tabular-nums text-pitch">{totalPoints}</div>
-            <div className="text-xs text-muted">punten</div>
+        <div className="shrink-0 flex flex-row sm:flex-col items-start sm:items-end gap-6 sm:gap-2 text-left sm:text-right">
+          {(totalPoints ?? 0) > 0 && (
+            <div>
+              <div className="text-3xl font-bold tabular-nums text-pitch">{totalPoints}</div>
+              <div className="text-xs text-muted">punten</div>
+            </div>
+          )}
+          <div>
+            <div className="text-2xl font-bold tabular-nums">
+              {s.phaseACount + s.phaseB.size + s.bracketCount}
+              <span className="text-base text-muted font-normal">/63</span>
+            </div>
+            <div className="text-xs text-muted">ingevuld</div>
           </div>
-        )}
+        </div>
       </div>
 
       {isLocked && (

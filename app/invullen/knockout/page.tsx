@@ -62,12 +62,17 @@ export default async function KnockoutPage() {
     for (const p of picksRaw ?? []) {
       if (!p.team_code) continue;
       if (p.round === "GROUP_TOP_2") {
-        const raw = teamGroup.get(p.team_code) ?? "";
-        const g = raw.startsWith("GROUP_") ? raw.slice(6) : raw;
+        // Slot-encoding: (rank-1)*12 + groupIdx (A=0..L=11)
+        // → rank1: 0..11, rank2: 12..23, rank3: 24..35
+        if (typeof p.slot !== "number") continue;
+        const rank = Math.floor(p.slot / 12) + 1;
+        const groupIdx = p.slot % 12;
+        const g = String.fromCharCode("A".charCodeAt(0) + groupIdx);
         if (!isGroupCode(g)) continue;
         phaseA[g] = phaseA[g] ?? {};
-        if (p.slot === 1) phaseA[g]!.rank1 = p.team_code;
-        else if (p.slot === 2) phaseA[g]!.rank2 = p.team_code;
+        if (rank === 1) phaseA[g]!.rank1 = p.team_code;
+        else if (rank === 2) phaseA[g]!.rank2 = p.team_code;
+        else if (rank === 3) phaseA[g]!.rank3 = p.team_code;
       } else if (p.round === "BEST_THIRDS") {
         phaseB.add(p.team_code);
       } else if (p.round === "LAST_32" && typeof p.slot === "number") {

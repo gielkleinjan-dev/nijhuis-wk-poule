@@ -183,7 +183,7 @@ export type PointsRow = {
 // heeft, winnen V2-rijen — V1-LAST_32 wordt genegeerd om dubbele punten te
 // voorkomen tijdens migratie.
 export function expandBracketPicksForScoring(
-  bracketPicks: ReadonlyArray<{ round: string; team_code: string }>,
+  bracketPicks: ReadonlyArray<{ round: string; team_code: string; slot?: number | null }>,
 ): { last32Teams: Set<string>; otherPicks: Array<{ round: string; team_code: string }> } {
   const hasV2Picks = bracketPicks.some(
     (p) => p.round === "GROUP_TOP_2" || p.round === "BEST_THIRDS",
@@ -191,7 +191,14 @@ export function expandBracketPicksForScoring(
   const last32Teams = new Set<string>();
   const otherPicks: Array<{ round: string; team_code: string }> = [];
   for (const pick of bracketPicks) {
-    if (pick.round === "GROUP_TOP_2" || pick.round === "BEST_THIRDS") {
+    if (pick.round === "GROUP_TOP_2") {
+      // Slot-encoding: (rank-1)*12 + groupIdx → rank1=0..11, rank2=12..23, rank3=24..35.
+      // Alleen rank1+2 tellen automatisch mee in LAST_32. Rank3 = metadata,
+      // pas via BEST_THIRDS round-rij gaat een nr3 daadwerkelijk door.
+      if (typeof pick.slot === "number" && pick.slot >= 0 && pick.slot < 24) {
+        last32Teams.add(pick.team_code);
+      }
+    } else if (pick.round === "BEST_THIRDS") {
       last32Teams.add(pick.team_code);
     } else if (pick.round === "LAST_32") {
       if (!hasV2Picks) last32Teams.add(pick.team_code);
@@ -230,7 +237,7 @@ export async function computeUserPointRows(
       .eq("user_id", userId),
     supabase
       .from("bracket_picks")
-      .select("round, team_code")
+      .select("round, slot, team_code")
       .eq("user_id", userId),
     supabase
       .from("bonus_picks")

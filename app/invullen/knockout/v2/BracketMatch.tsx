@@ -8,10 +8,11 @@ type TeamLite = { code: string; name: string };
 
 function formatKickoff(d: Date | undefined): string {
   if (!d) return "datum onbekend";
-  const weekday = d.toLocaleDateString("nl-NL", { weekday: "short" });
-  const day = d.toLocaleDateString("nl-NL", { day: "numeric", month: "short" });
-  const time = d.toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" });
-  return `${weekday} ${day} · ${time}`;
+  const fmt = new Intl.DateTimeFormat("nl-NL", {
+    weekday: "short", day: "numeric", month: "short",
+    hour: "2-digit", minute: "2-digit",
+  });
+  return fmt.format(d);
 }
 
 export function BracketMatch({
@@ -37,46 +38,85 @@ export function BracketMatch({
   teamsByCode: ReadonlyMap<string, TeamLite>;
   onPick: (winner: string | undefined) => void;
 }) {
-  // Welke landen tonen we in de twee pills?
-  // - homeCand/awayCand komen uit de cascade. Als winner een override is
-  //   (= geen van beide cands), tonen we hem in de home-pill.
+  // homeCand/awayCand komen uit de cascade. Override = winner is geen van beide cands.
   const winnerIsOverride =
     winner != null && winner !== homeCand && winner !== awayCand;
-
   const homeShown: string | undefined = winnerIsOverride ? winner : homeCand;
   const awayShown: string | undefined = awayCand;
 
+  const fmt = formatKickoff(kickoff);
+
   return (
-    <div className="bg-surface border border-border rounded-lg overflow-hidden">
-      <div className="flex items-center justify-between px-3 py-1.5 bg-bg/40 border-b border-border text-[11px]">
-        <span className="font-mono font-semibold text-muted">Wedstrijd {fifaMatchNo}</span>
-        <span className="text-muted">{formatKickoff(kickoff)}</span>
+    <li className="px-3 sm:px-4 py-3 border-b border-border last:border-b-0">
+      {/* Desktop (sm+): alles op één rij */}
+      <div className="hidden sm:flex items-center gap-3">
+        <div className="w-28 shrink-0 leading-tight">
+          <div className="text-xs text-muted">{fmt}</div>
+          <div className="font-mono text-[10px] text-muted/70 mt-0.5">W{fifaMatchNo}</div>
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <TeamPill
+            code={homeShown}
+            isWinner={winner != null && winner === homeShown}
+            isLocked={isLocked}
+            teamsByCode={teamsByCode}
+            allTeams={allTeams}
+            onClickPill={() => homeShown && onPick(winner === homeShown ? undefined : homeShown)}
+            onPickFromList={(code) => onPick(code)}
+          />
+        </div>
+
+        <div className="text-xs text-muted shrink-0 font-medium">vs</div>
+
+        <div className="flex-1 min-w-0">
+          <TeamPill
+            code={awayShown}
+            isWinner={winner != null && winner === awayShown}
+            isLocked={isLocked}
+            teamsByCode={teamsByCode}
+            allTeams={allTeams}
+            onClickPill={() => awayShown && onPick(winner === awayShown ? undefined : awayShown)}
+            onPickFromList={(code) => onPick(code)}
+          />
+        </div>
       </div>
 
-      <div className="p-2 grid grid-cols-[1fr_auto_1fr] gap-1.5 items-stretch">
-        <TeamPill
-          code={homeShown}
-          isWinner={winner != null && winner === homeShown}
-          isLocked={isLocked}
-          teamsByCode={teamsByCode}
-          allTeams={allTeams}
-          onClickPill={() => homeShown && onPick(winner === homeShown ? undefined : homeShown)}
-          onPickFromList={(code) => onPick(code)}
-        />
-        <div className="flex items-center justify-center text-[10px] text-muted px-1 font-medium">vs</div>
-        <TeamPill
-          code={awayShown}
-          isWinner={winner != null && winner === awayShown}
-          isLocked={isLocked}
-          teamsByCode={teamsByCode}
-          allTeams={allTeams}
-          onClickPill={() => awayShown && onPick(winner === awayShown ? undefined : awayShown)}
-          onPickFromList={(code) => onPick(code)}
-        />
+      {/* Mobile (< sm): 2 regels — teams boven, datum onder */}
+      <div className="sm:hidden space-y-2">
+        <div className="flex items-center gap-2">
+          <div className="flex-1 min-w-0">
+            <TeamPill
+              code={homeShown}
+              isWinner={winner != null && winner === homeShown}
+              isLocked={isLocked}
+              teamsByCode={teamsByCode}
+              allTeams={allTeams}
+              onClickPill={() => homeShown && onPick(winner === homeShown ? undefined : homeShown)}
+              onPickFromList={(code) => onPick(code)}
+            />
+          </div>
+          <div className="text-xs text-muted shrink-0">vs</div>
+          <div className="flex-1 min-w-0">
+            <TeamPill
+              code={awayShown}
+              isWinner={winner != null && winner === awayShown}
+              isLocked={isLocked}
+              teamsByCode={teamsByCode}
+              allTeams={allTeams}
+              onClickPill={() => awayShown && onPick(winner === awayShown ? undefined : awayShown)}
+              onPickFromList={(code) => onPick(code)}
+            />
+          </div>
+        </div>
+        <div className="flex items-center justify-between text-[11px] text-muted">
+          <span>{fmt}</span>
+          <span className="font-mono text-muted/70">W{fifaMatchNo}</span>
+        </div>
       </div>
 
       <span className="hidden">{matchId}</span>
-    </div>
+    </li>
   );
 }
 
@@ -99,7 +139,6 @@ function TeamPill({
 }) {
   const t = code ? teamsByCode.get(code) : undefined;
 
-  // Winnaars altijd brand-rood (geen onderscheid override vs cascade)
   const baseClass = isWinner
     ? "bg-brand text-white border-brand font-semibold"
     : "bg-bg border-border hover:border-brand";
@@ -117,7 +156,7 @@ function TeamPill({
           type="button"
           disabled={isLocked}
           onClick={onClickPill}
-          className={`flex-1 flex items-center gap-1.5 px-2 py-2 text-sm text-left ${isLocked ? "cursor-not-allowed" : ""}`}
+          className={`flex-1 flex items-center gap-1.5 px-2 py-2 text-sm text-left min-w-0 ${isLocked ? "cursor-not-allowed" : ""}`}
         >
           <span className="text-base leading-none shrink-0" aria-hidden>{flagEmoji(code!)}</span>
           <span className="truncate flex-1">{t?.name ?? code}</span>
@@ -129,7 +168,7 @@ function TeamPill({
           teams={allTeams}
           selectedCode={code}
           onPick={onPickFromList}
-          triggerClassName={`flex items-center justify-center px-1.5 cursor-pointer border-l ${
+          triggerClassName={`flex items-center justify-center px-2 cursor-pointer border-l ${
             isWinner ? "border-white/30 hover:bg-white/15" : "border-border hover:bg-bg/60"
           }`}
           triggerLabelClassName={`text-xs leading-none ${isWinner ? "text-white/80" : "text-muted"}`}

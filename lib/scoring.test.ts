@@ -246,19 +246,30 @@ describe("expandBracketPicksForScoring (V2)", () => {
   });
 
   it("alleen V2 GROUP_TOP_2 + BEST_THIRDS → samen in last32Teams", () => {
+    // Slot-encoding: (rank-1)*12 + groupIdx. rank1 poule A = 0, rank2 poule A = 12.
     const r = expandBracketPicksForScoring([
-      { round: "GROUP_TOP_2", team_code: "BRA" },
-      { round: "GROUP_TOP_2", team_code: "MEX" },
-      { round: "BEST_THIRDS", team_code: "MAR" },
+      { round: "GROUP_TOP_2", slot: 0, team_code: "BRA" },   // rank1 poule A
+      { round: "GROUP_TOP_2", slot: 12, team_code: "MEX" },  // rank2 poule A
+      { round: "BEST_THIRDS", slot: 0, team_code: "MAR" },
     ]);
     expect(r.last32Teams).toEqual(new Set(["BRA", "MEX", "MAR"]));
     expect(r.otherPicks).toEqual([]);
   });
 
+  it("GROUP_TOP_2 slot >= 24 (= rank3 metadata) telt NIET mee voor LAST_32", () => {
+    const r = expandBracketPicksForScoring([
+      { round: "GROUP_TOP_2", slot: 0, team_code: "BRA" },        // rank1
+      { round: "GROUP_TOP_2", slot: 12, team_code: "MEX" },       // rank2
+      { round: "GROUP_TOP_2", slot: 24, team_code: "RANK3_NIET" }, // rank3
+      { round: "BEST_THIRDS", slot: 0, team_code: "MAR" },
+    ]);
+    expect(r.last32Teams).toEqual(new Set(["BRA", "MEX", "MAR"]));
+  });
+
   it("V1 LAST_32 + V2 picks → V2 wint, V1 LAST_32 wordt genegeerd", () => {
     const r = expandBracketPicksForScoring([
       { round: "LAST_32", team_code: "OUDE_V1" },
-      { round: "GROUP_TOP_2", team_code: "NIEUW_V2" },
+      { round: "GROUP_TOP_2", slot: 0, team_code: "NIEUW_V2" },
     ]);
     expect(r.last32Teams).toEqual(new Set(["NIEUW_V2"]));
     expect(r.otherPicks).toEqual([]);
@@ -279,8 +290,8 @@ describe("expandBracketPicksForScoring (V2)", () => {
 
   it("V2 + R16 picks samen werken correct", () => {
     const r = expandBracketPicksForScoring([
-      { round: "GROUP_TOP_2", team_code: "BRA" },
-      { round: "BEST_THIRDS", team_code: "MAR" },
+      { round: "GROUP_TOP_2", slot: 0, team_code: "BRA" },
+      { round: "BEST_THIRDS", slot: 0, team_code: "MAR" },
       { round: "LAST_16", team_code: "BRA" },
       { round: "FINAL", team_code: "BRA" },
     ]);
@@ -293,8 +304,8 @@ describe("expandBracketPicksForScoring (V2)", () => {
 
   it("duplicate team-codes in last32Teams worden gededupliceerd (Set-gedrag)", () => {
     const r = expandBracketPicksForScoring([
-      { round: "GROUP_TOP_2", team_code: "BRA" },
-      { round: "BEST_THIRDS", team_code: "BRA" }, // duplicate (zou normaal niet voorkomen)
+      { round: "GROUP_TOP_2", slot: 0, team_code: "BRA" },
+      { round: "BEST_THIRDS", slot: 0, team_code: "BRA" }, // duplicate (zou normaal niet voorkomen)
     ]);
     expect(r.last32Teams).toEqual(new Set(["BRA"]));
   });
