@@ -35,6 +35,14 @@
   --radius-lg: 20px;
 }
 
+html, body {
+  /* Voorkom horizontaal pannen op mobile (zoals een native app: alleen verticaal scrollen).
+     Plus geen horizontale overflow als ergens een element net iets te breed is. */
+  overflow-x: hidden;
+  touch-action: pan-y;
+  overscroll-behavior-x: none;
+}
+
 body {
   background: var(--color-bg);
   color: var(--color-ink);

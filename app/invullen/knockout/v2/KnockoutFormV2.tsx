@@ -121,9 +121,9 @@ export default function KnockoutFormV2({
       {/* Visuele stappen-indicator met cijfers, voortgangsverbinder en status */}
       <StepProgress
         steps={[
-          { num: 1, label: "Top 2 per poule", count: s.phaseACount, total: 24, complete: s.phaseAComplete, active: activePhase === "A" },
-          { num: 2, label: "Beste nummers 3", count: s.phaseB.size, total: 8, complete: s.phaseBComplete, active: activePhase === "B", locked: !s.phaseAComplete },
-          { num: 3, label: "Winnaars per wedstrijd", count: s.bracketCount, total: 31, complete: s.bracketComplete, active: activePhase === "C", locked: !s.phaseBComplete },
+          { num: 1, label: "Top 2 per poule",         shortLabel: "Top 2",    count: s.phaseACount,   total: 24, complete: s.phaseAComplete, active: activePhase === "A" },
+          { num: 2, label: "Beste nummers 3",         shortLabel: "Beste 3e", count: s.phaseB.size,   total: 8,  complete: s.phaseBComplete, active: activePhase === "B", locked: !s.phaseAComplete },
+          { num: 3, label: "Winnaars per wedstrijd",  shortLabel: "Winnaars", count: s.bracketCount,  total: 31, complete: s.bracketComplete, active: activePhase === "C", locked: !s.phaseBComplete },
         ]}
         onSelect={(num) => {
           if (num === 1) setActivePhase("A");
@@ -240,6 +240,7 @@ function StepHeader({
 type Step = {
   num: 1 | 2 | 3;
   label: string;
+  shortLabel: string;
   count: number;
   total: number;
   complete: boolean;
@@ -277,8 +278,9 @@ function StepProgress({ steps, onSelect }: { steps: Step[]; onSelect: (num: 1 | 
                 >
                   {step.complete ? "✓" : step.num}
                 </span>
-                <span className={`text-[11px] sm:text-xs font-semibold truncate ${step.active ? "text-brand" : "text-fg"}`}>
-                  {step.label}
+                <span className={`text-[11px] sm:text-xs font-semibold ${step.active ? "text-brand" : "text-fg"}`}>
+                  <span className="sm:hidden">{step.shortLabel}</span>
+                  <span className="hidden sm:inline">{step.label}</span>
                 </span>
               </div>
               <div className="text-[10px] tabular-nums text-muted ml-6 sm:ml-7">
