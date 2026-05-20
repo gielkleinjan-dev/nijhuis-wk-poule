@@ -101,7 +101,7 @@ function ProgressQuestion({
         value={value ?? ""}
         disabled={disabled}
         onChange={(e) => onChange(e.target.value === "" ? null : (e.target.value as NLProgress))}
-        className="w-full sm:w-80 border border-border bg-surface rounded-md px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand disabled:opacity-50"
+        className="w-full sm:w-80 border border-border bg-surface rounded-md px-3 py-2.5 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand disabled:opacity-50"
       >
         <option value="">— maak een keuze —</option>
         {NL_PROGRESS_OPTIONS.map((o) => (

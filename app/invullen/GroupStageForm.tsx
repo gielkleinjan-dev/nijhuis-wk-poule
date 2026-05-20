@@ -400,7 +400,7 @@ function ScoreInput({
       onChange={(e) => onChange(e.target.value)}
       onFocus={(e) => e.target.select()}
       aria-label={ariaLabel}
-      className="w-10 h-9 text-center text-sm font-bold border-2 border-border rounded-md focus:outline-none focus:border-brand bg-surface disabled:opacity-60"
+      className="w-10 h-9 text-center text-base sm:text-sm font-bold border-2 border-border rounded-md focus:outline-none focus:border-brand bg-surface disabled:opacity-60"
     />
   );
 }
