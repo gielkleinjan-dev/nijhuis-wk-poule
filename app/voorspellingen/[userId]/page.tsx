@@ -440,48 +440,6 @@ export default async function VoorspellingDetailPage({
         ))}
       </section>
 
-      {/* ── Knock-out: tab 1+2 keuzes (info) ── */}
-      <section className="space-y-3">
-        <h2 className="text-xl font-bold">Knock-out — poule-keuzes</h2>
-        <div className="bg-surface border border-border rounded-lg p-4 space-y-3">
-          <div>
-            <p className="text-xs font-semibold text-muted uppercase tracking-wide mb-2">Top 2 per poule</p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 text-sm">
-              {Array.from(Object.entries(phaseA)).sort(([a], [b]) => a.localeCompare(b)).map(([g, ranks]) => (
-                <div key={g} className="border border-border rounded p-2 bg-bg/30">
-                  <p className="text-[10px] font-bold text-muted mb-1">Poule {g}</p>
-                  <ul className="space-y-1">
-                    {(["rank1", "rank2"] as const).map((rk, i) => {
-                      const code = ranks[rk];
-                      if (!code) return null;
-                      return (
-                        <li key={rk} className="flex items-center gap-1.5">
-                          <span className={`text-[9px] font-bold px-1 rounded ${RANK_BADGE[(i + 1) as 1 | 2]}`}>{i + 1}e</span>
-                          <span aria-hidden>{flagEmoji(code)}</span>
-                          <span className="text-xs">{teamName.get(code) ?? code}</span>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="pt-3 border-t border-border">
-            <p className="text-xs font-semibold text-muted uppercase tracking-wide mb-2">8 beste nummers 3 (doorgaande)</p>
-            <div className="flex flex-wrap gap-1.5">
-              {Array.from(phaseBSet).sort().map((code) => (
-                <span key={code} className="inline-flex items-center gap-1 bg-amber-500 text-white text-xs font-medium px-2 py-0.5 rounded">
-                  <span aria-hidden>{flagEmoji(code)}</span>
-                  <span>{teamName.get(code) ?? code}</span>
-                </span>
-              ))}
-              {phaseBSet.size === 0 && <span className="text-xs text-muted italic">niet ingevuld</span>}
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* ── Knock-out: bracket per wedstrijd ── */}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
