@@ -10,6 +10,19 @@ import {
   type BracketRound,
   type NLProgress,
 } from "@/lib/scoring";
+import { computeR32Slots } from "@/lib/bracket/cascade";
+import { BRACKET_GRAPH } from "@/lib/bracket/bracket-graph";
+import { isGroupCode, type GroupCode, type MatchId } from "@/lib/bracket/types";
+
+function TeamSpan({ code, name, highlighted }: { code: string | undefined | null; name?: string; highlighted?: boolean }) {
+  if (!code) return <span className="text-muted italic">—</span>;
+  return (
+    <span className={`inline-flex items-center gap-1 ${highlighted ? "font-semibold text-pitch" : ""}`}>
+      <span aria-hidden>{flagEmoji(code)}</span>
+      <span className="truncate">{name ?? code}</span>
+    </span>
+  );
+}
 
 function PtsChip({ pts }: { pts: number }) {
   const color =
@@ -89,6 +102,7 @@ export default async function VoorspellingDetailPage({
     { data: bonusRow },
     { data: teamsRaw },
     { data: bonusSettings },
+    { data: overridesRaw },
   ] = await Promise.all([
     supabase
       .from("profiles")
@@ -118,6 +132,10 @@ export default async function VoorspellingDetailPage({
       .select("actual_top_scorer, actual_yellow_cards, actual_nl_top_scorer, actual_nl_total_goals, actual_nl_progress")
       .eq("id", 1)
       .single(),
+    supabase
+      .from("bracket_match_overrides")
+      .select("match_id, side, team_code")
+      .eq("user_id", userId),
   ]);
 
   if (!profile) notFound();
@@ -187,6 +205,67 @@ export default async function VoorspellingDetailPage({
     }
   }
 
+  // Map voor cascade: team-code → GroupCode (alleen ABCDEFGHIJKL)
+  const teamGroupMap = new Map<string, GroupCode>();
+  for (const [team, letter] of teamGroup) {
+    if (isGroupCode(letter)) teamGroupMap.set(team, letter);
+  }
+
+  // PhaseA in cascade-compatible vorm (GroupCode keys)
+  const phaseAForCascade: Partial<Record<GroupCode, { rank1?: string; rank2?: string }>> = {};
+  for (const [g, ranks] of Object.entries(phaseA)) {
+    if (isGroupCode(g)) phaseAForCascade[g] = ranks;
+  }
+
+  // R32 cascade slots
+  const r32Slots = computeR32Slots(phaseAForCascade, phaseBSet, teamGroupMap);
+
+  // Jouw bracket-winnaars per match (uit bracket_picks)
+  const userBracket: Partial<Record<MatchId, string>> = {};
+  for (const p of bracketPicksRaw ?? []) {
+    if (typeof p.slot !== "number" || !p.team_code) continue;
+    let mid: MatchId | null = null;
+    if (p.round === "LAST_32") mid = `R32-${p.slot}` as MatchId;
+    else if (p.round === "LAST_16") mid = `R16-${p.slot}` as MatchId;
+    else if (p.round === "QUARTER_FINALS") mid = `QF-${p.slot}` as MatchId;
+    else if (p.round === "SEMI_FINALS") mid = `SF-${p.slot}` as MatchId;
+    else if (p.round === "FINAL" && p.slot === 1) mid = "F-1" as MatchId;
+    if (mid) userBracket[mid] = p.team_code;
+  }
+
+  // Overrides per match per side
+  const overridesMap: Partial<Record<MatchId, { home?: string; away?: string }>> = {};
+  for (const o of overridesRaw ?? []) {
+    const mid = o.match_id as MatchId;
+    if (!overridesMap[mid]) overridesMap[mid] = {};
+    if (o.side === "home") overridesMap[mid]!.home = o.team_code;
+    else if (o.side === "away") overridesMap[mid]!.away = o.team_code;
+  }
+
+  // Helper: jouw home + away per match (cascade + override)
+  function userHomeAway(fifaNo: number, stage: BracketRound): { home?: string; away?: string } {
+    let mid: MatchId | null = null;
+    if (stage === "LAST_32") mid = `R32-${fifaNo - 72}` as MatchId;
+    else if (stage === "LAST_16") mid = `R16-${fifaNo - 88}` as MatchId;
+    else if (stage === "QUARTER_FINALS") mid = `QF-${fifaNo - 96}` as MatchId;
+    else if (stage === "SEMI_FINALS") mid = `SF-${fifaNo - 100}` as MatchId;
+    else if (stage === "FINAL" && fifaNo === 104) mid = "F-1" as MatchId;
+    if (!mid) return {};
+    const node = BRACKET_GRAPH[mid];
+    let h: string | undefined;
+    let a: string | undefined;
+    if (node.round === "LAST_32") {
+      const s = r32Slots[mid];
+      h = s?.home;
+      a = s?.away;
+    } else {
+      h = userBracket[node.homeFromMatch];
+      a = userBracket[node.awayFromMatch];
+    }
+    const ov = overridesMap[mid];
+    return { home: ov?.home ?? h, away: ov?.away ?? a };
+  }
+
   // ── Knock-out per match (V2 scoring) ──────────────────────────────────────
   const koMatches = (matchesRaw ?? []).filter((m) =>
     ["LAST_32", "LAST_16", "QUARTER_FINALS", "SEMI_FINALS", "FINAL"].includes(m.stage),
@@ -237,7 +316,14 @@ export default async function VoorspellingDetailPage({
   }
 
   // Score per ronde + per match
-  type MatchScore = { match: (typeof koMatches)[number]; myPick: string | undefined; actualWinner: string | undefined; pts: number; };
+  type MatchScore = {
+    match: (typeof koMatches)[number];
+    myHome: string | undefined;
+    myAway: string | undefined;
+    myPick: string | undefined;
+    actualWinner: string | undefined;
+    pts: number;
+  };
   const koByStage = new Map<BracketRound, { matches: MatchScore[]; subtotal: number }>();
   for (const stage of stageOrder) {
     const matches = koMatchesByStage.get(stage) ?? [];
@@ -246,7 +332,8 @@ export default async function VoorspellingDetailPage({
       const myPick = myPickByFifa.get(m.id);
       const actualWinner = winnerByMatchId.get(m.id);
       const pts = scoreKnockoutMatch(myPick, actualWinner, allRoundWinners, stage);
-      return { match: m, myPick, actualWinner, pts };
+      const { home: myHome, away: myAway } = userHomeAway(m.id, stage);
+      return { match: m, myHome, myAway, myPick, actualWinner, pts };
     });
     const subtotal = matchScores.reduce((s, ms) => s + ms.pts, 0);
     koByStage.set(stage, { matches: matchScores, subtotal });
@@ -419,52 +506,59 @@ export default async function VoorspellingDetailPage({
                 </div>
                 <span className="text-sm font-bold text-pitch tabular-nums shrink-0">+{data.subtotal}</span>
               </div>
+              <div className="hidden sm:grid grid-cols-[7rem_1fr_1fr_3rem] gap-2 px-4 py-2 border-b border-border text-xs text-muted uppercase tracking-wide bg-bg/30">
+                <div>Wedstrijd</div>
+                <div>Voorspelling</div>
+                <div>Werkelijk</div>
+                <div className="text-right">Pt</div>
+              </div>
               <ul className="divide-y divide-border">
-                {data.matches.map(({ match: m, myPick, actualWinner, pts }) => {
+                {data.matches.map(({ match: m, myHome, myAway, myPick, actualWinner, pts }) => {
                   const finished = m.status === "FINISHED" && m.home_score != null && m.away_score != null;
+                  const realHomeWon = finished && (m.home_score ?? 0) > (m.away_score ?? 0);
+                  const realAwayWon = finished && (m.away_score ?? 0) > (m.home_score ?? 0);
                   return (
-                    <li key={m.id} className="px-3 sm:px-4 py-2.5 sm:flex sm:items-center sm:gap-3">
-                      <div className="w-32 shrink-0">
+                    <li key={m.id} className="px-3 sm:px-4 py-2.5 sm:grid sm:grid-cols-[7rem_1fr_1fr_3rem] sm:gap-2 sm:items-center">
+                      <div>
                         <div className="text-[10px] font-mono text-muted">W{m.id}</div>
                         <div className="text-[10px] text-muted">{fmt(m.kickoff_at)}</div>
                       </div>
-                      <div className="flex-1 mt-1 sm:mt-0">
-                        <div className="text-xs">
-                          {m.home_team && m.away_team ? (
-                            <span className="text-muted">
-                              {flagEmoji(m.home_team)} {teamName.get(m.home_team) ?? m.home_team}
-                              {" "}vs{" "}
-                              {flagEmoji(m.away_team)} {teamName.get(m.away_team) ?? m.away_team}
-                            </span>
-                          ) : (
-                            <span className="text-muted italic">teams nog niet bekend</span>
-                          )}
-                        </div>
-                        <div className="text-xs mt-0.5 flex items-center gap-2 flex-wrap">
-                          <span className="text-muted">jouw winnaar:</span>
-                          {myPick ? (
-                            <span className="inline-flex items-center gap-1 font-semibold">
-                              <span aria-hidden>{flagEmoji(myPick)}</span>
-                              <span>{teamName.get(myPick) ?? myPick}</span>
-                            </span>
-                          ) : <span className="text-muted italic">—</span>}
-                          {finished && (
-                            <>
-                              <span className="text-muted ml-2">·</span>
-                              <span className="text-muted">echt:</span>
-                              {actualWinner ? (
-                                <span className="inline-flex items-center gap-1 font-semibold">
-                                  <span aria-hidden>{flagEmoji(actualWinner)}</span>
-                                  <span>{teamName.get(actualWinner) ?? actualWinner}</span>
-                                </span>
-                              ) : (
-                                <span className="text-muted text-[10px] italic">(gelijkspel / TBD)</span>
-                              )}
-                            </>
-                          )}
-                        </div>
+                      {/* Voorspelling: jouw home/away + jouw winnaar groen gemarkeerd */}
+                      <div className="mt-1.5 sm:mt-0">
+                        <span className="sm:hidden text-[10px] text-muted block mb-0.5">Voorspelling:</span>
+                        {myHome || myAway ? (
+                          <div className="text-xs flex items-center gap-1 flex-wrap">
+                            <TeamSpan code={myHome} name={myHome ? teamName.get(myHome) : undefined} highlighted={myPick === myHome && !!myPick} />
+                            <span className="text-muted">vs</span>
+                            <TeamSpan code={myAway} name={myAway ? teamName.get(myAway) : undefined} highlighted={myPick === myAway && !!myPick} />
+                            {myPick && myPick !== myHome && myPick !== myAway && (
+                              <span className="ml-1 text-[10px] text-amber-700">(override: {teamName.get(myPick) ?? myPick})</span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-muted italic text-xs">niet ingevuld</span>
+                        )}
                       </div>
-                      <div className="sm:w-16 sm:text-right mt-1 sm:mt-0">
+                      {/* Werkelijk: echte teams + score + winnaar groen */}
+                      <div className="mt-1.5 sm:mt-0">
+                        <span className="sm:hidden text-[10px] text-muted block mb-0.5">Werkelijk:</span>
+                        {m.home_team && m.away_team ? (
+                          <div className="text-xs flex items-center gap-1 flex-wrap">
+                            <TeamSpan code={m.home_team} name={teamName.get(m.home_team)} highlighted={realHomeWon} />
+                            <span className="text-muted">
+                              {finished ? `${m.home_score}–${m.away_score}` : "vs"}
+                            </span>
+                            <TeamSpan code={m.away_team} name={teamName.get(m.away_team)} highlighted={realAwayWon} />
+                            {finished && !actualWinner && m.home_score === m.away_score && (
+                              <span className="text-[10px] text-muted italic">(gelijkspel / TBD)</span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-muted italic text-xs">teams nog niet bekend</span>
+                        )}
+                      </div>
+                      {/* Punten */}
+                      <div className="sm:text-right mt-1.5 sm:mt-0">
                         {finished ? (
                           <PtsChip pts={pts} />
                         ) : (
