@@ -74,17 +74,6 @@ function scoreNumber(pick: number | null | undefined, actual: number | null, exa
   return 0;
 }
 
-// FIFA match-nummer → (stage, slot). Spiegel van slotToFifaNo in scoring.ts.
-function fifaNoToSlot(stage: BracketRound, fifaNo: number): number | null {
-  switch (stage) {
-    case "LAST_32": return fifaNo - 72;
-    case "LAST_16": return fifaNo - 88;
-    case "QUARTER_FINALS": return fifaNo - 96;
-    case "SEMI_FINALS": return fifaNo - 100;
-    case "FINAL": return fifaNo === 104 ? 1 : null;
-    default: return null;
-  }
-}
 
 export default async function VoorspellingDetailPage({
   params,
@@ -346,9 +335,6 @@ export default async function VoorspellingDetailPage({
     new Intl.DateTimeFormat("nl-NL", {
       weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
     }).format(new Date(kickoff));
-
-  // Silence unused-import warnings (gebruikt in PtsChip/KO_POINTS via tests + render)
-  void KO_POINTS_HALF; void fifaNoToSlot;
 
   return (
     <div className="mx-auto max-w-5xl px-4 sm:px-6 py-6 sm:py-8 space-y-8 sm:space-y-10">
