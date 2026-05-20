@@ -16,7 +16,7 @@ export default async function KnockoutPage() {
   // Zet env-var op "0" of "false" om tijdelijk terug te vallen op V1 (KnockoutForm.tsx).
   const v2Enabled = process.env.NEXT_PUBLIC_BRACKET_V2 !== "false" && process.env.NEXT_PUBLIC_BRACKET_V2 !== "0";
 
-  const [{ data: teamsRaw }, { data: picksRaw }, { data: settings }, { data: groupMatches }, { data: koMatchesRaw }, { data: pointRows }] =
+  const [{ data: teamsRaw }, { data: picksRaw }, { data: settings }, { data: groupMatches }, { data: koMatchesRaw }, { data: pointRows }, { data: overridesRaw }] =
     await Promise.all([
       supabase.from("teams").select("code, name").order("name"),
       supabase
@@ -34,6 +34,10 @@ export default async function KnockoutPage() {
         .select("id, stage, status, home_team, away_team, home_score, away_score, kickoff_at")
         .in("stage", ["LAST_32", "LAST_16", "QUARTER_FINALS", "SEMI_FINALS", "FINAL"]),
       supabase.from("points").select("points").eq("user_id", user.id).eq("source", "knockout"),
+      supabase
+        .from("bracket_match_overrides")
+        .select("match_id, side, team_code")
+        .eq("user_id", user.id),
     ]);
 
   const totalPoints = (pointRows ?? []).reduce((s, r) => s + (r.points ?? 0), 0);
@@ -105,10 +109,20 @@ export default async function KnockoutPage() {
       if (m.id && m.kickoff_at) matchDatesByFifaNo.set(m.id, new Date(m.kickoff_at));
     }
 
+    // Overrides per match per side
+    const overrides: Partial<Record<MatchId, { home?: string; away?: string }>> = {};
+    for (const o of overridesRaw ?? []) {
+      if (!validMatchIds.has(o.match_id)) continue;
+      const m = o.match_id as MatchId;
+      if (!overrides[m]) overrides[m] = {};
+      if (o.side === "home") overrides[m]!.home = o.team_code;
+      else if (o.side === "away") overrides[m]!.away = o.team_code;
+    }
+
     return (
       <KnockoutFormV2
         teams={teamsV2}
-        initial={{ phaseA, phaseB, bracket }}
+        initial={{ phaseA, phaseB, bracket, overrides }}
         isLocked={isLocked}
         totalPoints={totalPoints}
         matchDatesByFifaNo={matchDatesByFifaNo}

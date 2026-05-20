@@ -5,6 +5,7 @@ import { BRACKET_GRAPH, MATCH_IDS_BY_ROUND } from "@/lib/bracket/bracket-graph";
 import { computeR32Slots, type PhaseA, type Bracket } from "@/lib/bracket/cascade";
 import type { GroupCode, MatchId, Round } from "@/lib/bracket/types";
 import { BracketMatch } from "./BracketMatch";
+import type { MatchOverrides, Side } from "./useBracketState";
 
 type TeamLite = { code: string; name: string };
 
@@ -12,46 +13,48 @@ const ROUND_META: Record<Round, { title: string; hint: string; points: number }>
   LAST_32: {
     title: "1/16e finale",
     hint: "De 32 geplaatste landen spelen 16 wedstrijden. Kies in elke wedstrijd de winnaar.",
-    points: 4,
+    points: 8,
   },
   LAST_16: {
     title: "1/8e finale",
     hint: "De 16 overgebleven landen spelen 8 wedstrijden. Kies in elke wedstrijd de winnaar.",
-    points: 7,
+    points: 14,
   },
   QUARTER_FINALS: {
     title: "Kwartfinale",
     hint: "Vier wedstrijden tussen de 8 landen die de 1/8e finale overleven. Kies de winnaars.",
-    points: 12,
+    points: 24,
   },
   SEMI_FINALS: {
     title: "Halve finale",
     hint: "De 4 kwartfinalewinnaars spelen 2 wedstrijden. De winnaars staan in de finale.",
-    points: 18,
+    points: 36,
   },
   FINAL: {
     title: "Finale",
     hint: "De winnaar van deze wedstrijd wordt wereldkampioen.",
-    points: 28,
+    points: 96,
   },
 };
 
 const ROUNDS_ORDER: Round[] = ["LAST_32", "LAST_16", "QUARTER_FINALS", "SEMI_FINALS", "FINAL"];
 
 export function BracketBuilder({
-  phaseA, phaseB, bracket, isLocked,
+  phaseA, phaseB, bracket, overrides, isLocked,
   teamsByCode, teamGroupMap, allTeams, matchDatesByFifaNo,
-  onPick,
+  onPick, onSetOverride,
 }: {
   phaseA: PhaseA;
   phaseB: ReadonlySet<string>;
   bracket: Bracket;
+  overrides: MatchOverrides;
   isLocked: boolean;
   teamsByCode: ReadonlyMap<string, TeamLite>;
   teamGroupMap: ReadonlyMap<string, GroupCode>;
   allTeams: ReadonlyArray<TeamLite>;
   matchDatesByFifaNo: ReadonlyMap<number, Date>;
   onPick: (matchId: MatchId, winner: string | undefined) => void;
+  onSetOverride: (matchId: MatchId, side: Side, teamCode: string | null) => void;
 }) {
   const r32Slots = useMemo(
     () => computeR32Slots(phaseA, phaseB, teamGroupMap),
@@ -83,32 +86,46 @@ export function BracketBuilder({
             </div>
             <ul>
               {(() => {
-                // Bereken per match home + away (cascade voor R32, parent-winnaars voor R16+).
-                // Verzamel daarna alle landen die binnen deze ronde "in" de bracket staan
-                // (home, away of winnaar). Een land mag maar in 1 wedstrijd per ronde voorkomen,
-                // dus filter dat uit de dropdown van álle andere wedstrijden.
-                type MatchSlots = { id: MatchId; node: typeof BRACKET_GRAPH[MatchId]; home?: string; away?: string };
+                // Bereken per match home + away. Cascade voor R32, parent-winnaars
+                // voor R16+. Override per side mag de cascade overschrijven:
+                // homeShown = overrides[id]?.home ?? cascade.home; idem away.
+                type MatchSlots = {
+                  id: MatchId;
+                  node: typeof BRACKET_GRAPH[MatchId];
+                  homeShown?: string;
+                  awayShown?: string;
+                };
                 const matchSlots: MatchSlots[] = ids.map((id) => {
                   const node = BRACKET_GRAPH[id];
+                  let baseHome: string | undefined;
+                  let baseAway: string | undefined;
                   if (node.round === "LAST_32") {
                     const s = r32Slots[id];
-                    return { id, node, home: s?.home, away: s?.away };
+                    baseHome = s?.home;
+                    baseAway = s?.away;
+                  } else {
+                    baseHome = bracket[node.homeFromMatch];
+                    baseAway = bracket[node.awayFromMatch];
                   }
-                  return { id, node, home: bracket[node.homeFromMatch], away: bracket[node.awayFromMatch] };
+                  const ov = overrides[id];
+                  return {
+                    id,
+                    node,
+                    homeShown: ov?.home ?? baseHome,
+                    awayShown: ov?.away ?? baseAway,
+                  };
                 });
+                // Dedupe-set: landen die ergens in deze ronde "in" zitten
                 const takenByMatch = new Map<MatchId, Set<string>>();
                 for (const ms of matchSlots) {
                   const set = new Set<string>();
-                  if (ms.home) set.add(ms.home);
-                  if (ms.away) set.add(ms.away);
+                  if (ms.homeShown) set.add(ms.homeShown);
+                  if (ms.awayShown) set.add(ms.awayShown);
                   const w = bracket[ms.id];
                   if (w) set.add(w);
                   takenByMatch.set(ms.id, set);
                 }
-                return matchSlots.map(({ id, node, home, away }) => {
-                  // Dropdown-landen voor deze wedstrijd: alle teams MIN alles wat in
-                  // andere wedstrijden van deze ronde is opgenomen. Eigen home/away/winner
-                  // blijft uiteraard staan.
+                return matchSlots.map(({ id, node, homeShown, awayShown }) => {
                   const own = takenByMatch.get(id) ?? new Set<string>();
                   const taken = new Set<string>();
                   for (const [mid, codes] of takenByMatch) {
@@ -116,8 +133,6 @@ export function BracketBuilder({
                     for (const c of codes) taken.add(c);
                   }
                   const allowedTeams = allTeams.filter((t) => own.has(t.code) || !taken.has(t.code));
-                  // Empty-pill labels: voor R32 wijzen we op stap 1+2; voor latere rondes
-                  // op de wedstrijd waarvan de winnaar dit slot vult.
                   let homeEmptyLabel = "Vul stap 1+2 in";
                   let awayEmptyLabel = "Vul stap 1+2 in";
                   if (node.round !== "LAST_32") {
@@ -126,13 +141,16 @@ export function BracketBuilder({
                     homeEmptyLabel = `Winnaar W${ph.fifaMatchNo}`;
                     awayEmptyLabel = `Winnaar W${pa.fifaMatchNo}`;
                   }
+                  const ov = overrides[id];
                   return (
                     <BracketMatch
                       key={id}
                       matchId={id}
                       fifaMatchNo={node.fifaMatchNo}
-                      homeCand={home}
-                      awayCand={away}
+                      homeShown={homeShown}
+                      awayShown={awayShown}
+                      homeIsOverride={!!ov?.home}
+                      awayIsOverride={!!ov?.away}
                       homeEmptyLabel={homeEmptyLabel}
                       awayEmptyLabel={awayEmptyLabel}
                       kickoff={matchDatesByFifaNo.get(node.fifaMatchNo)}
@@ -141,6 +159,7 @@ export function BracketBuilder({
                       isLocked={isLocked}
                       teamsByCode={teamsByCode}
                       onPick={(w) => onPick(id, w)}
+                      onSetOverride={(side, code) => onSetOverride(id, side, code)}
                     />
                   );
                 });

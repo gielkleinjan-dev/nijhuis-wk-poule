@@ -6,10 +6,14 @@ import { smartClearAfterMatchChange, type PhaseA, type Bracket } from "@/lib/bra
 import type { GroupCode, MatchId } from "@/lib/bracket/types";
 import { useDebouncedSave } from "./useDebouncedSave";
 
+export type Side = "home" | "away";
+export type MatchOverrides = Partial<Record<MatchId, { home?: string; away?: string }>>;
+
 export type V2InitialPicks = {
   phaseA: PhaseA;
   phaseB: Set<string>;
   bracket: Bracket;
+  overrides: MatchOverrides;
 };
 
 export function useBracketState(
@@ -21,6 +25,7 @@ export function useBracketState(
   const [phaseA, setPhaseA] = useState<PhaseA>(initial.phaseA);
   const [phaseB, setPhaseB] = useState<Set<string>>(initial.phaseB);
   const [bracket, setBracket] = useState<Bracket>(initial.bracket);
+  const [overrides, setOverrides] = useState<MatchOverrides>(initial.overrides);
   const [toast, setToast] = useState<string | null>(null);
 
   const showToast = useCallback((msg: string) => {
@@ -46,8 +51,45 @@ export function useBracketState(
       });
       return { ok: !error };
     }
+    if (key.startsWith("override:")) {
+      const { matchId, side, teamCode } = payload as { matchId: MatchId; side: Side; teamCode: string | null };
+      const { error } = await supabase.rpc("bracket_v2_save_override", {
+        p_match_id: matchId,
+        p_side: side,
+        p_team_code: teamCode,
+      });
+      return { ok: !error };
+    }
     return { ok: false };
   });
+
+  // ── Pill-overrides per match per side ─────────────────────────────────────
+  // Onafhankelijk van de winnaar. Een override zegt "in dit slot wil ik dit
+  // land tonen", maar maakt 'm NIET automatisch de winnaar. De gebruiker klikt
+  // op de pill body om aan te wijzen wie wint.
+  const setOverride = useCallback(
+    (matchId: MatchId, side: Side, teamCode: string | null) => {
+      setOverrides((prev) => {
+        const next: MatchOverrides = { ...prev };
+        const entry = { ...(next[matchId] ?? {}) };
+        if (teamCode == null) {
+          if (side === "home") delete entry.home;
+          else delete entry.away;
+          if (!entry.home && !entry.away) {
+            delete next[matchId];
+          } else {
+            next[matchId] = entry;
+          }
+        } else {
+          entry[side] = teamCode;
+          next[matchId] = entry;
+        }
+        return next;
+      });
+      schedule(`override:${matchId}:${side}`, { matchId, side, teamCode });
+    },
+    [schedule],
+  );
 
   // ── Fase A — rank 1 of 2 per groep ────────────────────────────────────────
   const setPhaseARank = useCallback(
@@ -169,13 +211,14 @@ export function useBracketState(
   const bracketComplete = bracketCount === 31;
 
   return {
-    phaseA, phaseB, bracket,
+    phaseA, phaseB, bracket, overrides,
     phaseACount, phaseAComplete,
     phaseBComplete,
     bracketCount, bracketComplete,
     setPhaseARank, nextFreeRank,
     togglePhaseB,
     setMatchWinner,
+    setOverride,
     saveStates: states,
     toast,
   };

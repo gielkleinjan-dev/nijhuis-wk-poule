@@ -159,12 +159,14 @@ export default function KnockoutFormV2({
               phaseA={s.phaseA}
               phaseB={s.phaseB}
               bracket={s.bracket}
+              overrides={s.overrides}
               isLocked={isLocked}
               teamsByCode={teamsByCode}
               teamGroupMap={teamGroupMap}
               allTeams={allTeams}
               matchDatesByFifaNo={matchDatesByFifaNo}
               onPick={s.setMatchWinner}
+              onSetOverride={s.setOverride}
             />
           </div>
         )}
