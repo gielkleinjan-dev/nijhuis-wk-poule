@@ -69,6 +69,12 @@ export default async function KnockoutPage() {
         const groupIdx = p.slot % 12;
         const g = String.fromCharCode("A".charCodeAt(0) + groupIdx);
         if (!isGroupCode(g)) continue;
+        // Defensieve check: het team moet daadwerkelijk in deze poule spelen.
+        // Voorkomt corrupte state als data ooit verkeerd is opgeslagen (bv.
+        // overgang van oude naar nieuwe slot-encoding).
+        const actualGroupRaw = teamGroup.get(p.team_code) ?? "";
+        const actualGroup = actualGroupRaw.startsWith("GROUP_") ? actualGroupRaw.slice(6) : actualGroupRaw;
+        if (actualGroup !== g) continue;
         phaseA[g] = phaseA[g] ?? {};
         if (rank === 1) phaseA[g]!.rank1 = p.team_code;
         else if (rank === 2) phaseA[g]!.rank2 = p.team_code;
