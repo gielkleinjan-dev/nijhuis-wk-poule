@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { flagEmoji } from "@/lib/flags";
-import { searchPlayers, type Player } from "@/lib/players";
+import { PLAYERS, searchPlayers, type Player } from "@/lib/players";
 
 export default function PlayerCombobox({
   value,
@@ -10,6 +10,8 @@ export default function PlayerCombobox({
   onChange,
   name,
   placeholder = "Begin met typen…",
+  restrictToTla,
+  showAllOnFocus = false,
 }: {
   value: string;
   disabled?: boolean;
@@ -17,6 +19,10 @@ export default function PlayerCombobox({
   // Als gezet: hidden input met deze naam → bruikbaar in <form action> server actions.
   name?: string;
   placeholder?: string;
+  // Als gezet: filter resultaten op land (TLA-code, bv. "NED").
+  restrictToTla?: string;
+  // Toon de hele restricted-lijst direct bij focus (handig voor kleine lijsten zoals NL).
+  showAllOnFocus?: boolean;
 }) {
   const [query, setQuery] = useState(value);
   const [results, setResults] = useState<Player[]>([]);
@@ -28,14 +34,27 @@ export default function PlayerCombobox({
     setQuery(value);
   }, [value]);
 
+  function filterByTla(list: Player[]): Player[] {
+    if (!restrictToTla) return list;
+    return list.filter((p) => p.tla === restrictToTla);
+  }
+
   function handleInput(e: React.ChangeEvent<HTMLInputElement>) {
     const q = e.target.value;
     setQuery(q);
-    const res = searchPlayers(q);
+    const res = filterByTla(searchPlayers(q));
     setResults(res);
     setOpen(res.length > 0);
     setActiveIdx(-1);
     if (q === "") onChange?.("");
+  }
+
+  function handleFocus() {
+    if (showAllOnFocus && restrictToTla) {
+      const all = PLAYERS.filter((p) => p.tla === restrictToTla);
+      setResults(all);
+      setOpen(all.length > 0);
+    }
   }
 
   function select(p: Player) {
@@ -80,6 +99,7 @@ export default function PlayerCombobox({
         onChange={handleInput}
         onKeyDown={handleKeyDown}
         onFocus={() => {
+          handleFocus();
           if (results.length > 0) setOpen(true);
         }}
         placeholder={placeholder}

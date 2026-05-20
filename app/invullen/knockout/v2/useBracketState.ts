@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
-import type { PhaseA, Bracket } from "@/lib/bracket/cascade";
+import { smartClearAfterMatchChange, type PhaseA, type Bracket } from "@/lib/bracket/cascade";
 import type { GroupCode, MatchId } from "@/lib/bracket/types";
 import { useDebouncedSave } from "./useDebouncedSave";
 
@@ -127,16 +127,31 @@ export function useBracketState(
     [phaseB, bracket, teamGroupMap, schedule, showToast],
   );
 
-  // ── Bracket — winnaar per wedstrijd, override-vrij ────────────────────────
+  // ── Bracket — winnaar per wedstrijd ───────────────────────────────────────
+  // Wanneer een winnaar verandert, kijken we downstream of latere matches een
+  // winnaar hebben staan die niet meer geldig is (= geen kandidaat meer). Die
+  // worden gewist en de gebruiker krijgt een toast met het aantal opgeschoonde
+  // matches. Een eigen explicit override van de gebruiker downstream kan zo
+  // ook worden gewist als die niet meer mogelijk is — dan moet hij opnieuw
+  // kiezen, wat correcter is dan een onmogelijk land laten staan.
   const setMatchWinner = useCallback(
     (matchId: MatchId, winner: string | undefined) => {
-      const next: Bracket = { ...bracket };
-      if (winner == null) delete next[matchId];
-      else next[matchId] = winner;
-      setBracket(next);
+      const { bracket: nextBracket, cleared } = smartClearAfterMatchChange(
+        matchId, winner, bracket, phaseA, phaseB, teamGroupMap,
+      );
+      setBracket(nextBracket);
       schedule(`match:${matchId}`, { matchId, winner });
+      // De gewiste downstream matches ook server-side wissen
+      for (const id of cleared) {
+        schedule(`match:${id}`, { matchId: id, winner: undefined });
+      }
+      if (cleared.length > 0) {
+        showToast(
+          `${cleared.length} latere wedstrijd${cleared.length > 1 ? "en zijn" : " is"} gewist — winnaar was niet meer mogelijk.`,
+        );
+      }
     },
-    [bracket, schedule],
+    [bracket, phaseA, phaseB, teamGroupMap, schedule, showToast],
   );
 
   const phaseACount = useMemo(() => {

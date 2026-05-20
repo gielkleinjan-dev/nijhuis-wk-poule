@@ -35,7 +35,7 @@ type SaveState = "idle" | "saving" | "saved" | "error";
 
 // Gemeenschappelijke topscorer-sectie (gebruikt voor zowel toernooi-topscorer als NL-topscorer)
 function TopScorerSection({
-  label, hint, value, disabled, actual, onChange,
+  label, hint, value, disabled, actual, onChange, restrictToTla,
 }: {
   label: string;
   hint: string;
@@ -43,6 +43,7 @@ function TopScorerSection({
   disabled: boolean;
   actual: string | null;
   onChange: (name: string) => void;
+  restrictToTla?: string;
 }) {
   return (
     <section className="bg-surface border border-border rounded-lg p-5 space-y-2">
@@ -51,7 +52,13 @@ function TopScorerSection({
         <span className="text-xs font-normal bg-pitch-soft text-pitch px-1.5 py-0.5 rounded">10 pt exact</span>
       </span>
       <span className="block text-xs text-muted mb-2">{hint}</span>
-      <PlayerCombobox value={value} disabled={disabled} onChange={onChange} />
+      <PlayerCombobox
+        value={value}
+        disabled={disabled}
+        onChange={onChange}
+        restrictToTla={restrictToTla}
+        showAllOnFocus={!!restrictToTla}
+      />
       {actual && (() => {
         const correct = value?.trim().toLowerCase() === actual.trim().toLowerCase();
         const filled = !!value?.trim();
@@ -324,11 +331,12 @@ export default function BonusForm({
 
       <TopScorerSection
         label="Topscorer Nederlands elftal"
-        hint="De speler met de meeste doelpunten van Oranje tijdens dit toernooi."
+        hint="De Nederlandse speler met de meeste doelpunten tijdens dit toernooi. Klik in het veld voor de hele lijst."
         value={values.nl_top_scorer}
         disabled={isLocked}
         actual={actualNLTopScorer ?? null}
         onChange={(name) => patch("nl_top_scorer", name)}
+        restrictToTla="NED"
       />
 
       <NumberQuestion
