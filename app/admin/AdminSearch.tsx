@@ -155,7 +155,7 @@ export default function AdminSearch({ participants }: { participants: Participan
                     </td>
                     <td className="px-2 sm:px-3 py-3 text-right">
                       <Link
-                        href={`/admin/${p.user_id}`}
+                        href={`/voorspellingen/${p.user_id}`}
                         className="text-brand text-xs font-medium hover:underline whitespace-nowrap"
                       >
                         bekijk →

@@ -1,12 +1,12 @@
 import { describe, it, expect } from "vitest";
 import {
-  KO_POINTS,
+  KO_POINTS_FULL,
+  KO_POINTS_HALF,
   deriveSurvivors,
   expandBracketPicksForScoring,
   scoreBonus,
   scoreGroupPrediction,
-  scoreKnockoutRound,
-  type BracketRound,
+  scoreKnockoutMatch,
 } from "./scoring";
 
 const p = (h: number, a: number) => ({ match_id: 1, home_score: h, away_score: a });
@@ -66,25 +66,57 @@ describe("scoreGroupPrediction", () => {
   });
 });
 
-describe("scoreKnockoutRound", () => {
-  it("3 of 8 correct in LAST_16 → 21", () => {
-    const picks = ["NED", "FRA", "BRA", "ARG", "GER", "ESP", "BEL", "POR"];
-    const survivors = new Set(["NED", "FRA", "BRA", "USA"]);
-    expect(scoreKnockoutRound(picks, survivors, "LAST_16")).toBe(21);
+describe("scoreKnockoutMatch (V2 per-match)", () => {
+  it("exact match: jouw winner = echte winner → full pt", () => {
+    expect(scoreKnockoutMatch("NED", "NED", new Set(["NED"]), "LAST_32")).toBe(8);
+    expect(scoreKnockoutMatch("NED", "NED", new Set(["NED"]), "LAST_16")).toBe(14);
+    expect(scoreKnockoutMatch("NED", "NED", new Set(["NED"]), "QUARTER_FINALS")).toBe(24);
+    expect(scoreKnockoutMatch("NED", "NED", new Set(["NED"]), "SEMI_FINALS")).toBe(36);
+    expect(scoreKnockoutMatch("NED", "NED", new Set(["NED"]), "FINAL")).toBe(96);
   });
-  it("zero correct = 0", () => {
-    expect(scoreKnockoutRound(["NED"], new Set(["FRA"]), "QUARTER_FINALS")).toBe(0);
+
+  it("verkeerde wedstrijd, wel door in deze ronde → half pt", () => {
+    expect(scoreKnockoutMatch("NED", "FRA", new Set(["FRA", "NED"]), "LAST_32")).toBe(4);
+    expect(scoreKnockoutMatch("NED", "FRA", new Set(["FRA", "NED"]), "LAST_16")).toBe(7);
+    expect(scoreKnockoutMatch("NED", "FRA", new Set(["FRA", "NED"]), "QUARTER_FINALS")).toBe(12);
+    expect(scoreKnockoutMatch("NED", "FRA", new Set(["FRA", "NED"]), "SEMI_FINALS")).toBe(18);
+    // FINAL heeft geen half — er is maar 1 finale.
+    expect(scoreKnockoutMatch("NED", "FRA", new Set(["FRA", "NED"]), "FINAL")).toBe(0);
   });
-  it("CHAMPION 1 correct = 40", () => {
-    expect(scoreKnockoutRound(["NED"], new Set(["NED"]), "CHAMPION")).toBe(40);
+
+  it("valt af in deze ronde → 0 pt", () => {
+    expect(scoreKnockoutMatch("NED", "FRA", new Set(["FRA"]), "LAST_32")).toBe(0);
+    expect(scoreKnockoutMatch("NED", "FRA", new Set(["FRA"]), "SEMI_FINALS")).toBe(0);
   });
-  it("KO_POINTS mapping per round", () => {
-    const rounds: BracketRound[] = ["LAST_32", "LAST_16", "QUARTER_FINALS", "SEMI_FINALS", "FINAL", "CHAMPION"];
-    const expected = [4, 7, 12, 18, 28, 40];
-    rounds.forEach((round, i) => {
-      expect(scoreKnockoutRound(["X"], new Set(["X"]), round)).toBe(expected[i]);
-      expect(KO_POINTS[round]).toBe(expected[i]);
-    });
+
+  it("geen pick → 0 pt", () => {
+    expect(scoreKnockoutMatch(null, "FRA", new Set(["FRA"]), "LAST_32")).toBe(0);
+    expect(scoreKnockoutMatch(undefined, "FRA", new Set(["FRA"]), "LAST_32")).toBe(0);
+    expect(scoreKnockoutMatch("", "FRA", new Set(["FRA"]), "LAST_32")).toBe(0);
+  });
+
+  it("wedstrijd nog niet gespeeld (geen winner) maar pick is in winners-set → half", () => {
+    // Edge case: een wedstrijd is nog niet klaar maar het team is wel
+    // winnaar van een andere wedstrijd in deze ronde. Geeft half pt.
+    expect(scoreKnockoutMatch("NED", undefined, new Set(["NED"]), "LAST_32")).toBe(4);
+  });
+
+  it("totaal maximum per ronde komt op ~504 pt voor knock-out", () => {
+    const max =
+      16 * KO_POINTS_FULL.LAST_32 +
+      8 * KO_POINTS_FULL.LAST_16 +
+      4 * KO_POINTS_FULL.QUARTER_FINALS +
+      2 * KO_POINTS_FULL.SEMI_FINALS +
+      1 * KO_POINTS_FULL.FINAL;
+    expect(max).toBe(504);
+  });
+
+  it("half is altijd de helft van full (behalve FINAL)", () => {
+    expect(KO_POINTS_HALF.LAST_32 * 2).toBe(KO_POINTS_FULL.LAST_32);
+    expect(KO_POINTS_HALF.LAST_16 * 2).toBe(KO_POINTS_FULL.LAST_16);
+    expect(KO_POINTS_HALF.QUARTER_FINALS * 2).toBe(KO_POINTS_FULL.QUARTER_FINALS);
+    expect(KO_POINTS_HALF.SEMI_FINALS * 2).toBe(KO_POINTS_FULL.SEMI_FINALS);
+    expect(KO_POINTS_HALF.FINAL).toBe(0); // geen half voor finale
   });
 });
 

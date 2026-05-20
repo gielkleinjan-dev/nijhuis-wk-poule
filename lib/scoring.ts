@@ -63,14 +63,33 @@ export type BonusPicks = {
   nl_progress?: NLProgress | null;
 };
 
-export const KO_POINTS: Record<BracketRound, number> = {
+// Per-match knock-out punten. Voor elke knock-out-wedstrijd:
+//  - full = jouw winner-pick wint daadwerkelijk DIE wedstrijd (juiste bracket-plek)
+//  - half = jouw winner-pick wint elders in dezelfde ronde (land komt door, verkeerde plek)
+//  - 0    = jouw winner-pick valt af in deze ronde
+// FINAL.full = 56 (finale) + 40 (wereldkampioen-bonus) = 96 pt voor F-1 correct.
+// Halve voor FINAL = 0 (geen "andere wedstrijd in dezelfde ronde" mogelijk).
+export const KO_POINTS_FULL: Record<BracketRound, number> = {
+  LAST_32: 8,
+  LAST_16: 14,
+  QUARTER_FINALS: 24,
+  SEMI_FINALS: 36,
+  FINAL: 96,
+  CHAMPION: 0, // legacy — onder FINAL gecombineerd
+};
+
+export const KO_POINTS_HALF: Record<BracketRound, number> = {
   LAST_32: 4,
   LAST_16: 7,
   QUARTER_FINALS: 12,
   SEMI_FINALS: 18,
-  FINAL: 28,
-  CHAMPION: 40,
+  FINAL: 0,
+  CHAMPION: 0,
 };
+
+// Legacy KO_POINTS = de "wel door" half-pt waarde. Sommige V1-routes
+// gebruiken dit nog om "wel door = X pt"-chips te tonen.
+export const KO_POINTS: Record<BracketRound, number> = KO_POINTS_HALF;
 
 const KO_ORDER: BracketRound[] = [
   "LAST_32",
@@ -115,14 +134,30 @@ export function scoreGroupPrediction(p: Prediction, a: MatchResult): number {
   return pts;
 }
 
-export function scoreKnockoutRound(
-  picks: string[],
-  survivors: Set<string>,
+// Per-match scoring (V2): geef punten voor één specifieke knock-out-wedstrijd.
+// `myPick` = jouw winnaar-pick voor deze wedstrijd.
+// `actualWinnerThisMatch` = de echte winnaar van deze wedstrijd (uit football-data),
+//   undefined als de wedstrijd nog niet gespeeld is.
+// `allActualWinnersInRound` = set van alle echte winnaars in deze ronde (om "elders
+//   in dezelfde ronde" te kunnen detecteren).
+//
+// Resultaat: full punten als jouw pick exact deze wedstrijd wint, half punten als
+// jouw pick wel door is in deze ronde maar niet via deze specifieke wedstrijd,
+// anders 0.
+export function scoreKnockoutMatch(
+  myPick: string | null | undefined,
+  actualWinnerThisMatch: string | null | undefined,
+  allActualWinnersInRound: ReadonlySet<string>,
   round: BracketRound,
 ): number {
-  let hits = 0;
-  for (const code of picks) if (survivors.has(code)) hits++;
-  return hits * KO_POINTS[round];
+  if (!myPick) return 0;
+  if (actualWinnerThisMatch && myPick === actualWinnerThisMatch) {
+    return KO_POINTS_FULL[round];
+  }
+  if (allActualWinnersInRound.has(myPick)) {
+    return KO_POINTS_HALF[round];
+  }
+  return 0;
 }
 
 function normalizeName(s: string): string {
@@ -321,31 +356,56 @@ export async function computeUserPointRows(
     if (pts > 0) rows.push({ source: "group", ref_id: String(pred.match_id), points: pts });
   }
 
-  const survivors = deriveSurvivors(matches ?? [], ctx.winnerByMatchId);
-
-  const { last32Teams, otherPicks } = expandBracketPicksForScoring(bracketPicks ?? []);
-
-  // Score LAST_32 (dedupe op team)
-  for (const team of last32Teams) {
-    if (survivors["LAST_32"].has(team)) {
-      rows.push({
-        source: "knockout",
-        ref_id: `LAST_32:${team}`,
-        points: KO_POINTS["LAST_32"],
-      });
+  // ── Knock-out per match (V2-stijl) ─────────────────────────────────────────
+  // Per knock-out-wedstrijd vergelijken we jouw winner-pick met de echte
+  // winnaar. Full pt als exact deze wedstrijd, half pt als jouw pick wel door
+  // is via een andere wedstrijd in dezelfde ronde, anders 0.
+  //
+  // FIFA match-nummer afgeleid uit (round, slot):
+  //   LAST_32 slot N → M(72+N)
+  //   LAST_16 slot N → M(88+N)
+  //   QUARTER_FINALS slot N → M(96+N)
+  //   SEMI_FINALS slot N → M(100+N)
+  //   FINAL slot 1 → M104
+  function slotToFifaNo(round: BracketRound, slot: number | null | undefined): number | null {
+    if (slot == null) return null;
+    switch (round) {
+      case "LAST_32": return 72 + slot;
+      case "LAST_16": return 88 + slot;
+      case "QUARTER_FINALS": return 96 + slot;
+      case "SEMI_FINALS": return 100 + slot;
+      case "FINAL": return slot === 1 ? 104 : null;
+      default: return null;
     }
   }
 
-  // Score overige rondes (R16 t/m CHAMPION)
-  for (const pick of otherPicks) {
+  // Werkelijke winnaars per ronde (uit ctx.winnerByMatchId via matches.stage)
+  const winnersByRound: Partial<Record<BracketRound, Set<string>>> = {};
+  for (const [mid, winner] of ctx.winnerByMatchId) {
+    const m = matchById.get(mid);
+    if (!m) continue;
+    const stage = m.stage as BracketRound;
+    if (!winnersByRound[stage]) winnersByRound[stage] = new Set<string>();
+    winnersByRound[stage]!.add(winner);
+  }
+
+  for (const pick of bracketPicks ?? []) {
+    // Skip V1-only fallback rondes en de phase-A/B input-rijen
+    if (pick.round === "GROUP_TOP_2") continue;
+    if (pick.round === "BEST_THIRDS") continue;
+    if (pick.round === "CHAMPION") continue; // legacy V1, in V2 onder FINAL
+
     const round = pick.round as BracketRound;
-    if (!(round in KO_POINTS)) continue;
-    if (survivors[round].has(pick.team_code)) {
-      rows.push({
-        source: "knockout",
-        ref_id: `${round}:${pick.team_code}`,
-        points: KO_POINTS[round],
-      });
+    if (!(round in KO_POINTS_FULL)) continue;
+
+    const fifaNo = slotToFifaNo(round, pick.slot ?? null);
+    if (fifaNo == null) continue;
+
+    const actualWinner = ctx.winnerByMatchId.get(fifaNo);
+    const allRoundWinners = winnersByRound[round] ?? new Set<string>();
+    const pts = scoreKnockoutMatch(pick.team_code, actualWinner, allRoundWinners, round);
+    if (pts > 0) {
+      rows.push({ source: "knockout", ref_id: `${round}:${pick.slot}`, points: pts });
     }
   }
 

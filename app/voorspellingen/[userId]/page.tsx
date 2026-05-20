@@ -4,18 +4,18 @@ import Link from "next/link";
 import { flagEmoji } from "@/lib/flags";
 import {
   scoreGroupPrediction,
-  deriveSurvivors,
-  expandBracketPicksForScoring,
-  KO_POINTS,
+  scoreKnockoutMatch,
+  KO_POINTS_FULL,
+  KO_POINTS_HALF,
+  type BracketRound,
   type NLProgress,
 } from "@/lib/scoring";
-import { ROUNDS } from "@/app/invullen/knockout/rounds";
 
 function PtsChip({ pts }: { pts: number }) {
   const color =
     pts === 0
       ? "text-brand"
-      : pts <= 2
+      : pts <= 4
       ? "text-amber-600"
       : "text-pitch";
   return (
@@ -35,6 +35,20 @@ const NL_PROGRESS_LABEL: Record<string, string> = {
   CHAMPION: "Wereldkampioen",
 };
 
+const ROUND_LABEL: Record<BracketRound, string> = {
+  LAST_32: "1/16e finale",
+  LAST_16: "1/8e finale",
+  QUARTER_FINALS: "Kwartfinale",
+  SEMI_FINALS: "Halve finale",
+  FINAL: "Finale",
+  CHAMPION: "Wereldkampioen",
+};
+
+const RANK_BADGE: Record<1 | 2, string> = {
+  1: "bg-pitch text-white",
+  2: "bg-pitch/70 text-white",
+};
+
 function normalize(s: string | null | undefined): string {
   return (s ?? "").trim().toLowerCase();
 }
@@ -45,6 +59,18 @@ function scoreNumber(pick: number | null | undefined, actual: number | null, exa
   if (diff === 0) return exact;
   if (diff <= 3) return close;
   return 0;
+}
+
+// FIFA match-nummer → (stage, slot). Spiegel van slotToFifaNo in scoring.ts.
+function fifaNoToSlot(stage: BracketRound, fifaNo: number): number | null {
+  switch (stage) {
+    case "LAST_32": return fifaNo - 72;
+    case "LAST_16": return fifaNo - 88;
+    case "QUARTER_FINALS": return fifaNo - 96;
+    case "SEMI_FINALS": return fifaNo - 100;
+    case "FINAL": return fifaNo === 104 ? 1 : null;
+    default: return null;
+  }
 }
 
 export default async function VoorspellingDetailPage({
@@ -97,9 +123,7 @@ export default async function VoorspellingDetailPage({
   if (!profile) notFound();
 
   const teamName = new Map((teamsRaw ?? []).map((t) => [t.code, t.name]));
-  const predByMatch = new Map(
-    (predictionsRaw ?? []).map((p) => [p.match_id, p])
-  );
+  const predByMatch = new Map((predictionsRaw ?? []).map((p) => [p.match_id, p]));
 
   // ── Bonus uitslagen + werkelijke totalen ──────────────────────────────────
   const actualTopScorer = bonusSettings?.actual_top_scorer ?? null;
@@ -111,15 +135,13 @@ export default async function VoorspellingDetailPage({
     .filter((m) => m.status === "FINISHED" && m.home_score != null && m.away_score != null)
     .reduce((s, m) => s + (m.home_score ?? 0) + (m.away_score ?? 0), 0);
 
-  // ── Bonus-punten (10/5 conventie, plus 3 NL-vragen) ───────────────────────
+  // ── Bonus-punten (10/5 + NL all-or-nothing) ───────────────────────────────
   const bonusTopScorerPts = actualTopScorer && bonusRow?.top_scorer && normalize(bonusRow.top_scorer) === normalize(actualTopScorer) ? 10 : 0;
   const bonusYellowPts = scoreNumber(bonusRow?.total_yellow_cards_tiebreak, actualYellowCards, 10, 5);
   const bonusGoalsPts = scoreNumber(bonusRow?.total_goals_tiebreak, actualTotalGoals, 10, 5);
   const bonusNLTopScorerPts = actualNLTopScorer && bonusRow?.nl_top_scorer && normalize(bonusRow.nl_top_scorer) === normalize(actualNLTopScorer) ? 10 : 0;
   const bonusNLGoalsPts = scoreNumber(bonusRow?.nl_total_goals, actualNLTotalGoals, 10, 5);
-
-  const bonusNLProgressPts =
-    bonusRow?.nl_progress && actualNLProgress && bonusRow.nl_progress === actualNLProgress ? 10 : 0;
+  const bonusNLProgressPts = bonusRow?.nl_progress && actualNLProgress && bonusRow.nl_progress === actualNLProgress ? 10 : 0;
 
   const bonusTotalPts =
     bonusTopScorerPts + bonusYellowPts + bonusGoalsPts +
@@ -149,38 +171,87 @@ export default async function VoorspellingDetailPage({
     return sum + scoreGroupPrediction(pred, { id: m.id, home_score: m.home_score, away_score: m.away_score });
   }, 0);
 
-  // ── Knock-out ─────────────────────────────────────────────────────────────
+  // ── Knock-out: tab 1+2 (info-only) ────────────────────────────────────────
+  const phaseA: Record<string, { rank1?: string; rank2?: string }> = {};
+  const phaseBSet = new Set<string>();
+  for (const p of bracketPicksRaw ?? []) {
+    if (p.round === "GROUP_TOP_2" && typeof p.slot === "number" && p.team_code) {
+      const rank = Math.floor(p.slot / 12) + 1;
+      const groupIdx = p.slot % 12;
+      const g = String.fromCharCode(65 + groupIdx);
+      if (!phaseA[g]) phaseA[g] = {};
+      if (rank === 1) phaseA[g].rank1 = p.team_code;
+      else if (rank === 2) phaseA[g].rank2 = p.team_code;
+    } else if (p.round === "BEST_THIRDS" && p.team_code) {
+      phaseBSet.add(p.team_code);
+    }
+  }
+
+  // ── Knock-out per match (V2 scoring) ──────────────────────────────────────
   const koMatches = (matchesRaw ?? []).filter((m) =>
     ["LAST_32", "LAST_16", "QUARTER_FINALS", "SEMI_FINALS", "FINAL"].includes(m.stage),
   );
+
   const winnerByMatchId = new Map<number, string>();
   for (const m of koMatches) {
-    if (
-      m.status !== "FINISHED" ||
-      m.home_score == null ||
-      m.away_score == null ||
-      m.home_score === m.away_score
-    ) continue;
+    if (m.status !== "FINISHED" || m.home_score == null || m.away_score == null || m.home_score === m.away_score) continue;
     const w = m.home_score > m.away_score ? m.home_team : m.away_team;
     if (w) winnerByMatchId.set(m.id, w);
   }
-  const survivors = deriveSurvivors(koMatches, winnerByMatchId);
 
-  // V2-bracket-picks → expand naar LAST_32 + rest (R16/QF/SF/F)
-  const { last32Teams, otherPicks } = expandBracketPicksForScoring(bracketPicksRaw ?? []);
-  const picksByRound = new Map<string, Set<string>>();
-  picksByRound.set("LAST_32", last32Teams);
-  for (const p of otherPicks) {
-    if (!picksByRound.has(p.round)) picksByRound.set(p.round, new Set());
-    picksByRound.get(p.round)!.add(p.team_code);
+  // Werkelijke winnaars per ronde
+  const realWinnersByRound: Partial<Record<BracketRound, Set<string>>> = {};
+  for (const [mid, winner] of winnerByMatchId) {
+    const m = koMatches.find((x) => x.id === mid);
+    if (!m) continue;
+    const stage = m.stage as BracketRound;
+    if (!realWinnersByRound[stage]) realWinnersByRound[stage] = new Set<string>();
+    realWinnersByRound[stage]!.add(winner);
   }
 
-  const koTotalPts = ROUNDS.reduce((sum, r) => {
-    const picks = picksByRound.get(r.key) ?? new Set<string>();
-    const survs = survivors[r.key];
-    if (!survs?.size) return sum;
-    return sum + Array.from(picks).filter((c) => survs.has(c)).length * r.points;
-  }, 0);
+  // Per match: jouw winner-pick (uit bracket_picks met slot=N en round=stage)
+  const myPickByFifa = new Map<number, string>();
+  for (const p of bracketPicksRaw ?? []) {
+    if (typeof p.slot !== "number" || !p.team_code) continue;
+    const stage = p.round as BracketRound;
+    if (!["LAST_32", "LAST_16", "QUARTER_FINALS", "SEMI_FINALS", "FINAL"].includes(stage)) continue;
+    let fifaNo: number | null = null;
+    if (stage === "LAST_32") fifaNo = 72 + p.slot;
+    else if (stage === "LAST_16") fifaNo = 88 + p.slot;
+    else if (stage === "QUARTER_FINALS") fifaNo = 96 + p.slot;
+    else if (stage === "SEMI_FINALS") fifaNo = 100 + p.slot;
+    else if (stage === "FINAL" && p.slot === 1) fifaNo = 104;
+    if (fifaNo != null) myPickByFifa.set(fifaNo, p.team_code);
+  }
+
+  // Group matches per stage
+  const stageOrder: BracketRound[] = ["LAST_32", "LAST_16", "QUARTER_FINALS", "SEMI_FINALS", "FINAL"];
+  const koMatchesByStage = new Map<BracketRound, typeof koMatches>();
+  for (const stage of stageOrder) koMatchesByStage.set(stage, []);
+  for (const m of koMatches) {
+    const stage = m.stage as BracketRound;
+    if (koMatchesByStage.has(stage)) koMatchesByStage.get(stage)!.push(m);
+  }
+  for (const arr of koMatchesByStage.values()) {
+    arr.sort((a, b) => a.id - b.id);
+  }
+
+  // Score per ronde + per match
+  type MatchScore = { match: (typeof koMatches)[number]; myPick: string | undefined; actualWinner: string | undefined; pts: number; };
+  const koByStage = new Map<BracketRound, { matches: MatchScore[]; subtotal: number }>();
+  for (const stage of stageOrder) {
+    const matches = koMatchesByStage.get(stage) ?? [];
+    const allRoundWinners = realWinnersByRound[stage] ?? new Set<string>();
+    const matchScores: MatchScore[] = matches.map((m) => {
+      const myPick = myPickByFifa.get(m.id);
+      const actualWinner = winnerByMatchId.get(m.id);
+      const pts = scoreKnockoutMatch(myPick, actualWinner, allRoundWinners, stage);
+      return { match: m, myPick, actualWinner, pts };
+    });
+    const subtotal = matchScores.reduce((s, ms) => s + ms.pts, 0);
+    koByStage.set(stage, { matches: matchScores, subtotal });
+  }
+  const koTotalPts = Array.from(koByStage.values()).reduce((s, x) => s + x.subtotal, 0);
 
   const grandTotal = groupTotalPts + koTotalPts + bonusTotalPts;
 
@@ -188,6 +259,9 @@ export default async function VoorspellingDetailPage({
     new Intl.DateTimeFormat("nl-NL", {
       weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
     }).format(new Date(kickoff));
+
+  // Silence unused-import warnings (gebruikt in PtsChip/KO_POINTS via tests + render)
+  void KO_POINTS_HALF; void fifaNoToSlot;
 
   return (
     <div className="mx-auto max-w-5xl px-4 sm:px-6 py-6 sm:py-8 space-y-8 sm:space-y-10">
@@ -197,7 +271,6 @@ export default async function VoorspellingDetailPage({
         </Link>
       </div>
 
-      {/* Header card */}
       <div className="bg-surface border border-border rounded-lg p-5 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold mb-0.5">{profile.display_name}</h1>
@@ -280,49 +353,128 @@ export default async function VoorspellingDetailPage({
         ))}
       </section>
 
-      {/* ── Knock-out ── */}
+      {/* ── Knock-out: tab 1+2 keuzes (info) ── */}
+      <section className="space-y-3">
+        <h2 className="text-xl font-bold">Knock-out — poule-keuzes</h2>
+        <div className="bg-surface border border-border rounded-lg p-4 space-y-3">
+          <div>
+            <p className="text-xs font-semibold text-muted uppercase tracking-wide mb-2">Top 2 per poule</p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 text-sm">
+              {Array.from(Object.entries(phaseA)).sort(([a], [b]) => a.localeCompare(b)).map(([g, ranks]) => (
+                <div key={g} className="border border-border rounded p-2 bg-bg/30">
+                  <p className="text-[10px] font-bold text-muted mb-1">Poule {g}</p>
+                  <ul className="space-y-1">
+                    {(["rank1", "rank2"] as const).map((rk, i) => {
+                      const code = ranks[rk];
+                      if (!code) return null;
+                      return (
+                        <li key={rk} className="flex items-center gap-1.5">
+                          <span className={`text-[9px] font-bold px-1 rounded ${RANK_BADGE[(i + 1) as 1 | 2]}`}>{i + 1}e</span>
+                          <span aria-hidden>{flagEmoji(code)}</span>
+                          <span className="text-xs">{teamName.get(code) ?? code}</span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="pt-3 border-t border-border">
+            <p className="text-xs font-semibold text-muted uppercase tracking-wide mb-2">8 beste nummers 3 (doorgaande)</p>
+            <div className="flex flex-wrap gap-1.5">
+              {Array.from(phaseBSet).sort().map((code) => (
+                <span key={code} className="inline-flex items-center gap-1 bg-amber-500 text-white text-xs font-medium px-2 py-0.5 rounded">
+                  <span aria-hidden>{flagEmoji(code)}</span>
+                  <span>{teamName.get(code) ?? code}</span>
+                </span>
+              ))}
+              {phaseBSet.size === 0 && <span className="text-xs text-muted italic">niet ingevuld</span>}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Knock-out: bracket per wedstrijd ── */}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold">Knock-out</h2>
+          <h2 className="text-xl font-bold">Knock-out — bracket</h2>
           <span className="text-sm font-semibold text-pitch tabular-nums">+{koTotalPts} pt</span>
         </div>
 
-        {ROUNDS.map((round) => {
-          const picks = picksByRound.get(round.key) ?? new Set<string>();
-          const survs = survivors[round.key];
-          const hasData = !!(survs?.size);
-          const pts = hasData ? Array.from(picks).filter((c) => survs.has(c)).length * round.points : null;
+        {stageOrder.map((stage) => {
+          const data = koByStage.get(stage);
+          if (!data || data.matches.length === 0) return null;
+          const full = KO_POINTS_FULL[stage];
+          const half = KO_POINTS_HALF[stage];
           return (
-            <div key={round.key} className="bg-surface border border-border rounded-lg overflow-hidden">
-              <div className="px-5 py-3 border-b border-border bg-bg/50 flex items-center justify-between">
-                <span className="text-sm font-bold">{round.label}</span>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs bg-pitch-soft text-pitch px-1.5 py-0.5 rounded font-semibold">{round.points} pt/team</span>
-                  {pts != null && <span className="text-sm font-bold text-pitch tabular-nums">+{pts}</span>}
+            <div key={stage} className="bg-surface border border-border rounded-lg overflow-hidden">
+              <div className="px-5 py-3 border-b border-border bg-bg/50 flex items-center justify-between gap-3">
+                <div>
+                  <span className="text-sm font-bold">{ROUND_LABEL[stage]}</span>
+                  <p className="text-[11px] text-muted">
+                    {full} pt juiste plek
+                    {half > 0 && `, ${half} pt juiste land verkeerde plek`}
+                  </p>
                 </div>
+                <span className="text-sm font-bold text-pitch tabular-nums shrink-0">+{data.subtotal}</span>
               </div>
-              {picks.size === 0 ? (
-                <p className="px-5 py-3 text-sm text-muted italic">Niet ingevuld</p>
-              ) : (
-                <div className="p-3 flex flex-wrap gap-1.5">
-                  {Array.from(picks).sort().map((code) => {
-                    const correct = hasData && survs.has(code);
-                    const wrong = hasData && !survs.has(code);
-                    return (
-                      <span key={code} className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded border font-medium ${
-                        correct ? "bg-pitch-soft border-pitch/30 text-pitch"
-                        : wrong ? "bg-brand-soft border-brand/30 text-brand line-through"
-                        : "bg-surface border-border text-ink"
-                      }`}>
-                        {flagEmoji(code)} {teamName.get(code) ?? code}
-                        {round.key === "LAST_32" && teamGroup.get(code) && (
-                          <span className="ml-0.5 text-[9px] font-bold opacity-50">{teamGroup.get(code)}</span>
+              <ul className="divide-y divide-border">
+                {data.matches.map(({ match: m, myPick, actualWinner, pts }) => {
+                  const finished = m.status === "FINISHED" && m.home_score != null && m.away_score != null;
+                  return (
+                    <li key={m.id} className="px-3 sm:px-4 py-2.5 sm:flex sm:items-center sm:gap-3">
+                      <div className="w-32 shrink-0">
+                        <div className="text-[10px] font-mono text-muted">W{m.id}</div>
+                        <div className="text-[10px] text-muted">{fmt(m.kickoff_at)}</div>
+                      </div>
+                      <div className="flex-1 mt-1 sm:mt-0">
+                        <div className="text-xs">
+                          {m.home_team && m.away_team ? (
+                            <span className="text-muted">
+                              {flagEmoji(m.home_team)} {teamName.get(m.home_team) ?? m.home_team}
+                              {" "}vs{" "}
+                              {flagEmoji(m.away_team)} {teamName.get(m.away_team) ?? m.away_team}
+                            </span>
+                          ) : (
+                            <span className="text-muted italic">teams nog niet bekend</span>
+                          )}
+                        </div>
+                        <div className="text-xs mt-0.5 flex items-center gap-2 flex-wrap">
+                          <span className="text-muted">jouw winnaar:</span>
+                          {myPick ? (
+                            <span className="inline-flex items-center gap-1 font-semibold">
+                              <span aria-hidden>{flagEmoji(myPick)}</span>
+                              <span>{teamName.get(myPick) ?? myPick}</span>
+                            </span>
+                          ) : <span className="text-muted italic">—</span>}
+                          {finished && (
+                            <>
+                              <span className="text-muted ml-2">·</span>
+                              <span className="text-muted">echt:</span>
+                              {actualWinner ? (
+                                <span className="inline-flex items-center gap-1 font-semibold">
+                                  <span aria-hidden>{flagEmoji(actualWinner)}</span>
+                                  <span>{teamName.get(actualWinner) ?? actualWinner}</span>
+                                </span>
+                              ) : (
+                                <span className="text-muted text-[10px] italic">(gelijkspel / TBD)</span>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      <div className="sm:w-16 sm:text-right mt-1 sm:mt-0">
+                        {finished ? (
+                          <PtsChip pts={pts} />
+                        ) : (
+                          <span className="text-muted text-xs">—</span>
                         )}
-                      </span>
-                    );
-                  })}
-                </div>
-              )}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
             </div>
           );
         })}
