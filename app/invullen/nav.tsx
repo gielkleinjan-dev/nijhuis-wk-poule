@@ -16,6 +16,7 @@ const SUBTABS = [
 
 export default function InvullenNav({
   isAdmin,
+  isLocked,
 }: {
   isAdmin: boolean;
   isLocked?: boolean;
@@ -24,6 +25,7 @@ export default function InvullenNav({
   const path = usePathname();
   const mainTabs = [
     ...BASE_TABS,
+    ...((isLocked || isAdmin) ? [{ href: "/voorspellingen", label: "Voorspellingen" }] : []),
     ...(isAdmin ? [{ href: "/admin", label: "Admin" }] : []),
   ];
 
