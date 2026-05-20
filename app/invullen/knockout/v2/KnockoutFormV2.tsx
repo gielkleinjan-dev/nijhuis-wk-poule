@@ -210,12 +210,14 @@ function StepHeader({
       </div>
       <p className="text-xs text-muted">{subtitle}</p>
       {legend && legend.length > 0 && (
-        <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-[11px] text-muted">
+        <ul className="mt-3 space-y-1.5 text-xs text-muted">
           {legend.map((item, i) => (
-            <li key={i} className="flex items-center gap-1.5">
-              {item.sw && <span className={`inline-block w-4 h-4 rounded ${item.sw}`} aria-hidden />}
-              {item.ico && <span className="inline-flex w-4 h-4 items-center justify-center rounded border border-border text-muted text-[10px]" aria-hidden>{item.ico}</span>}
-              <span>{item.text}</span>
+            <li key={i} className="flex items-start gap-2.5">
+              <span className="w-6 h-6 flex items-center justify-center shrink-0">
+                {item.sw && <span className={`inline-block w-5 h-5 rounded ${item.sw}`} aria-hidden />}
+                {item.ico && <span className="inline-flex w-6 h-6 items-center justify-center rounded border border-border text-fg text-sm leading-none" aria-hidden>{item.ico}</span>}
+              </span>
+              <span className="pt-0.5">{item.text}</span>
             </li>
           ))}
         </ul>
