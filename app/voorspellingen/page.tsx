@@ -15,7 +15,7 @@ export default async function VoorspellingenPage() {
         <h1 className="text-2xl font-bold mb-1">Voorspellingen van alle deelnemers</h1>
         <p className="text-sm text-muted">
           De poule is gesloten en alle keuzes zijn vastgezet. Klik op een naam om iemands
-          ingevulde poulebriefje te bekijken.
+          ingevulde voorspellingen te bekijken.
         </p>
       </div>
 

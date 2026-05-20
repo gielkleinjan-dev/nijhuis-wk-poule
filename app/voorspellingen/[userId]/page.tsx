@@ -362,7 +362,7 @@ export default async function VoorspellingDetailPage({
         <div>
           <h1 className="text-2xl font-bold mb-0.5">{profile.display_name}</h1>
           <p className="text-sm text-muted">
-            {profile.department ?? "Geen team"} · ingevuld poulebriefje (alleen-lezen)
+            {profile.department ?? "Geen team"} · ingevulde voorspellingen (alleen-lezen)
           </p>
         </div>
         <div className="text-right shrink-0">
