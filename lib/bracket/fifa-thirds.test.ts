@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { FIFA_THIRDS_TABLE, getThirdsRouting, makeThirdsKey } from "./fifa-thirds-table";
-import type { GroupCode } from "./types";
+import { BRACKET_GRAPH } from "./bracket-graph";
+import type { GroupCode, MatchId } from "./types";
 
 const ALL_GROUPS: GroupCode[] = ["A","B","C","D","E","F","G","H","I","J","K","L"];
 
@@ -129,6 +130,39 @@ describe("FIFA_THIRDS_TABLE — canonieke spot-check", () => {
     expect(routing.F).toEqual({ match: "R32-5",  side: "away" });
     expect(routing.D).toEqual({ match: "R32-15", side: "away" });
     expect(routing.E).toEqual({ match: "R32-8",  side: "away" });
+  });
+});
+
+describe("FIFA_THIRDS_TABLE — cross-constraint met bracket-graaf", () => {
+  // Voor elk van de 495 scenarios én elk van de 8 routings per scenario
+  // (= 3960 checks) moet gelden: de groep wordt gerouteerd naar een R32-slot
+  // waarvan die groep ook in de bracket-graaf's "from"-lijst toegestaan is.
+  // Dit vangt zowel transcriptiefouten in de FIFA-tabel als regressies in
+  // de bracket-graph from-lijsten af.
+  it("elke routing zit in de from-lijst van de doel-R32-slot", () => {
+    const slotFroms: Partial<Record<MatchId, ReadonlySet<GroupCode>>> = {};
+    for (const node of Object.values(BRACKET_GRAPH)) {
+      if (node.round !== "LAST_32") continue;
+      if (node.away.kind === "third-placed") {
+        slotFroms[node.id] = new Set(node.away.from);
+      }
+    }
+    const errors: string[] = [];
+    for (const [key, routing] of Object.entries(FIFA_THIRDS_TABLE)) {
+      for (const [group, r] of Object.entries(routing)) {
+        const allowed = slotFroms[r.match];
+        if (!allowed) {
+          errors.push(`${key}: ${group} → ${r.match} — match heeft geen 3rd-placed slot`);
+          continue;
+        }
+        if (!allowed.has(group as GroupCode)) {
+          errors.push(
+            `${key}: ${group} → ${r.match} maar ${r.match} accepteert alleen [${[...allowed].join(",")}]`,
+          );
+        }
+      }
+    }
+    expect(errors).toEqual([]);
   });
 });
 
