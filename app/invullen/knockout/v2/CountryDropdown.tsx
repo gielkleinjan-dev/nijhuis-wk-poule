@@ -88,7 +88,18 @@ export function CountryDropdown({
       ref={popupRef}
       role="listbox"
       className="fixed z-50 bg-surface border border-border rounded-md shadow-lg max-h-72 overflow-y-auto py-1"
-      style={coords ? { top: coords.top, left: coords.left, width: coords.width } : { visibility: "hidden" }}
+      style={
+        coords
+          ? {
+              top: coords.top,
+              left: coords.left,
+              width: coords.width,
+              touchAction: "pan-y",
+              overscrollBehavior: "contain",
+              WebkitOverflowScrolling: "touch",
+            }
+          : { visibility: "hidden" }
+      }
     >
       {teams.map((t) => {
         const isSelected = t.code === selectedCode;

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { flagEmoji } from "@/lib/flags";
 import type { MatchId } from "@/lib/bracket/types";
 import { CountryDropdown } from "./CountryDropdown";
@@ -41,10 +42,44 @@ export function BracketMatch({
   // homeCand/awayCand komen uit de cascade. Override = winner is geen van beide cands.
   const winnerIsOverride =
     winner != null && winner !== homeCand && winner !== awayCand;
-  const homeShown: string | undefined = winnerIsOverride ? winner : homeCand;
-  const awayShown: string | undefined = awayCand;
+
+  // Lokaal onthouden aan welke kant een override-winnaar staat. Default = "home".
+  // Wordt geüpdate als de gebruiker via een specifieke dropdown een ander land kiest.
+  // Bij page-reload gaat dit verloren → terug naar default "home" (niet ideaal maar
+  // voldoende: de winnaar blijft correct, alleen de visuele positie kan switchen).
+  const [overrideSide, setOverrideSide] = useState<"home" | "away">("home");
+
+  // Als de winner cascade-awayCand is geworden (bv. omdat gebruiker daarop klikte),
+  // schakelen we de override-zijde bij om verwarring te voorkomen wanneer hij
+  // daarna een nieuwe override op de away-kant doet.
+  useEffect(() => {
+    if (winner === awayCand && winner != null) setOverrideSide("away");
+    if (winner === homeCand && winner != null) setOverrideSide("home");
+  }, [winner, homeCand, awayCand]);
+
+  const effectiveSide: "home" | "away" =
+    winnerIsOverride ? overrideSide
+    : (winner === awayCand && winner != null) ? "away"
+    : "home";
+
+  const homeShown: string | undefined =
+    winnerIsOverride && effectiveSide === "home" ? winner : homeCand;
+  const awayShown: string | undefined =
+    winnerIsOverride && effectiveSide === "away" ? winner : awayCand;
 
   const fmt = formatKickoff(kickoff);
+
+  // Reset-knop: wist winnaar (en eventueel override) → terug naar auto-bracket
+  const canReset = !isLocked && winner != null;
+
+  function pickHome(code: string) {
+    setOverrideSide("home");
+    onPick(code);
+  }
+  function pickAway(code: string) {
+    setOverrideSide("away");
+    onPick(code);
+  }
 
   return (
     <li className="px-3 sm:px-4 py-3 border-b border-border last:border-b-0">
@@ -62,8 +97,8 @@ export function BracketMatch({
             isLocked={isLocked}
             teamsByCode={teamsByCode}
             allTeams={allTeams}
-            onClickPill={() => homeShown && onPick(winner === homeShown ? undefined : homeShown)}
-            onPickFromList={(code) => onPick(code)}
+            onClickPill={() => homeShown && (() => { setOverrideSide("home"); onPick(winner === homeShown ? undefined : homeShown); })()}
+            onPickFromList={pickHome}
           />
         </div>
 
@@ -76,10 +111,25 @@ export function BracketMatch({
             isLocked={isLocked}
             teamsByCode={teamsByCode}
             allTeams={allTeams}
-            onClickPill={() => awayShown && onPick(winner === awayShown ? undefined : awayShown)}
-            onPickFromList={(code) => onPick(code)}
+            onClickPill={() => awayShown && (() => { setOverrideSide("away"); onPick(winner === awayShown ? undefined : awayShown); })()}
+            onPickFromList={pickAway}
           />
         </div>
+
+        <button
+          type="button"
+          disabled={!canReset}
+          onClick={() => onPick(undefined)}
+          aria-label="Reset naar auto-bracket"
+          title="Reset naar auto-bracket"
+          className={`shrink-0 w-7 h-7 rounded-md border text-sm leading-none transition ${
+            canReset
+              ? "border-border text-muted hover:border-pitch hover:text-pitch cursor-pointer"
+              : "border-transparent text-transparent cursor-default"
+          }`}
+        >
+          ↺
+        </button>
       </div>
 
       {/* Mobile (< sm): 2 regels — teams boven, datum onder */}
@@ -92,8 +142,8 @@ export function BracketMatch({
               isLocked={isLocked}
               teamsByCode={teamsByCode}
               allTeams={allTeams}
-              onClickPill={() => homeShown && onPick(winner === homeShown ? undefined : homeShown)}
-              onPickFromList={(code) => onPick(code)}
+              onClickPill={() => homeShown && (() => { setOverrideSide("home"); onPick(winner === homeShown ? undefined : homeShown); })()}
+              onPickFromList={pickHome}
             />
           </div>
           <div className="text-xs text-muted shrink-0">vs</div>
@@ -104,14 +154,26 @@ export function BracketMatch({
               isLocked={isLocked}
               teamsByCode={teamsByCode}
               allTeams={allTeams}
-              onClickPill={() => awayShown && onPick(winner === awayShown ? undefined : awayShown)}
-              onPickFromList={(code) => onPick(code)}
+              onClickPill={() => awayShown && (() => { setOverrideSide("away"); onPick(winner === awayShown ? undefined : awayShown); })()}
+              onPickFromList={pickAway}
             />
           </div>
         </div>
         <div className="flex items-center justify-between text-[11px] text-muted">
           <span>{fmt}</span>
-          <span className="font-mono text-muted/70">W{fifaMatchNo}</span>
+          <div className="flex items-center gap-3">
+            <span className="font-mono text-muted/70">W{fifaMatchNo}</span>
+            {canReset && (
+              <button
+                type="button"
+                onClick={() => onPick(undefined)}
+                className="text-pitch hover:underline"
+                aria-label="Reset naar auto-bracket"
+              >
+                ↺ reset
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
