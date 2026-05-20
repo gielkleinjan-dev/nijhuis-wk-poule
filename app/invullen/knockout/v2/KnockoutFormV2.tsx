@@ -160,7 +160,13 @@ export default function KnockoutFormV2({
             <StepHeader
               num={3}
               title="Winnaars per wedstrijd"
-              subtitle="Het complete knock-out schema. Tik op het land dat volgens jou wint. Wil je een land buiten je stap 1+2 keuze hebben? Tik ▾ in een pill om dat land in te vullen."
+              subtitle="Het complete knock-out schema. Tik op het land dat volgens jou wint."
+              legend={[
+                { sw: "bg-pitch", text: "winnaar" },
+                { sw: "bg-pitch-soft border border-pitch/40", text: "jouw keuze in pill, niet de winnaar" },
+                { ico: "▾", text: "tik om een ander land in deze pill te zetten" },
+                { ico: "↺", text: "tik om die pill (en winnaar) te wissen" },
+              ]}
             />
             <div className="p-3">
               <BracketBuilder
@@ -184,7 +190,16 @@ export default function KnockoutFormV2({
   );
 }
 
-function StepHeader({ num, title, subtitle }: { num: number; title: string; subtitle: string }) {
+type LegendItem = { sw?: string; ico?: string; text: string };
+
+function StepHeader({
+  num, title, subtitle, legend,
+}: {
+  num: number;
+  title: string;
+  subtitle: string;
+  legend?: LegendItem[];
+}) {
   return (
     <div className="px-5 py-4 border-b border-border bg-bg/30">
       <div className="flex items-center gap-2 mb-1">
@@ -194,6 +209,17 @@ function StepHeader({ num, title, subtitle }: { num: number; title: string; subt
         <h2 className="text-base font-bold">{title}</h2>
       </div>
       <p className="text-xs text-muted">{subtitle}</p>
+      {legend && legend.length > 0 && (
+        <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-[11px] text-muted">
+          {legend.map((item, i) => (
+            <li key={i} className="flex items-center gap-1.5">
+              {item.sw && <span className={`inline-block w-4 h-4 rounded ${item.sw}`} aria-hidden />}
+              {item.ico && <span className="inline-flex w-4 h-4 items-center justify-center rounded border border-border text-muted text-[10px]" aria-hidden>{item.ico}</span>}
+              <span>{item.text}</span>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

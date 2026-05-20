@@ -141,8 +141,8 @@ export function BracketMatch({
         </div>
       </div>
 
-      {/* Mobile (< sm): 2 regels — teams boven, datum + reset onder */}
-      <div className="sm:hidden space-y-2">
+      {/* Mobile (< sm): 3 regels — teams boven, ↺-knoppen midden, datum onder */}
+      <div className="sm:hidden space-y-1.5">
         <div className="flex items-center gap-1.5">
           <div className="flex-1 min-w-0">
             <TeamPill
@@ -157,9 +157,7 @@ export function BracketMatch({
               onPickFromList={pickHomeFromDropdown}
             />
           </div>
-          <ResetButton enabled={canResetHome} onClick={resetHome} ariaLabel="Reset thuis" />
-          <div className="text-xs text-muted shrink-0">vs</div>
-          <ResetButton enabled={canResetAway} onClick={resetAway} ariaLabel="Reset uit" />
+          <div className="text-[10px] text-muted shrink-0 px-0.5">vs</div>
           <div className="flex-1 min-w-0">
             <TeamPill
               code={awayShown}
@@ -174,7 +172,17 @@ export function BracketMatch({
             />
           </div>
         </div>
-        <div className="flex items-center justify-between text-[11px] text-muted">
+        {/* Tweede regel: ↺-knoppen onder de pills, vol-breed klikbaar */}
+        <div className="flex items-center gap-1.5">
+          <div className="flex-1 min-w-0">
+            <ResetButton enabled={canResetHome} onClick={resetHome} ariaLabel="Reset thuis-keuze" wide />
+          </div>
+          <div className="w-6 shrink-0" aria-hidden />
+          <div className="flex-1 min-w-0">
+            <ResetButton enabled={canResetAway} onClick={resetAway} ariaLabel="Reset uit-keuze" wide />
+          </div>
+        </div>
+        <div className="flex items-center justify-between text-[11px] text-muted pt-0.5">
           <span>{fmt}</span>
           <span className="font-mono text-muted/70">W{fifaMatchNo}</span>
         </div>
@@ -186,12 +194,31 @@ export function BracketMatch({
 }
 
 function ResetButton({
-  enabled, onClick, ariaLabel,
+  enabled, onClick, ariaLabel, wide = false,
 }: {
   enabled: boolean;
   onClick: () => void;
   ariaLabel: string;
+  wide?: boolean;
 }) {
+  // wide = mobile: vol-breed klikbaar onder de pill (geen ↺-icoon achter pill-naam)
+  if (wide) {
+    return (
+      <button
+        type="button"
+        disabled={!enabled}
+        onClick={onClick}
+        aria-label={ariaLabel}
+        className={`w-full h-7 rounded-md border text-[11px] leading-none transition flex items-center justify-center gap-1 ${
+          enabled
+            ? "border-border text-muted hover:border-pitch hover:text-pitch active:bg-bg/40 cursor-pointer"
+            : "border-transparent text-transparent cursor-default"
+        }`}
+      >
+        ↺ wis
+      </button>
+    );
+  }
   return (
     <button
       type="button"
