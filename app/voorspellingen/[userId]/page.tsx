@@ -496,13 +496,19 @@ export default async function VoorspellingDetailPage({
           const half = KO_POINTS_HALF[stage];
           return (
             <div key={stage} className="bg-surface border border-border rounded-lg overflow-hidden">
-              <div className="px-5 py-3 border-b border-border bg-bg/50 flex items-center justify-between gap-3">
+              <div className="px-5 py-3 border-b border-border bg-bg/50 flex items-start justify-between gap-3">
                 <div>
                   <span className="text-sm font-bold">{ROUND_LABEL[stage]}</span>
-                  <p className="text-[11px] text-muted">
-                    {full} pt juiste plek
-                    {half > 0 && `, ${half} pt juiste land verkeerde plek`}
-                  </p>
+                  <div className="flex flex-wrap gap-1.5 mt-1">
+                    <span className="bg-pitch text-white text-[11px] font-semibold px-1.5 py-0.5 rounded">
+                      {full} pt juiste land op juiste plek
+                    </span>
+                    {half > 0 && (
+                      <span className="bg-pitch-soft text-pitch text-[11px] font-semibold px-1.5 py-0.5 rounded">
+                        {half} pt juiste land op verkeerde plek
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <span className="text-sm font-bold text-pitch tabular-nums shrink-0">+{data.subtotal}</span>
               </div>

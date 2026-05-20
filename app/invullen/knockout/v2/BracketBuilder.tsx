@@ -9,31 +9,31 @@ import type { MatchOverrides, Side } from "./useBracketState";
 
 type TeamLite = { code: string; name: string };
 
-const ROUND_META: Record<Round, { title: string; hint: string; points: number }> = {
+const ROUND_META: Record<Round, { title: string; hint: string; full: number; half: number }> = {
   LAST_32: {
     title: "1/16e finale",
     hint: "De 32 geplaatste landen spelen 16 wedstrijden. Kies in elke wedstrijd de winnaar.",
-    points: 8,
+    full: 8, half: 4,
   },
   LAST_16: {
     title: "1/8e finale",
     hint: "De 16 overgebleven landen spelen 8 wedstrijden. Kies in elke wedstrijd de winnaar.",
-    points: 14,
+    full: 14, half: 7,
   },
   QUARTER_FINALS: {
     title: "Kwartfinale",
     hint: "Vier wedstrijden tussen de 8 landen die de 1/8e finale overleven. Kies de winnaars.",
-    points: 24,
+    full: 24, half: 12,
   },
   SEMI_FINALS: {
     title: "Halve finale",
     hint: "De 4 kwartfinalewinnaars spelen 2 wedstrijden. De winnaars staan in de finale.",
-    points: 36,
+    full: 36, half: 18,
   },
   FINAL: {
     title: "Finale",
-    hint: "De winnaar van deze wedstrijd wordt wereldkampioen.",
-    points: 96,
+    hint: "De winnaar van deze wedstrijd wordt wereldkampioen (inclusief 40 pt bonus).",
+    full: 96, half: 0,
   },
 };
 
@@ -73,9 +73,18 @@ export function BracketBuilder({
               <div className="min-w-0">
                 <h2 className="text-lg font-bold flex items-center gap-2 flex-wrap">
                   {meta.title}
-                  <span className="bg-pitch-soft text-pitch text-xs font-semibold px-1.5 py-0.5 rounded">{meta.points} pt</span>
                 </h2>
                 <p className="text-xs text-muted mt-0.5">{meta.hint}</p>
+                <div className="flex flex-wrap gap-1.5 mt-1.5">
+                  <span className="bg-pitch text-white text-[11px] font-semibold px-1.5 py-0.5 rounded">
+                    {meta.full} pt juiste land op juiste plek
+                  </span>
+                  {meta.half > 0 && (
+                    <span className="bg-pitch-soft text-pitch text-[11px] font-semibold px-1.5 py-0.5 rounded">
+                      {meta.half} pt juiste land op verkeerde plek
+                    </span>
+                  )}
+                </div>
               </div>
               <div className="text-right shrink-0">
                 <div className="text-2xl font-bold tabular-nums">
