@@ -9,10 +9,14 @@ export default async function BonusPage() {
   const [{ data: bonusRaw }, { data: settings }, { data: matchTotals }, { data: pointRows }] = await Promise.all([
     supabase
       .from("bonus_picks")
-      .select("top_scorer, total_goals_tiebreak, total_yellow_cards_tiebreak")
+      .select("top_scorer, total_goals_tiebreak, total_yellow_cards_tiebreak, nl_top_scorer, nl_total_goals, nl_progress")
       .eq("user_id", user.id)
       .maybeSingle(),
-    supabase.from("settings").select("lock_at, actual_top_scorer, actual_yellow_cards").eq("id", 1).single(),
+    supabase
+      .from("settings")
+      .select("lock_at, actual_top_scorer, actual_yellow_cards, actual_nl_top_scorer, actual_nl_total_goals, actual_nl_progress")
+      .eq("id", 1)
+      .single(),
     supabase
       .from("matches")
       .select("home_score, away_score")
@@ -38,11 +42,17 @@ export default async function BonusPage() {
         top_scorer: bonusRaw?.top_scorer ?? "",
         total_goals_tiebreak: bonusRaw?.total_goals_tiebreak ?? null,
         total_yellow_cards_tiebreak: bonusRaw?.total_yellow_cards_tiebreak ?? null,
+        nl_top_scorer: bonusRaw?.nl_top_scorer ?? "",
+        nl_total_goals: bonusRaw?.nl_total_goals ?? null,
+        nl_progress: bonusRaw?.nl_progress ?? null,
       }}
       isLocked={isLocked}
       actualTopScorer={settings?.actual_top_scorer ?? null}
       actualYellowCards={settings?.actual_yellow_cards ?? null}
       actualTotalGoals={actualTotalGoals}
+      actualNLTopScorer={settings?.actual_nl_top_scorer ?? null}
+      actualNLTotalGoals={settings?.actual_nl_total_goals ?? null}
+      actualNLProgress={settings?.actual_nl_progress ?? null}
     />
   );
 }

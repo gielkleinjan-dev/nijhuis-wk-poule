@@ -10,6 +10,7 @@ const BASE_TABS = [
 
 export default function MainNav({
   isAdmin,
+  isLocked,
   maxWidth = "max-w-5xl",
 }: {
   isAdmin: boolean;
@@ -20,6 +21,9 @@ export default function MainNav({
   const path = usePathname();
   const tabs = [
     ...BASE_TABS,
+    // "Voorspellingen" verschijnt voor iedereen zodra de poule gesloten is.
+    // Admins kunnen 'm altijd zien.
+    ...((isLocked || isAdmin) ? [{ href: "/voorspellingen", label: "Voorspellingen" }] : []),
     ...(isAdmin ? [{ href: "/admin", label: "Admin" }] : []),
   ];
 

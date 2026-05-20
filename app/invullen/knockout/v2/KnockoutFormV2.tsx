@@ -66,10 +66,9 @@ export default function KnockoutFormV2({
         <div>
           <h1 className="text-2xl font-bold mb-1">Knock-out</h1>
           <p className="text-sm text-muted">
-            In drie stappen vul je je bracket in. Stap 1: wijs in elke poule de nummer 1 en 2 aan.
-            Stap 2: kies in welke 8 poules de nummer 3 zich ook plaatst. Stap 3: vul per wedstrijd
-            de winnaar in. Tip: met het pijltje ▾ in een wedstrijd kun je elk land kiezen, ook
-            eentje die volgens de standaard-bracket daar niet zou staan.
+            Drie stappen: (1) wijs per poule je nummer 1 en 2 aan, (2) kies in welke 8 poules de
+            nummer 3 doorgaat, (3) vul per wedstrijd de winnaar in. Met het ▾-pijltje kun je in
+            een wedstrijd ook een ander land kiezen dan de standaard-bracket voorstelt.
           </p>
         </div>
         <div className="shrink-0 flex flex-row sm:flex-col items-start sm:items-end gap-6 sm:gap-2 text-left sm:text-right">
@@ -119,7 +118,7 @@ export default function KnockoutFormV2({
             onClick={() => setActivePhase("A")}
           />
           <PhaseTab
-            label="2. Beste nrs 3"
+            label="2. Beste nummers 3"
             count={`${s.phaseB.size}/8`}
             active={activePhase === "B"}
             complete={s.phaseBComplete}

@@ -139,9 +139,11 @@ function TeamPill({
 }) {
   const t = code ? teamsByCode.get(code) : undefined;
 
+  // Winnaars in pitch-groen — consistent met fase 1 (groen = "ik kies dit").
+  // Rood blijft alleen voor brand/Nijhuis-elementen elders in de app.
   const baseClass = isWinner
-    ? "bg-brand text-white border-brand font-semibold"
-    : "bg-bg border-border hover:border-brand";
+    ? "bg-pitch text-white border-pitch font-semibold"
+    : "bg-bg border-border hover:border-pitch";
 
   const emptySlot = !code;
 

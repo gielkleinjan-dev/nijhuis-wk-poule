@@ -14,9 +14,15 @@ async function updateTournamentResults(formData: FormData) {
   if (!user || !checkAdmin(user.email)) return;
   const topScorer = (formData.get("actual_top_scorer") as string)?.trim() || null;
   const yellowCards = formData.get("actual_yellow_cards") as string;
+  const nlTopScorer = (formData.get("actual_nl_top_scorer") as string)?.trim() || null;
+  const nlTotalGoals = formData.get("actual_nl_total_goals") as string;
+  const nlProgress = (formData.get("actual_nl_progress") as string) || null;
   await supabase.from("settings").update({
     actual_top_scorer: topScorer,
     actual_yellow_cards: yellowCards ? parseInt(yellowCards, 10) : null,
+    actual_nl_top_scorer: nlTopScorer,
+    actual_nl_total_goals: nlTotalGoals ? parseInt(nlTotalGoals, 10) : null,
+    actual_nl_progress: nlProgress,
   }).eq("id", 1);
 }
 
@@ -70,7 +76,7 @@ export default async function AdminPage() {
       .select("user_id, top_scorer, total_goals_tiebreak, total_yellow_cards_tiebreak"),
     supabase
       .from("settings")
-      .select("lock_at, actual_top_scorer, actual_yellow_cards")
+      .select("lock_at, actual_top_scorer, actual_yellow_cards, actual_nl_top_scorer, actual_nl_total_goals, actual_nl_progress")
       .eq("id", 1)
       .single(),
   ]);
@@ -204,6 +210,45 @@ export default async function AdminPage() {
                     placeholder="bijv. 192"
                     className="border border-border rounded-md px-3 py-2 text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-brand w-32"
                   />
+                </div>
+                <div className="pt-2 border-t border-border" />
+                <p className="text-xs font-semibold text-muted">🇳🇱 Oranje (3 nieuwe bonusvragen)</p>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <label className="text-xs text-muted w-32 shrink-0">Topscorer NL</label>
+                  <input
+                    type="text"
+                    name="actual_nl_top_scorer"
+                    defaultValue={settings?.actual_nl_top_scorer ?? ""}
+                    placeholder="bv. Memphis Depay"
+                    className="border border-border rounded-md px-3 py-2 text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-brand flex-1 min-w-48"
+                  />
+                </div>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <label className="text-xs text-muted w-32 shrink-0">Goals NL</label>
+                  <input
+                    type="number"
+                    name="actual_nl_total_goals"
+                    defaultValue={settings?.actual_nl_total_goals ?? ""}
+                    placeholder="bv. 10"
+                    className="border border-border rounded-md px-3 py-2 text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-brand w-32"
+                  />
+                </div>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <label className="text-xs text-muted w-32 shrink-0">Ronde NL</label>
+                  <select
+                    name="actual_nl_progress"
+                    defaultValue={settings?.actual_nl_progress ?? ""}
+                    className="border border-border rounded-md px-3 py-2 text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-brand flex-1 min-w-48"
+                  >
+                    <option value="">— nog niet bekend —</option>
+                    <option value="GROUP_STAGE">Uitgeschakeld in groepsfase</option>
+                    <option value="LAST_32">Uitgeschakeld in 1/16e finale</option>
+                    <option value="LAST_16">Uitgeschakeld in 1/8e finale</option>
+                    <option value="QUARTER_FINALS">Uitgeschakeld in kwartfinale</option>
+                    <option value="SEMI_FINALS">Uitgeschakeld in halve finale</option>
+                    <option value="FINAL_LOSER">Verliest finale (tweede plaats)</option>
+                    <option value="CHAMPION">Wereldkampioen</option>
+                  </select>
                 </div>
                 <button
                   type="submit"

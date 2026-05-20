@@ -35,10 +35,32 @@ export type BracketPick = {
   team_code: string;
 };
 
+export type NLProgress =
+  | "GROUP_STAGE"
+  | "LAST_32"
+  | "LAST_16"
+  | "QUARTER_FINALS"
+  | "SEMI_FINALS"
+  | "FINAL_LOSER"
+  | "CHAMPION";
+
+const NL_PROGRESS_ORDER: NLProgress[] = [
+  "GROUP_STAGE",
+  "LAST_32",
+  "LAST_16",
+  "QUARTER_FINALS",
+  "SEMI_FINALS",
+  "FINAL_LOSER",
+  "CHAMPION",
+];
+
 export type BonusPicks = {
   top_scorer: string | null;
   total_goals_tiebreak: number | null;
   total_yellow_cards_tiebreak: number | null;
+  nl_top_scorer?: string | null;
+  nl_total_goals?: number | null;
+  nl_progress?: NLProgress | null;
 };
 
 export const KO_POINTS: Record<BracketRound, number> = {
@@ -126,17 +148,48 @@ export function scoreBonus(
     topScorer: string | null;
     totalGoals?: number | null;
     totalYellowCards?: number | null;
+    nlTopScorer?: string | null;
+    nlTotalGoals?: number | null;
+    nlProgress?: NLProgress | null;
   },
-): { topScorer: number; totalGoals: number; totalYellowCards: number } {
+): {
+  topScorer: number;
+  totalGoals: number;
+  totalYellowCards: number;
+  nlTopScorer: number;
+  nlTotalGoals: number;
+  nlProgress: number;
+} {
   const topScorer =
     picks.top_scorer &&
     result.topScorer &&
     normalizeName(picks.top_scorer) === normalizeName(result.topScorer)
-      ? 15
+      ? 10
       : 0;
-  const totalGoals = scoreNumeric(picks.total_goals_tiebreak, result.totalGoals, 15, 8);
-  const totalYellowCards = scoreNumeric(picks.total_yellow_cards_tiebreak, result.totalYellowCards, 15, 8);
-  return { topScorer, totalGoals, totalYellowCards };
+  const totalGoals = scoreNumeric(picks.total_goals_tiebreak, result.totalGoals, 10, 5);
+  const totalYellowCards = scoreNumeric(picks.total_yellow_cards_tiebreak, result.totalYellowCards, 10, 5);
+
+  const nlTopScorer =
+    picks.nl_top_scorer &&
+    result.nlTopScorer &&
+    normalizeName(picks.nl_top_scorer) === normalizeName(result.nlTopScorer)
+      ? 10
+      : 0;
+  const nlTotalGoals = scoreNumeric(picks.nl_total_goals ?? null, result.nlTotalGoals, 10, 5);
+
+  // nl_progress: exact = 10pt, 1 ronde verschil = 5pt
+  let nlProgress = 0;
+  if (picks.nl_progress && result.nlProgress) {
+    const pi = NL_PROGRESS_ORDER.indexOf(picks.nl_progress);
+    const ri = NL_PROGRESS_ORDER.indexOf(result.nlProgress);
+    if (pi >= 0 && ri >= 0) {
+      const diff = Math.abs(pi - ri);
+      if (diff === 0) nlProgress = 10;
+      else if (diff === 1) nlProgress = 5;
+    }
+  }
+
+  return { topScorer, totalGoals, totalYellowCards, nlTopScorer, nlTotalGoals, nlProgress };
 }
 
 export function deriveSurvivors(
@@ -214,6 +267,9 @@ export type RecomputeContext = {
   topScorer: string | null;
   totalGoals?: number | null;
   totalYellowCards?: number | null;
+  nlTopScorer?: string | null;
+  nlTotalGoals?: number | null;
+  nlProgress?: NLProgress | null;
 };
 
 // Fetches a single user's predictions/picks/bonus from Supabase and returns
@@ -241,7 +297,7 @@ export async function computeUserPointRows(
       .eq("user_id", userId),
     supabase
       .from("bonus_picks")
-      .select("top_scorer, surprise_team, total_goals_tiebreak, total_yellow_cards_tiebreak")
+      .select("top_scorer, surprise_team, total_goals_tiebreak, total_yellow_cards_tiebreak, nl_top_scorer, nl_total_goals, nl_progress")
       .eq("user_id", userId)
       .maybeSingle(),
   ]);
@@ -304,10 +360,16 @@ export async function computeUserPointRows(
       topScorer: ctx.topScorer,
       totalGoals: ctx.totalGoals,
       totalYellowCards: ctx.totalYellowCards,
+      nlTopScorer: ctx.nlTopScorer,
+      nlTotalGoals: ctx.nlTotalGoals,
+      nlProgress: ctx.nlProgress,
     });
     if (bonus.topScorer > 0) rows.push({ source: "bonus", ref_id: "top_scorer", points: bonus.topScorer });
     if (bonus.totalGoals > 0) rows.push({ source: "bonus", ref_id: "total_goals", points: bonus.totalGoals });
     if (bonus.totalYellowCards > 0) rows.push({ source: "bonus", ref_id: "total_yellow_cards", points: bonus.totalYellowCards });
+    if (bonus.nlTopScorer > 0) rows.push({ source: "bonus", ref_id: "nl_top_scorer", points: bonus.nlTopScorer });
+    if (bonus.nlTotalGoals > 0) rows.push({ source: "bonus", ref_id: "nl_total_goals", points: bonus.nlTotalGoals });
+    if (bonus.nlProgress > 0) rows.push({ source: "bonus", ref_id: "nl_progress", points: bonus.nlProgress });
   }
 
   return rows;

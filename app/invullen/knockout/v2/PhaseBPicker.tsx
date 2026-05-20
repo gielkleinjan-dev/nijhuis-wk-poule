@@ -30,10 +30,9 @@ export function PhaseBPicker({
       <div className="text-xs text-muted bg-bg/40 rounded-md px-3 py-2">
         <p className="font-semibold mb-0.5">Hoe vul je dit in</p>
         <p>
-          Per poule plaatst maar één nummer 3 zich, en in totaal gaan er 8 van de 12 door
-          naar de 1/16e finale. Markeer in de poules waar jij een sterke nummer 3 verwacht
-          het land dat doorgaat — dat krijgt de oranje 3e-badge. Maximaal 1 land per poule,
-          en je kunt maximaal 8 poules selecteren.
+          Niet alle 12 nummers 3 plaatsen zich — alleen de 8 beste gaan door naar de 1/16e finale.
+          Markeer in elke poule waar jij een sterke nummer 3 verwacht het land dat doorgaat (oranje
+          3e-badge). Maximaal 1 per poule, maximaal 8 in totaal.
         </p>
       </div>
 
@@ -74,7 +73,7 @@ export function PhaseBPicker({
                           ? "bg-bg border-border text-muted opacity-40 line-through cursor-not-allowed"
                           : blocked
                           ? "bg-bg border-border text-muted opacity-40 cursor-not-allowed"
-                          : "bg-surface border-border hover:border-brand"
+                          : "bg-surface border-border hover:border-amber-500"
                       }`}
                     >
                       {isMarked && (

@@ -72,7 +72,7 @@ export async function GET(req: Request) {
   // 4. Fetch bonus context: admin-entered results + total goals from finished matches.
   const [{ data: settings }, { data: finishedMatches }, { data: profiles, error: pErr }] =
     await Promise.all([
-      supabase.from("settings").select("actual_top_scorer, actual_yellow_cards").eq("id", 1).single(),
+      supabase.from("settings").select("actual_top_scorer, actual_yellow_cards, actual_nl_top_scorer, actual_nl_total_goals, actual_nl_progress").eq("id", 1).single(),
       supabase.from("matches").select("home_score, away_score").eq("status", "FINISHED"),
       supabase.from("profiles").select("id"),
     ]);
@@ -83,6 +83,9 @@ export async function GET(req: Request) {
 
   const topScorer = settings?.actual_top_scorer ?? null;
   const totalYellowCards = settings?.actual_yellow_cards ?? null;
+  const nlTopScorer = settings?.actual_nl_top_scorer ?? null;
+  const nlTotalGoals = settings?.actual_nl_total_goals ?? null;
+  const nlProgress = settings?.actual_nl_progress ?? null;
   const totalGoals = finishedMatches
     ? finishedMatches.reduce((sum, m) => sum + (m.home_score ?? 0) + (m.away_score ?? 0), 0)
     : null;
@@ -108,6 +111,9 @@ export async function GET(req: Request) {
         topScorer,
         totalGoals,
         totalYellowCards,
+        nlTopScorer,
+        nlTotalGoals,
+        nlProgress,
       });
       const { error: rpcErr } = await supabase.rpc("cron_replace_user_points", {
         p_secret: cronSecret,

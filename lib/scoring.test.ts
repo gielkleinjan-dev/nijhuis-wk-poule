@@ -89,21 +89,21 @@ describe("scoreKnockoutRound", () => {
 });
 
 describe("scoreBonus", () => {
-  it("exact topscorer match → 15", () => {
+  it("exact topscorer match → 10", () => {
     expect(
       scoreBonus(
         { top_scorer: "Kylian Mbappé", total_goals_tiebreak: null, total_yellow_cards_tiebreak: null },
         { topScorer: "Kylian Mbappé" },
       ).topScorer,
-    ).toBe(15);
+    ).toBe(10);
   });
-  it("case-insensitive + trim topscorer → 15", () => {
+  it("case-insensitive + trim topscorer → 10", () => {
     expect(
       scoreBonus(
         { top_scorer: "  kylian mbappé  ", total_goals_tiebreak: null, total_yellow_cards_tiebreak: null },
         { topScorer: "Kylian Mbappé" },
       ).topScorer,
-    ).toBe(15);
+    ).toBe(10);
   });
   it("different name → 0", () => {
     expect(
@@ -113,21 +113,21 @@ describe("scoreBonus", () => {
       ).topScorer,
     ).toBe(0);
   });
-  it("total goals exact → 15", () => {
+  it("total goals exact → 10", () => {
     expect(
       scoreBonus(
         { top_scorer: null, total_goals_tiebreak: 120, total_yellow_cards_tiebreak: null },
         { topScorer: null, totalGoals: 120 },
       ).totalGoals,
-    ).toBe(15);
+    ).toBe(10);
   });
-  it("total goals within ±3 → 8", () => {
+  it("total goals within ±3 → 5", () => {
     expect(
       scoreBonus(
         { top_scorer: null, total_goals_tiebreak: 117, total_yellow_cards_tiebreak: null },
         { topScorer: null, totalGoals: 120 },
       ).totalGoals,
-    ).toBe(8);
+    ).toBe(5);
   });
   it("total goals outside ±3 → 0", () => {
     expect(
@@ -137,21 +137,21 @@ describe("scoreBonus", () => {
       ).totalGoals,
     ).toBe(0);
   });
-  it("yellow cards exact → 15", () => {
+  it("yellow cards exact → 10", () => {
     expect(
       scoreBonus(
         { top_scorer: null, total_goals_tiebreak: null, total_yellow_cards_tiebreak: 80 },
         { topScorer: null, totalYellowCards: 80 },
       ).totalYellowCards,
-    ).toBe(15);
+    ).toBe(10);
   });
-  it("yellow cards within ±3 → 8", () => {
+  it("yellow cards within ±3 → 5", () => {
     expect(
       scoreBonus(
         { top_scorer: null, total_goals_tiebreak: null, total_yellow_cards_tiebreak: 82 },
         { topScorer: null, totalYellowCards: 80 },
       ).totalYellowCards,
-    ).toBe(8);
+    ).toBe(5);
   });
   it("all nulls → all 0", () => {
     expect(
@@ -159,7 +159,7 @@ describe("scoreBonus", () => {
         { top_scorer: null, total_goals_tiebreak: null, total_yellow_cards_tiebreak: null },
         { topScorer: null },
       ),
-    ).toEqual({ topScorer: 0, totalGoals: 0, totalYellowCards: 0 });
+    ).toEqual({ topScorer: 0, totalGoals: 0, totalYellowCards: 0, nlTopScorer: 0, nlTotalGoals: 0, nlProgress: 0 });
   });
 });
 

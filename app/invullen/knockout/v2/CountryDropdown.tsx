@@ -103,7 +103,7 @@ export function CountryDropdown({
               setOpen(false);
             }}
             className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm text-left hover:bg-bg/60 ${
-              isSelected ? "bg-brand-soft text-brand font-semibold" : "text-fg"
+              isSelected ? "bg-pitch-soft text-pitch font-semibold" : "text-fg"
             }`}
           >
             <span className="text-base leading-none shrink-0" aria-hidden>{flagEmoji(t.code)}</span>

@@ -8,7 +8,7 @@ type TeamLite = { code: string; name: string };
 
 const RANK_BADGE: Record<1 | 2, { label: string; bg: string; text: string; border: string }> = {
   1: { label: "1e", bg: "bg-pitch", text: "text-white", border: "border-pitch" },
-  2: { label: "2e", bg: "bg-brand", text: "text-white", border: "border-brand" },
+  2: { label: "2e", bg: "bg-pitch/70", text: "text-white", border: "border-pitch/70" },
 };
 
 export function PhaseAPicker({
@@ -47,10 +47,8 @@ export function PhaseAPicker({
       <div className="text-xs text-muted bg-bg/40 rounded-md px-3 py-2">
         <p className="font-semibold mb-0.5">Hoe vul je dit in</p>
         <p>
-          Wijs in elke poule de nummer 1 en de nummer 2 aan. Klik eerst het land dat volgens jou
-          eerste wordt — dat krijgt de groene 1e-badge. Klik daarna een ander land voor de
-          tweede plek — die krijgt de rode 2e-badge. Per ongeluk fout? Klik nog een keer op een
-          gemarkeerd land om die keuze te wissen.
+          Klik per poule eerst je nummer 1 aan (donkergroen) en daarna je nummer 2 (lichter groen).
+          Klik nog een keer op een gemarkeerd land om die keuze te wissen.
         </p>
       </div>
 
@@ -78,7 +76,7 @@ export function PhaseAPicker({
                       className={`flex items-center gap-2 px-2 py-2 rounded text-sm border transition text-left ${
                         badge
                           ? `${badge.bg} ${badge.text} ${badge.border} font-semibold`
-                          : "bg-surface border-border hover:border-brand"
+                          : "bg-surface border-border hover:border-pitch"
                       } ${isLocked ? "cursor-not-allowed opacity-70" : ""}`}
                     >
                       {badge && (
