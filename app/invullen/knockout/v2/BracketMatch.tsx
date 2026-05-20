@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { flagEmoji } from "@/lib/flags";
 import type { MatchId } from "@/lib/bracket/types";
 import { CountryDropdown } from "./CountryDropdown";
@@ -72,13 +72,36 @@ export function BracketMatch({
   // Reset-knop: wist winnaar (en eventueel override) → terug naar auto-bracket
   const canReset = !isLocked && winner != null;
 
+  // iOS "ghost click" guard: na een dropdown-pick fired iOS soms een synthetische
+  // click op de pill eronder, die de zojuist gekozen winnaar weer uitschakelt.
+  // 500ms lockout vangt dat op.
+  const clickLockUntil = useRef(0);
+  function lockClicksBriefly() {
+    clickLockUntil.current = Date.now() + 500;
+  }
+
   function pickHome(code: string) {
     setOverrideSide("home");
     onPick(code);
+    lockClicksBriefly();
   }
   function pickAway(code: string) {
     setOverrideSide("away");
     onPick(code);
+    lockClicksBriefly();
+  }
+
+  function clickHome() {
+    if (Date.now() < clickLockUntil.current) return;
+    if (!homeShown) return;
+    setOverrideSide("home");
+    onPick(winner === homeShown ? undefined : homeShown);
+  }
+  function clickAway() {
+    if (Date.now() < clickLockUntil.current) return;
+    if (!awayShown) return;
+    setOverrideSide("away");
+    onPick(winner === awayShown ? undefined : awayShown);
   }
 
   return (
@@ -97,7 +120,7 @@ export function BracketMatch({
             isLocked={isLocked}
             teamsByCode={teamsByCode}
             allTeams={allTeams}
-            onClickPill={() => homeShown && (() => { setOverrideSide("home"); onPick(winner === homeShown ? undefined : homeShown); })()}
+            onClickPill={clickHome}
             onPickFromList={pickHome}
           />
         </div>
@@ -111,7 +134,7 @@ export function BracketMatch({
             isLocked={isLocked}
             teamsByCode={teamsByCode}
             allTeams={allTeams}
-            onClickPill={() => awayShown && (() => { setOverrideSide("away"); onPick(winner === awayShown ? undefined : awayShown); })()}
+            onClickPill={clickAway}
             onPickFromList={pickAway}
           />
         </div>
@@ -142,7 +165,7 @@ export function BracketMatch({
               isLocked={isLocked}
               teamsByCode={teamsByCode}
               allTeams={allTeams}
-              onClickPill={() => homeShown && (() => { setOverrideSide("home"); onPick(winner === homeShown ? undefined : homeShown); })()}
+              onClickPill={clickHome}
               onPickFromList={pickHome}
             />
           </div>
@@ -154,7 +177,7 @@ export function BracketMatch({
               isLocked={isLocked}
               teamsByCode={teamsByCode}
               allTeams={allTeams}
-              onClickPill={() => awayShown && (() => { setOverrideSide("away"); onPick(winner === awayShown ? undefined : awayShown); })()}
+              onClickPill={clickAway}
               onPickFromList={pickAway}
             />
           </div>
