@@ -86,17 +86,13 @@ function ProgressQuestion({
   actual: NLProgress | null;
   onChange: (v: NLProgress | null) => void;
 }) {
-  const actualIdx = actual ? NL_PROGRESS_OPTIONS.findIndex((o) => o.value === actual) : -1;
-  const valueIdx  = value  ? NL_PROGRESS_OPTIONS.findIndex((o) => o.value === value) : -1;
-  const diff = actualIdx >= 0 && valueIdx >= 0 ? Math.abs(actualIdx - valueIdx) : null;
-  const ptsEarned = diff === 0 ? 10 : diff === 1 ? 5 : null;
+  const ptsEarned = value && actual && value === actual ? 10 : null;
 
   return (
     <section className="bg-surface border border-border rounded-lg p-5 space-y-2">
       <span className="block font-semibold mb-1 flex items-center gap-2 flex-wrap">
         Hoe ver komt het Nederlands elftal?
         <span className="text-xs font-normal bg-pitch-soft text-pitch px-1.5 py-0.5 rounded">10 pt exact</span>
-        <span className="text-xs font-normal bg-pitch-soft text-pitch px-1.5 py-0.5 rounded">5 pt 1 ronde naast</span>
       </span>
       <span className="block text-xs text-muted mb-2">
         Kies tot welke ronde Oranje volgens jou komt.

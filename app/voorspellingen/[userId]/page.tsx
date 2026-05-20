@@ -35,10 +35,6 @@ const NL_PROGRESS_LABEL: Record<string, string> = {
   CHAMPION: "Wereldkampioen",
 };
 
-const NL_PROGRESS_ORDER: NLProgress[] = [
-  "GROUP_STAGE", "LAST_32", "LAST_16", "QUARTER_FINALS", "SEMI_FINALS", "FINAL_LOSER", "CHAMPION",
-];
-
 function normalize(s: string | null | undefined): string {
   return (s ?? "").trim().toLowerCase();
 }
@@ -122,15 +118,8 @@ export default async function VoorspellingDetailPage({
   const bonusNLTopScorerPts = actualNLTopScorer && bonusRow?.nl_top_scorer && normalize(bonusRow.nl_top_scorer) === normalize(actualNLTopScorer) ? 10 : 0;
   const bonusNLGoalsPts = scoreNumber(bonusRow?.nl_total_goals, actualNLTotalGoals, 10, 5);
 
-  let bonusNLProgressPts = 0;
-  if (bonusRow?.nl_progress && actualNLProgress) {
-    const pi = NL_PROGRESS_ORDER.indexOf(bonusRow.nl_progress as NLProgress);
-    const ri = NL_PROGRESS_ORDER.indexOf(actualNLProgress);
-    if (pi >= 0 && ri >= 0) {
-      const diff = Math.abs(pi - ri);
-      bonusNLProgressPts = diff === 0 ? 10 : diff === 1 ? 5 : 0;
-    }
-  }
+  const bonusNLProgressPts =
+    bonusRow?.nl_progress && actualNLProgress && bonusRow.nl_progress === actualNLProgress ? 10 : 0;
 
   const bonusTotalPts =
     bonusTopScorerPts + bonusYellowPts + bonusGoalsPts +

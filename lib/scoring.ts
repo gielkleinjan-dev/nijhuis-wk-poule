@@ -177,16 +177,10 @@ export function scoreBonus(
       : 0;
   const nlTotalGoals = scoreNumeric(picks.nl_total_goals ?? null, result.nlTotalGoals, 10, 5);
 
-  // nl_progress: exact = 10pt, 1 ronde verschil = 5pt
+  // nl_progress: all-or-nothing — alleen exact goed = 10pt.
   let nlProgress = 0;
-  if (picks.nl_progress && result.nlProgress) {
-    const pi = NL_PROGRESS_ORDER.indexOf(picks.nl_progress);
-    const ri = NL_PROGRESS_ORDER.indexOf(result.nlProgress);
-    if (pi >= 0 && ri >= 0) {
-      const diff = Math.abs(pi - ri);
-      if (diff === 0) nlProgress = 10;
-      else if (diff === 1) nlProgress = 5;
-    }
+  if (picks.nl_progress && result.nlProgress && picks.nl_progress === result.nlProgress) {
+    nlProgress = 10;
   }
 
   return { topScorer, totalGoals, totalYellowCards, nlTopScorer, nlTotalGoals, nlProgress };
