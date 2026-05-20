@@ -168,10 +168,10 @@ function TeamPill({
           teams={allTeams}
           selectedCode={code}
           onPick={onPickFromList}
-          triggerClassName={`flex items-center justify-center px-2 cursor-pointer border-l ${
+          triggerClassName={`flex items-center justify-center px-3 self-stretch cursor-pointer border-l shrink-0 ${
             isWinner ? "border-white/30 hover:bg-white/15" : "border-border hover:bg-bg/60"
           }`}
-          triggerLabelClassName={`text-xs leading-none ${isWinner ? "text-white/80" : "text-muted"}`}
+          triggerLabelClassName={`text-sm leading-none ${isWinner ? "text-white/90" : "text-muted"}`}
         />
       )}
     </div>
