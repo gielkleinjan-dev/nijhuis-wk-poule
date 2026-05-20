@@ -16,8 +16,17 @@ import { isGroupCode, type GroupCode, type MatchId } from "@/lib/bracket/types";
 
 function TeamSpan({ code, name, highlighted }: { code: string | undefined | null; name?: string; highlighted?: boolean }) {
   if (!code) return <span className="text-muted italic">—</span>;
+  if (highlighted) {
+    // Winnaar-pill, zelfde stijl als in de invul-knock-out
+    return (
+      <span className="inline-flex items-center gap-1 bg-pitch text-white font-semibold border border-pitch rounded px-1.5 py-0.5">
+        <span aria-hidden>{flagEmoji(code)}</span>
+        <span className="truncate">{name ?? code}</span>
+      </span>
+    );
+  }
   return (
-    <span className={`inline-flex items-center gap-1 ${highlighted ? "font-semibold text-pitch" : ""}`}>
+    <span className="inline-flex items-center gap-1">
       <span aria-hidden>{flagEmoji(code)}</span>
       <span className="truncate">{name ?? code}</span>
     </span>
