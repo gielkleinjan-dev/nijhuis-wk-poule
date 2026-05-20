@@ -21,6 +21,8 @@ export function BracketMatch({
   fifaMatchNo,
   homeCand,
   awayCand,
+  homeEmptyLabel,
+  awayEmptyLabel,
   kickoff,
   winner,
   allTeams,
@@ -32,6 +34,8 @@ export function BracketMatch({
   fifaMatchNo: number;
   homeCand: string | undefined;
   awayCand: string | undefined;
+  homeEmptyLabel?: string;
+  awayEmptyLabel?: string;
   kickoff: Date | undefined;
   winner: string | undefined;
   allTeams: ReadonlyArray<TeamLite>;
@@ -121,6 +125,7 @@ export function BracketMatch({
         <div className="flex-1 min-w-0">
           <TeamPill
             code={homeShown}
+            emptyLabel={homeEmptyLabel}
             isWinner={winner != null && winner === homeShown}
             isLocked={isLocked}
             teamsByCode={teamsByCode}
@@ -135,6 +140,7 @@ export function BracketMatch({
         <div className="flex-1 min-w-0">
           <TeamPill
             code={awayShown}
+            emptyLabel={awayEmptyLabel}
             isWinner={winner != null && winner === awayShown}
             isLocked={isLocked}
             teamsByCode={teamsByCode}
@@ -166,6 +172,7 @@ export function BracketMatch({
           <div className="flex-1 min-w-0">
             <TeamPill
               code={homeShown}
+              emptyLabel={homeEmptyLabel}
               isWinner={winner != null && winner === homeShown}
               isLocked={isLocked}
               teamsByCode={teamsByCode}
@@ -178,6 +185,7 @@ export function BracketMatch({
           <div className="flex-1 min-w-0">
             <TeamPill
               code={awayShown}
+              emptyLabel={awayEmptyLabel}
               isWinner={winner != null && winner === awayShown}
               isLocked={isLocked}
               teamsByCode={teamsByCode}
@@ -212,6 +220,7 @@ export function BracketMatch({
 
 function TeamPill({
   code,
+  emptyLabel,
   isWinner,
   isLocked,
   teamsByCode,
@@ -220,6 +229,7 @@ function TeamPill({
   onPickFromList,
 }: {
   code: string | undefined;
+  emptyLabel?: string;
   isWinner: boolean;
   isLocked: boolean;
   teamsByCode: ReadonlyMap<string, TeamLite>;
@@ -240,8 +250,8 @@ function TeamPill({
   return (
     <div className={`relative flex items-stretch rounded border overflow-hidden ${baseClass} ${isLocked ? "opacity-70" : ""}`}>
       {emptySlot ? (
-        <div className="flex-1 flex items-center justify-center px-2 py-2 text-[11px] text-muted italic">
-          nog niet bekend
+        <div className="flex-1 flex items-center justify-center px-2 py-2 text-[11px] text-muted italic truncate">
+          {emptyLabel ?? "nog niet bekend"}
         </div>
       ) : (
         <button

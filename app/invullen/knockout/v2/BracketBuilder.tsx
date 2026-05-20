@@ -116,6 +116,16 @@ export function BracketBuilder({
                     for (const c of codes) taken.add(c);
                   }
                   const allowedTeams = allTeams.filter((t) => own.has(t.code) || !taken.has(t.code));
+                  // Empty-pill labels: voor R32 wijzen we op stap 1+2; voor latere rondes
+                  // op de wedstrijd waarvan de winnaar dit slot vult.
+                  let homeEmptyLabel = "Vul stap 1+2 in";
+                  let awayEmptyLabel = "Vul stap 1+2 in";
+                  if (node.round !== "LAST_32") {
+                    const ph = BRACKET_GRAPH[node.homeFromMatch];
+                    const pa = BRACKET_GRAPH[node.awayFromMatch];
+                    homeEmptyLabel = `Winnaar W${ph.fifaMatchNo}`;
+                    awayEmptyLabel = `Winnaar W${pa.fifaMatchNo}`;
+                  }
                   return (
                     <BracketMatch
                       key={id}
@@ -123,6 +133,8 @@ export function BracketBuilder({
                       fifaMatchNo={node.fifaMatchNo}
                       homeCand={home}
                       awayCand={away}
+                      homeEmptyLabel={homeEmptyLabel}
+                      awayEmptyLabel={awayEmptyLabel}
                       kickoff={matchDatesByFifaNo.get(node.fifaMatchNo)}
                       winner={bracket[id]}
                       allTeams={allowedTeams}
