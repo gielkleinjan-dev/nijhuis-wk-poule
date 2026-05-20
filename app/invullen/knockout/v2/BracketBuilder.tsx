@@ -80,7 +80,7 @@ export function BracketBuilder({
                     {meta.full} pt juiste land op juiste plek
                   </span>
                   {meta.half > 0 && (
-                    <span className="bg-pitch-soft text-pitch text-[11px] font-semibold px-1.5 py-0.5 rounded">
+                    <span className="bg-amber-100 text-amber-800 border border-amber-200 text-[11px] font-semibold px-1.5 py-0.5 rounded">
                       {meta.half} pt juiste land op verkeerde plek
                     </span>
                   )}
