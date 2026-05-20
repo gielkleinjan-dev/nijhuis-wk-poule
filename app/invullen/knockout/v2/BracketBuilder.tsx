@@ -32,7 +32,7 @@ const ROUND_META: Record<Round, { title: string; hint: string; full: number; hal
   },
   FINAL: {
     title: "Finale",
-    hint: "De winnaar van deze wedstrijd wordt wereldkampioen (inclusief 40 pt bonus).",
+    hint: "De winnaar van deze wedstrijd wordt wereldkampioen.",
     full: 96, half: 0,
   },
 };
