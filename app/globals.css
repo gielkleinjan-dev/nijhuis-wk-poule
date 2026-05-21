@@ -26,13 +26,15 @@
   --color-background: #faf8f5;
   --color-foreground: #1d1d1b;
 
-  /* PT Sans = gratis humanist alternatief voor Officina Sans (Nijhuis) */
-  --font-sans: var(--font-pt-sans), "PT Sans", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
-  --font-display: var(--font-pt-sans), "PT Sans", system-ui, sans-serif;
+  /* Inter is de primaire font voor beide thema's — modern, scherp, leest
+     prettig op alle groottes. PT Sans staat nog als fallback in de stack
+     voor het geval Inter niet laadt. */
+  --font-sans: var(--font-inter), "Inter", var(--font-pt-sans), "PT Sans", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  --font-display: var(--font-inter), "Inter", var(--font-pt-sans), "PT Sans", system-ui, sans-serif;
 
-  --radius-sm: 6px;
+  --radius-sm: 8px;
   --radius-md: 12px;
-  --radius-lg: 20px;
+  --radius-lg: 18px;
 }
 
 html, body {
@@ -52,14 +54,14 @@ body {
 
 h1, h2, h3, .display {
   font-family: var(--font-display);
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-weight: 800;
+  letter-spacing: -0.02em;
 }
 
 /* Twemoji injects <img class="emoji"> tags; render them inline op tekstgrootte. */
 img.emoji {
-  height: 1em;
-  width: 1em;
+  height: 1.15em;
+  width: 1.15em;
   margin: 0 0.05em 0 0.1em;
   vertical-align: -0.1em;
   display: inline-block;
@@ -105,14 +107,8 @@ img.emoji {
   --color-background: #eef1f6;
   --color-foreground: #00112c;
 
-  /* Inter ipv PT Sans — moderner, neutraler */
-  --font-sans: var(--font-inter), "Inter", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
-  --font-display: var(--font-inter), "Inter", system-ui, sans-serif;
-
-  /* Rondere hoeken dan Scorito's strakke 6px — onze twist */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 18px;
+  /* Font + radius zijn nu gelijk aan default (Inter), dus geen override
+     meer nodig hier — die regels staan al in @theme. */
 }
 
 /* Subtiele blue glow bovenaan de pagina in scorito-mode */
@@ -122,25 +118,10 @@ img.emoji {
     var(--color-bg);
 }
 
-/* Iets ruimere flag-emojis voor sportievere look */
-[data-theme="scorito"] img.emoji {
-  height: 1.15em;
-  width: 1.15em;
-}
-
 /* Theme-conditional rendering via CSS — geen extra JS-state nodig */
 .scorito-only { display: none !important; }
 [data-theme="scorito"] .scorito-only { display: revert !important; }
 [data-theme="scorito"] .nijhuis-only { display: none !important; }
-
-/* Headings in scorito-mode iets zwaarder + tighter */
-[data-theme="scorito"] h1,
-[data-theme="scorito"] h2,
-[data-theme="scorito"] h3,
-[data-theme="scorito"] .display {
-  letter-spacing: -0.02em;
-  font-weight: 800;
-}
 
 /* Stadion-tile vervangt Nijhuis-stripe in scorito-mode */
 [data-theme="scorito"] .brand-stripe {
@@ -264,19 +245,16 @@ img.emoji {
 
 /* ───────── Vlaggetjes via .flag-emoji wrapper ─────────
    Vlaggen geven het scherm kleur en blijven in beide thema's zichtbaar.
-   In scorito-mode iets groter dan in nijhuis (sportievere look). Citrix-
-   collega's zien helaas broken-image-blokjes — geaccepteerd tradeoff. */
+   Citrix-collega's zien helaas broken-image-blokjes — geaccepteerd
+   tradeoff. */
 .flag-emoji {
   display: inline-flex;
   align-items: center;
-  line-height: 1;
-  vertical-align: -0.1em;
-}
-[data-theme="scorito"] .flag-emoji {
   font-size: 1.3em;
+  line-height: 1;
   vertical-align: -0.15em;
 }
-[data-theme="scorito"] .flag-emoji img.emoji {
+.flag-emoji img.emoji {
   height: 1em;
   width: 1em;
   margin: 0 0.05em;
