@@ -259,16 +259,17 @@ img.emoji {
 }
 
 /* ───────── Vlaggetjes via .flag-emoji wrapper ─────────
-   In nijhuis-mode verbergen we ze (Citrix-fix). In scorito-mode tonen
-   we ze iets groter dan de omliggende tekst, met ademruimte. */
+   Vlaggen geven het scherm kleur en blijven in beide thema's zichtbaar.
+   In scorito-mode iets groter dan in nijhuis (sportievere look). Citrix-
+   collega's zien helaas broken-image-blokjes — geaccepteerd tradeoff. */
 .flag-emoji {
-  display: none;
-}
-[data-theme="scorito"] .flag-emoji {
   display: inline-flex;
   align-items: center;
-  font-size: 1.3em;
   line-height: 1;
+  vertical-align: -0.1em;
+}
+[data-theme="scorito"] .flag-emoji {
+  font-size: 1.3em;
   vertical-align: -0.15em;
 }
 [data-theme="scorito"] .flag-emoji img.emoji {
