@@ -483,24 +483,23 @@ img.emoji {
   pointer-events: none;
 }
 
-/* Nijhuis photo-cards — fotoloze fallback in afwachting van door Giel
-   geselecteerde Unsplash-URLs. Diep Nijhuis-rood verloop met subtiele
-   variatie per card, parallel aan de hero-stijl. Eerlijk: mijn Unsplash-
-   ID-gokken vielen telkens mis omdat ik ze niet visueel kan verifieren. */
+/* Nijhuis photo-cards — door Giel geselecteerde AI-gegenereerde foto's
+   die exact passen bij de panel-tekst. Donkere warm-bruine overlay
+   onderaan zorgt voor consistency en leesbaarheid van de tekst. */
 .nijhuis-photo-match {
   background:
-    radial-gradient(ellipse 70% 60% at 20% 20%, rgba(255, 255, 255, 0.12) 0%, transparent 60%),
-    linear-gradient(135deg, var(--color-brand) 0%, #b22b35 60%, var(--color-brand-dark) 100%);
+    linear-gradient(180deg, rgba(30, 12, 14, 0) 35%, rgba(30, 12, 14, 0.85) 100%),
+    url("/match.png") center/cover;
 }
 .nijhuis-photo-crowd {
   background:
-    radial-gradient(ellipse 60% 50% at 75% 30%, rgba(255, 255, 255, 0.12) 0%, transparent 60%),
-    linear-gradient(135deg, #b22b35 0%, var(--color-brand) 50%, #b22b35 100%);
+    linear-gradient(180deg, rgba(30, 12, 14, 0) 35%, rgba(30, 12, 14, 0.85) 100%),
+    url("/landen.png") center/cover;
 }
 .nijhuis-photo-trophy {
   background:
-    radial-gradient(ellipse 60% 50% at 75% 75%, rgba(232, 183, 48, 0.30) 0%, transparent 60%),
-    linear-gradient(135deg, var(--color-brand-dark) 0%, var(--color-brand) 60%, #b22b35 100%);
+    linear-gradient(180deg, rgba(30, 12, 14, 0) 35%, rgba(30, 12, 14, 0.85) 100%),
+    url("/winnaar.png") center/cover;
 }
 
 /* ───────── Toggle pill iets prominenter in scorito-mode ─────────
