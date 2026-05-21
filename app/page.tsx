@@ -106,9 +106,9 @@ export default async function HomePage() {
         </div>
 
         <div className="bg-surface border border-border rounded-2xl p-6 sm:p-8 grid sm:grid-cols-3 gap-6">
-          <Feature emoji="📝" title="Ineens invullen" text="Groepsfase, knock-out én bonusvragen — in één keer goed." />
-          <Feature emoji="⚡" title="Live punten" text="Uitslagen komen live binnen, je stand bij elk fluitsignaal." />
-          <Feature emoji="📈" title="Stijgers & dalers" text="Pijltjes per deelnemer en team — zie wie het hardst klimt." />
+          <Feature emoji="📝" title="Ineens invullen" text="Groepsfase, knock-out én bonusvragen. Met dynamisch knock-out schema op basis van jouw beste nummers 3." />
+          <Feature emoji="⚡" title="Automatische puntentelling" text="Elke ochtend worden de uitslagen en punten bijgewerkt." />
+          <Feature emoji="📈" title="Stijgers & dalers" text="Pijltjes per deelnemer en team — zie wie het hardst klimt of daalt." />
         </div>
       </section>
 
@@ -176,9 +176,9 @@ export default async function HomePage() {
         </div>
 
         <div className="bg-surface border border-border rounded-2xl p-6 sm:p-8 grid sm:grid-cols-3 gap-6">
-          <ScoritoStat icon="📝" title="Ineens invullen" text="Groepsfase, knock-out én bonusvragen — in één keer goed." />
-          <ScoritoStat icon="⚡" title="Live punten" text="Uitslagen komen live binnen, je stand bij elk fluitsignaal." />
-          <ScoritoStat icon="📈" title="Stijgers & dalers" text="Pijltjes per deelnemer en team — zie wie het hardst klimt." />
+          <ScoritoStat icon="📝" title="Ineens invullen" text="Groepsfase, knock-out én bonusvragen. Met dynamisch knock-out schema op basis van jouw beste nummers 3." />
+          <ScoritoStat icon="⚡" title="Automatische puntentelling" text="Elke ochtend worden de uitslagen en punten bijgewerkt." />
+          <ScoritoStat icon="📈" title="Stijgers & dalers" text="Pijltjes per deelnemer en team — zie wie het hardst klimt of daalt." />
         </div>
       </section>
     </main>
