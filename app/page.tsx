@@ -86,22 +86,22 @@ export default async function HomePage() {
 
         <div className="grid sm:grid-cols-3 gap-4">
           <NijhuisPhotoFeature
-            bgClass="nijhuis-photo-fans"
+            bgClass="nijhuis-photo-match"
             stat="104"
             label="Wedstrijden"
-            text="Van openingswedstrijd tot finale — voorspel alles."
+            text="Van openingsfluit tot wereldkampioen — voorspel alle 104."
           />
           <NijhuisPhotoFeature
-            bgClass="nijhuis-photo-pitch"
+            bgClass="nijhuis-photo-crowd"
             stat="48"
             label="Landen"
-            text="De grootste WK ooit. Wie pakt verrassend uit?"
+            text="Het eerste WK met 48 landen. Wie wordt de verrassing?"
           />
           <NijhuisPhotoFeature
-            bgClass="nijhuis-photo-celebration"
+            bgClass="nijhuis-photo-trophy"
             stat="1"
             label="Winnaar"
-            text="Maar wie pakt 'm op kantoor? Daar gaat het om."
+            text="Eén land pakt de trofee. Eén collega pakt de eer."
           />
         </div>
 
