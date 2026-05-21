@@ -484,22 +484,31 @@ img.emoji {
 }
 
 /* Nijhuis photo-cards — door Giel geselecteerde AI-gegenereerde foto's
-   die exact passen bij de panel-tekst. Donkere warm-bruine overlay
-   onderaan zorgt voor consistency en leesbaarheid van de tekst. */
+   die exact passen bij de panel-tekst. Geen full-photo overlay meer,
+   alleen een lichte gradient over de onderste 40% voor tekst-leesbaar-
+   heid. Tekst krijgt extra text-shadow om bij elke foto-helderheid
+   leesbaar te blijven. */
 .nijhuis-photo-match {
   background:
-    linear-gradient(180deg, rgba(30, 12, 14, 0) 35%, rgba(30, 12, 14, 0.85) 100%),
+    linear-gradient(180deg, transparent 60%, rgba(15, 6, 8, 0.55) 100%),
     url("/match.jpg") center/cover;
 }
 .nijhuis-photo-crowd {
   background:
-    linear-gradient(180deg, rgba(30, 12, 14, 0) 35%, rgba(30, 12, 14, 0.85) 100%),
+    linear-gradient(180deg, transparent 60%, rgba(15, 6, 8, 0.55) 100%),
     url("/landen.jpg") center/cover;
 }
 .nijhuis-photo-trophy {
   background:
-    linear-gradient(180deg, rgba(30, 12, 14, 0) 35%, rgba(30, 12, 14, 0.85) 100%),
+    linear-gradient(180deg, transparent 60%, rgba(15, 6, 8, 0.55) 100%),
     url("/winnaar.jpg") center/cover;
+}
+/* Stat-getal, label en tekst op de foto-cards leesbaar houden zonder
+   donkere overlay over de hele foto. */
+.nijhuis-photo-match,
+.nijhuis-photo-crowd,
+.nijhuis-photo-trophy {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 2px 12px rgba(0, 0, 0, 0.35);
 }
 
 /* ───────── Toggle pill iets prominenter in scorito-mode ─────────
