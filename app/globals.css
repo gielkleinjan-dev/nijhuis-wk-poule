@@ -448,19 +448,23 @@ img.emoji {
   display: none;
 }
 
-/* Nijhuis hero op landing page — fotoloos, diep bordeaux verloop met een
-   subtiele warme gloed linksboven (geen platte effen kleur). Parallel
-   aan scorito's grijsblauwe hero, maar in Nijhuis-huisstijl. */
+/* Nijhuis hero op landing page — fotoloos, in Nijhuis-rood huisstijl.
+   Niet plat: een subtiele lichte gloed linksboven en een iets donkerder
+   verloop richting rechts-onder geven 'fase' / diepte. */
 .nijhuis-hero {
   background:
-    radial-gradient(ellipse 70% 50% at 25% 15%, rgba(208, 52, 62, 0.30) 0%, transparent 65%),
-    linear-gradient(135deg, #1a0a0c 0%, #2d1218 35%, #3d1820 60%, #1f0c0f 100%);
+    radial-gradient(ellipse 65% 50% at 22% 18%, rgba(255, 255, 255, 0.18) 0%, transparent 60%),
+    linear-gradient(135deg,
+      var(--color-brand) 0%,
+      #c2303a 45%,
+      var(--color-brand-dark) 100%);
   color: #fff;
   border-radius: 20px;
   overflow: hidden;
   position: relative;
 }
-/* Dunne goud-rode accent-streep onderaan voor 'premium'-detail. */
+/* Dunne goud/wit accent-streep onderaan voor 'premium'-detail.
+   Brand-rood is niet meer nodig (achtergrond is al rood). */
 .nijhuis-hero::after {
   content: "";
   position: absolute;
@@ -468,9 +472,12 @@ img.emoji {
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, transparent 0%, var(--color-brand) 25%, var(--color-trophy) 75%, transparent 100%);
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.4) 25%,
+    var(--color-trophy) 75%,
+    transparent 100%);
   pointer-events: none;
-  opacity: 0.7;
 }
 
 /* Nijhuis photo-cards — donkere warm-bruine onderkant voor tekst-
