@@ -188,17 +188,19 @@ img.emoji {
     url("https://images.unsplash.com/photo-1551958219-acbc608c6377?w=1200&q=80&auto=format&fit=crop") center/cover;
 }
 
-/* Knop-overrides in scorito-mode: groter, met verloop + lichte shadow.
-   Pakt elke <a>/<button> met bg-brand class (zo doen we het al overal). */
+/* Knop-overrides in scorito-mode: flat (geen gradient), wel subtiele shadow
+   voor diepte. Hover = vlakke lichtere kleur. */
 [data-theme="scorito"] a.bg-brand,
 [data-theme="scorito"] button.bg-brand {
-  background: linear-gradient(180deg, #0073ff 0%, #005bd1 100%);
-  box-shadow: 0 2px 6px rgba(0, 115, 255, 0.28);
-  letter-spacing: 0.01em;
+  background-color: var(--color-brand);
+  background-image: none;
+  box-shadow: 0 1px 2px rgba(0, 17, 44, 0.12);
+  letter-spacing: 0.005em;
 }
 [data-theme="scorito"] a.bg-brand:hover,
 [data-theme="scorito"] button.bg-brand:hover {
-  background: linear-gradient(180deg, #1a86ff 0%, #006be8 100%);
+  background-color: #1a86ff;
+  box-shadow: 0 2px 6px rgba(0, 102, 255, 0.25);
 }
 
 /* Cards in scorito-mode: iets diepere shadow */
@@ -252,8 +254,10 @@ img.emoji {
   border-color: rgba(255, 255, 255, 0.6);
 }
 
-/* Nijhuis-logo wit kleuren in scorito-mode — anders rood-op-navy fight */
-[data-theme="scorito"] header img[alt="Nijhuis Bouw"] {
+/* Nijhuis-logo wit kleuren in scorito-mode — anders rood-op-navy fight.
+   Strikt scopen op header.bg-surface zodat het rode logo op de licht-
+   gekleurde login-pagina (header zonder bg-surface) onaangetast blijft. */
+[data-theme="scorito"] header.bg-surface img[alt="Nijhuis Bouw"] {
   filter: brightness(0) invert(1);
   opacity: 0.95;
 }
@@ -391,3 +395,35 @@ img.emoji {
   background: rgba(255, 255, 255, 0.18);
   border-color: rgba(255, 255, 255, 0.5);
 }
+
+/* ───────── Scorito kleur-discipline ─────────
+   Scorito-look is monochroom blauw + één warm accent voor warnings.
+   We overschrijven daarom de groen/oranje pill-achtergronden naar
+   varianten in de blauw-familie. Tekstkleur (text-pitch) blijft groen —
+   dat is een prima subtiele "succes"-accent op witte score-cijfers.
+
+   - bg-pitch (winnaar-pill, punten-badge) -> navy (brand-dark)
+   - bg-pitch-soft (override-pill achtergrond) -> brand-soft (licht blauw)
+   - border-pitch -> navy border
+   - bg-amber-500 (Beste-nrs-3 marker) -> brand-blauw
+   - border-amber-500 -> brand-blauw
+
+   Halve-pt badges (bg-amber-100/200/800) en de live-dot blijven amber/
+   emerald — die zijn semantisch (warning resp. live) niet decoratief. */
+[data-theme="scorito"] .bg-pitch {
+  background-color: var(--color-brand-dark) !important;
+}
+[data-theme="scorito"] .border-pitch {
+  border-color: var(--color-brand-dark) !important;
+}
+[data-theme="scorito"] .bg-pitch-soft {
+  background-color: var(--color-brand-soft) !important;
+}
+[data-theme="scorito"] .bg-amber-500 {
+  background-color: var(--color-brand) !important;
+}
+[data-theme="scorito"] .border-amber-500 {
+  border-color: var(--color-brand) !important;
+}
+/* Progress-fill in done-state werd pitch (groen) - nu via override navy. */
+/* In-progress blijft bg-brand (blauw lichter). Done = navy donkerder.    */
