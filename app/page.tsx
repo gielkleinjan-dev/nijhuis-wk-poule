@@ -86,16 +86,16 @@ export default async function HomePage() {
 
         <div className="grid sm:grid-cols-3 gap-4">
           <NijhuisPhotoFeature
-            bgClass="nijhuis-photo-match"
-            stat="104"
-            label="Wedstrijden"
-            text="Van openingsfluit tot wereldkampioen — voorspel alle 104."
-          />
-          <NijhuisPhotoFeature
             bgClass="nijhuis-photo-crowd"
             stat="48"
             label="Landen"
             text="Het eerste WK met 48 landen. Wie wordt de verrassing?"
+          />
+          <NijhuisPhotoFeature
+            bgClass="nijhuis-photo-match"
+            stat="104"
+            label="Wedstrijden"
+            text="Van openingsfluit tot wereldkampioen — voorspel alle 104."
           />
           <NijhuisPhotoFeature
             bgClass="nijhuis-photo-trophy"
@@ -156,22 +156,22 @@ export default async function HomePage() {
 
         <div className="grid sm:grid-cols-3 gap-4">
           <PhotoFeature
-            bgClass="scorito-photo-stadium"
-            stat="104"
-            label="Wedstrijden"
-            text="Van openingswedstrijd tot finale — voorspel alles."
-          />
-          <PhotoFeature
             bgClass="scorito-photo-ball"
             stat="48"
             label="Landen"
-            text="De grootste WK ooit. Wie haalt verrassend uit?"
+            text="Het eerste WK met 48 landen. Wie wordt de verrassing?"
+          />
+          <PhotoFeature
+            bgClass="scorito-photo-stadium"
+            stat="104"
+            label="Wedstrijden"
+            text="Van openingsfluit tot wereldkampioen — voorspel alle 104."
           />
           <PhotoFeature
             bgClass="scorito-photo-trophy"
             stat="1"
             label="Winnaar"
-            text="Maar wie pakt 'm bij Nijhuis? Bouw je gelijk vooruit."
+            text="Eén land pakt de trofee. Eén collega pakt de eer."
           />
         </div>
 
