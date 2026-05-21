@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { PT_Sans, Inter } from "next/font/google";
 import { cookies } from "next/headers";
 import "./globals.css";
@@ -21,6 +21,32 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "WK Poule 2026 — Nijhuis",
   description: "De WK 2026 poule van Nijhuis Bouw",
+  manifest: "/manifest.json",
+  // Apple-specific (iOS toevoegen-aan-beginscherm):
+  // - title is wat onder het icoon op het home-screen verschijnt
+  // - apple-touch-icon = het icoon zelf (Apple wil minstens 180×180, 1024 is veiliger)
+  appleWebApp: {
+    title: "WK Poule Nijhuis",
+    capable: true,
+    statusBarStyle: "default",
+  },
+  // Browser favicon + PWA-icons. Apple gebruikt 'apple' veld, Android het manifest.
+  icons: {
+    icon: [
+      { url: "/apptegel-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/apptegel-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apptegel-1024.png", sizes: "1024x1024", type: "image/png" },
+    ],
+  },
+};
+
+// Browser-chrome (Android pull-down statusbalk + iOS Safari URL-balk) krijgt
+// Nijhuis-rood als kleur. Sinds Next 14 hoort dit in de viewport-export, niet
+// meer in metadata.
+export const viewport: Viewport = {
+  themeColor: "#d0343e",
 };
 
 export type ThemeName = "nijhuis" | "scorito";
