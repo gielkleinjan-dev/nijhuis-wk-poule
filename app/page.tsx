@@ -26,7 +26,7 @@ export default async function HomePage() {
   return (
     <main className="min-h-screen flex flex-col">
       <header className="border-b border-border bg-surface">
-        <div className="mx-auto max-w-5xl px-6 py-4 flex items-center justify-between gap-4">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 py-4 flex items-center justify-between gap-3 sm:gap-4">
           <BrandLogo />
           <div className="flex items-center gap-2 sm:gap-3">
             {user ? (

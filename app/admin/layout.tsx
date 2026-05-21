@@ -30,7 +30,7 @@ export default async function AdminLayout({
   return (
     <main className="min-h-screen">
       <header className="border-b border-border bg-surface">
-        <div className="mx-auto max-w-5xl px-6 py-4 flex items-center justify-between gap-4">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 py-4 flex items-center justify-between gap-3 sm:gap-4">
           <div className="flex items-center gap-3">
             <BrandLogo href="/invullen" />
             <span className="text-xs bg-brand text-white px-2 py-0.5 rounded font-semibold">

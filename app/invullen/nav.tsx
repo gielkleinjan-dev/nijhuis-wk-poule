@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import ThemeToggle from "@/app/components/ThemeToggle";
 
 const BASE_TABS = [
   { href: "/invullen", label: "Invullen" },
@@ -33,15 +34,15 @@ export default function InvullenNav({
     <>
       {/* Hoofdtabs */}
       <nav className="bg-surface border-b border-border">
-        <div className="mx-auto max-w-4xl px-6 flex items-center gap-2">
-          <div className="flex gap-2 flex-1">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 flex items-center gap-2">
+          <div className="flex gap-2 flex-1 min-w-0 overflow-x-auto">
             {mainTabs.map((t) => {
               const active = path.startsWith(t.href);
               return (
                 <Link
                   key={t.href}
                   href={t.href}
-                  className={`px-4 py-3 text-sm font-medium border-b-2 transition -mb-px ${
+                  className={`px-3 sm:px-4 py-3 text-sm font-medium border-b-2 transition -mb-px whitespace-nowrap ${
                     active
                       ? "border-brand text-brand"
                       : "border-transparent text-muted hover:text-ink"
@@ -52,11 +53,14 @@ export default function InvullenNav({
               );
             })}
           </div>
+          <div className="shrink-0 py-2">
+            <ThemeToggle />
+          </div>
         </div>
       </nav>
       {/* Subtabs — pill-stijl op zachte achtergrond, duidelijk een sub-niveau van Invullen */}
       <div className="bg-bg/60 border-b border-border">
-        <div className="mx-auto max-w-4xl px-6 py-2 flex gap-1.5 items-center">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 py-2 flex gap-1.5 items-center overflow-x-auto">
           <span className="text-[10px] uppercase tracking-wider text-muted font-semibold mr-1 hidden sm:inline">
             Onderdeel:
           </span>

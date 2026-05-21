@@ -57,7 +57,7 @@ export default async function InvullenLayout({
   return (
     <main className="min-h-screen">
       <header className="border-b border-border bg-surface">
-        <div className="mx-auto max-w-4xl px-6 py-4 flex items-center justify-between gap-4">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 py-4 flex items-center justify-between gap-3 sm:gap-4">
           <BrandLogo href="/invullen" />
           <UserHeader
             displayName={user.user_metadata?.display_name || user.email || ""}
@@ -69,7 +69,7 @@ export default async function InvullenLayout({
       </header>
       <ProgressBar sections={sections} />
       <InvullenNav isAdmin={userIsAdmin} isLocked={isLocked} lockAt={lockAt} />
-      <div className="mx-auto max-w-4xl px-6 py-8">{children}</div>
+      <div className="mx-auto max-w-4xl px-4 sm:px-6 py-6 sm:py-8">{children}</div>
     </main>
   );
 }
