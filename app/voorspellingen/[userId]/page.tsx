@@ -19,16 +19,16 @@ function TeamSpan({ code, name, highlighted }: { code: string | undefined | null
   if (highlighted) {
     // Winnaar-pill, zelfde stijl als in de invul-knock-out
     return (
-      <span className="inline-flex items-center gap-1 bg-pitch text-white font-semibold border border-pitch rounded px-1.5 py-0.5">
-        <span aria-hidden>{flagEmoji(code)}</span>
-        <span className="truncate">{name ?? code}</span>
+      <span className="inline-flex items-center gap-1 bg-pitch text-white font-semibold border border-pitch rounded px-1.5 py-0.5 max-w-full min-w-0">
+        <span aria-hidden className="shrink-0">{flagEmoji(code)}</span>
+        <span className="truncate min-w-0">{name ?? code}</span>
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1">
-      <span aria-hidden>{flagEmoji(code)}</span>
-      <span className="truncate">{name ?? code}</span>
+    <span className="inline-flex items-center gap-1 max-w-full min-w-0">
+      <span aria-hidden className="shrink-0">{flagEmoji(code)}</span>
+      <span className="truncate min-w-0">{name ?? code}</span>
     </span>
   );
 }
@@ -438,7 +438,7 @@ export default async function VoorspellingDetailPage({
       {/* ── Knock-out: bracket per wedstrijd ── */}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold">Knock-out — bracket</h2>
+          <h2 className="text-xl font-bold">Knock-out schema</h2>
           <span className="text-sm font-semibold text-pitch tabular-nums">+{koTotalPts} pt</span>
         </div>
 
