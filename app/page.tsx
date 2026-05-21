@@ -43,60 +43,72 @@ export default async function HomePage() {
       </header>
 
       {/* ── Nijhuis hero (default) ─────────────────────────────── */}
-      <section className="nijhuis-only mx-auto max-w-5xl px-6 py-16 w-full">
-        <p className="text-sm font-bold uppercase tracking-wider text-brand mb-3">
-          WK 2026 · 11 juni – 19 juli
-        </p>
-        <h1 className="text-5xl md:text-6xl font-bold leading-tight mb-4 display">
-          De WK-poule
-          <br />
-          van Nijhuis.
-        </h1>
-        <p className="text-lg text-muted max-w-xl mb-8">
-          Voorspel alle 104 wedstrijden, van groepsfase tot finale. Punten
-          worden automatisch bijgehouden — invullen kan tot 11 juni 18:00.
-        </p>
-
-        {user ? (
-          <div className="flex flex-wrap gap-3">
-            <Link
-              href="/invullen"
-              className="px-6 py-3 bg-brand text-white rounded-md font-semibold hover:bg-brand-dark transition"
-            >
-              Naar invulformulier
-            </Link>
-            <Link
-              href="/ranglijst"
-              className="px-6 py-3 border border-border bg-surface rounded-md font-semibold hover:bg-brand-soft transition"
-            >
-              Bekijk ranglijst
-            </Link>
+      <section className="nijhuis-only mx-auto max-w-5xl px-4 sm:px-6 py-6 sm:py-10 w-full space-y-6">
+        <div className="nijhuis-hero relative px-6 sm:px-12 py-12 sm:py-20">
+          <div className="relative max-w-2xl">
+            <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur border border-white/25 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider mb-5">
+              <span className="w-2 h-2 rounded-full bg-trophy animate-pulse" />
+              WK 2026 · 11 juni – 19 juli
+            </div>
+            <h1 className="display text-4xl sm:text-6xl leading-[1.05] mb-4">
+              De WK-poule.<br />
+              <span className="text-trophy-soft">Bouw mee</span> aan de stand.
+            </h1>
+            <p className="text-base sm:text-lg text-white/90 max-w-xl mb-8">
+              104 wedstrijden, 48 landen, één toernooi. Voorspel alles vooraf
+              en volg live wie er bij Nijhuis bovenaan klimt.
+            </p>
+            {user ? (
+              <div className="flex flex-wrap gap-3">
+                <Link
+                  href="/invullen"
+                  className="px-7 py-4 bg-white text-brand rounded-xl font-bold text-base shadow-lg hover:bg-trophy-soft transition"
+                >
+                  Vul je voorspelling in →
+                </Link>
+                <Link
+                  href="/ranglijst"
+                  className="px-7 py-4 border-2 border-white/40 bg-white/10 backdrop-blur text-white rounded-xl font-bold text-base hover:bg-white/20 transition"
+                >
+                  Stand bekijken
+                </Link>
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="inline-block px-7 py-4 bg-white text-brand rounded-xl font-bold text-base shadow-lg hover:bg-trophy-soft transition"
+              >
+                Doe mee →
+              </Link>
+            )}
           </div>
-        ) : (
-          <Link
-            href="/login"
-            className="inline-block px-6 py-3 bg-brand text-white rounded-md font-semibold hover:bg-brand-dark transition"
-          >
-            Doe mee
-          </Link>
-        )}
+        </div>
 
-        <div className="grid sm:grid-cols-3 gap-4 mt-16">
-          <Feature
-            emoji="📝"
-            title="Ineens invullen"
-            text="Voorspel groepsfase, knock-out én bonusvragen. Eén keer goed."
+        <div className="grid sm:grid-cols-3 gap-4">
+          <NijhuisPhotoFeature
+            bgClass="nijhuis-photo-fans"
+            stat="104"
+            label="Wedstrijden"
+            text="Van openingswedstrijd tot finale — voorspel alles."
           />
-          <Feature
-            emoji="⚡"
-            title="Automatische punten"
-            text="Uitslagen komen live binnen, je ziet je stand meteen."
+          <NijhuisPhotoFeature
+            bgClass="nijhuis-photo-pitch"
+            stat="48"
+            label="Landen"
+            text="De grootste WK ooit. Wie pakt verrassend uit?"
           />
-          <Feature
-            emoji="📈"
-            title="Stijgers en dalers"
-            text="Pijltjes per deelnemer en team — zie wie de grootste sprong maakt."
+          <NijhuisPhotoFeature
+            bgClass="nijhuis-photo-celebration"
+            stat="1"
+            label="Winnaar"
+            text="Maar wie pakt 'm op kantoor? Daar gaat het om."
           />
+        </div>
+
+        <div className="bg-surface border border-border rounded-2xl p-6 sm:p-8 grid sm:grid-cols-3 gap-6">
+          <Feature emoji="📝" title="Ineens invullen" text="Groepsfase, knock-out én bonusvragen — in één keer goed." />
+          <Feature emoji="⚡" title="Live punten" text="Uitslagen komen live binnen, je stand bij elk fluitsignaal." />
+          <Feature emoji="📈" title="Stijgers & dalers" text="Pijltjes per deelnemer en team — zie wie het hardst klimt." />
         </div>
       </section>
 
@@ -175,10 +187,30 @@ export default async function HomePage() {
 
 function Feature({ emoji, title, text }: { emoji: string; title: string; text: string }) {
   return (
-    <div className="bg-surface border border-border rounded-lg p-5">
+    <div>
       <div className="text-2xl mb-2">{emoji}</div>
-      <div className="font-semibold mb-1">{title}</div>
-      <div className="text-sm text-muted">{text}</div>
+      <div className="font-bold text-base mb-1">{title}</div>
+      <div className="text-sm text-muted leading-snug">{text}</div>
+    </div>
+  );
+}
+
+function NijhuisPhotoFeature({
+  bgClass,
+  stat,
+  label,
+  text,
+}: {
+  bgClass: string;
+  stat: string;
+  label: string;
+  text: string;
+}) {
+  return (
+    <div className={`${bgClass} relative rounded-2xl p-6 min-h-[200px] flex flex-col justify-end text-white overflow-hidden`}>
+      <div className="text-5xl font-extrabold leading-none mb-1">{stat}</div>
+      <div className="text-sm uppercase tracking-wider font-bold text-white/90 mb-2">{label}</div>
+      <div className="text-xs text-white/85 leading-snug">{text}</div>
     </div>
   );
 }

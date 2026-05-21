@@ -369,6 +369,108 @@ img.emoji {
   color: #fff;
 }
 
+/* ============================================================
+   Theme: Nijhuis huisstijl — eigen uitwerking parallel aan scorito.
+   Niet zo donker/strak, maar warmer en met rood/goud/groen-veld accenten.
+   Geen [data-theme] selectors nodig: dit is de default styling die altijd
+   actief is, behalve waar scorito 'm overschrijft.
+   ============================================================ */
+
+/* Subtiele warme glow bovenaan de pagina in nijhuis-mode */
+[data-theme="nijhuis"] body {
+  background:
+    radial-gradient(ellipse 90% 40% at 50% -10%, rgba(208, 52, 62, 0.08), transparent 70%),
+    var(--color-bg);
+}
+
+/* Sectie-headers krijgen ook hier een verticaal kleurblokje links — rood/goud */
+[data-theme="nijhuis"] section > div > h1,
+[data-theme="nijhuis"] section > h2 {
+  position: relative;
+  padding-left: 14px;
+}
+[data-theme="nijhuis"] section > div > h1::before,
+[data-theme="nijhuis"] section > h2::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.2em;
+  bottom: 0.2em;
+  width: 4px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--color-brand) 0%, var(--color-trophy) 100%);
+}
+
+/* Cards krijgen warme subtiele shadow voor diepte */
+[data-theme="nijhuis"] .bg-surface {
+  box-shadow: 0 1px 3px rgba(168, 37, 46, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+/* Knoppen: behoud Nijhuis-rood flat, maar zachte hover en subtiele shadow */
+[data-theme="nijhuis"] a.bg-brand,
+[data-theme="nijhuis"] button.bg-brand {
+  box-shadow: 0 1px 2px rgba(168, 37, 46, 0.18);
+  letter-spacing: 0.005em;
+}
+[data-theme="nijhuis"] a.bg-brand:hover,
+[data-theme="nijhuis"] button.bg-brand:hover {
+  box-shadow: 0 2px 6px rgba(168, 37, 46, 0.28);
+}
+
+/* Tab-hero in nijhuis-mode: warm verloop, accent-streep, donkere tekst.
+   Tegenhanger van scorito's donkere variant, met dezelfde "premium feel". */
+[data-theme="nijhuis"] .tab-hero {
+  background: linear-gradient(135deg, #fff 0%, var(--color-trophy-soft) 60%, var(--color-brand-soft) 100%);
+  border-color: rgba(168, 37, 46, 0.15);
+  border-radius: 18px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(168, 37, 46, 0.08);
+}
+[data-theme="nijhuis"] .tab-hero::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-brand) 0%, var(--color-trophy) 50%, var(--color-pitch) 100%);
+  pointer-events: none;
+}
+/* In tab-hero geen extra accent-blokje voor h1 (heeft eigen streep boven) */
+[data-theme="nijhuis"] .tab-hero h1::before,
+[data-theme="nijhuis"] .tab-hero h2::before {
+  display: none;
+}
+
+/* Nijhuis hero op landing page — warm verloop over een mensgerichte foto.
+   Andere foto's dan scorito (geen stadion-aerial). */
+.nijhuis-hero {
+  background:
+    linear-gradient(180deg, rgba(168, 37, 46, 0.35) 0%, rgba(168, 37, 46, 0.85) 100%),
+    url("https://images.unsplash.com/photo-1543351611-58f69d7c1781?w=1800&q=80&auto=format&fit=crop") center/cover;
+  color: #fff;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+/* Nijhuis photo-cards — warm-getinte foto's met rode overlay */
+.nijhuis-photo-fans {
+  background:
+    linear-gradient(180deg, rgba(168, 37, 46, 0) 30%, rgba(168, 37, 46, 0.88) 100%),
+    url("https://images.unsplash.com/photo-1577471488278-16eec37ffcc2?w=1200&q=80&auto=format&fit=crop") center/cover;
+}
+.nijhuis-photo-celebration {
+  background:
+    linear-gradient(180deg, rgba(168, 37, 46, 0) 30%, rgba(168, 37, 46, 0.88) 100%),
+    url("https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1200&q=80&auto=format&fit=crop") center/cover;
+}
+.nijhuis-photo-pitch {
+  background:
+    linear-gradient(180deg, rgba(168, 37, 46, 0) 30%, rgba(168, 37, 46, 0.88) 100%),
+    url("https://images.unsplash.com/photo-1486286701208-1d58e9338013?w=1200&q=80&auto=format&fit=crop") center/cover;
+}
+
 /* ───────── Toggle pill iets prominenter in scorito-mode ─────────
    De N/⚽-knop moet duidelijk vindbaar zijn op de donkere balk. */
 [data-theme="scorito"] header.bg-surface > div > div > button[aria-label="Wissel thema"],

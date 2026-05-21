@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { DEPARTMENTS } from "@/lib/departments";
 import BrandLogo from "@/app/components/BrandLogo";
+import ThemeToggle from "@/app/components/ThemeToggle";
 
 type Mode = "new" | "returning";
 
@@ -80,7 +81,11 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12">
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12 relative">
+      {/* Theme-toggle rechtsboven — gebruiker kan thema kiezen vóór inloggen */}
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
       <header className="mb-8">
         <BrandLogo size="large" />
       </header>
