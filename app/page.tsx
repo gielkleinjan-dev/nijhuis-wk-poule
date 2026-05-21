@@ -210,7 +210,7 @@ function NijhuisPhotoFeature({
     <div className={`${bgClass} relative rounded-2xl p-6 min-h-[200px] flex flex-col justify-end text-white overflow-hidden`}>
       <div className="text-5xl font-extrabold leading-none mb-1">{stat}</div>
       <div className="text-sm uppercase tracking-wider font-bold text-white/90 mb-2">{label}</div>
-      <div className="text-xs text-white/85 leading-snug">{text}</div>
+      <div className="text-sm font-medium text-white/95 leading-snug">{text}</div>
     </div>
   );
 }
@@ -230,7 +230,7 @@ function PhotoFeature({
     <div className={`${bgClass} relative rounded-2xl p-6 min-h-[200px] flex flex-col justify-end text-white overflow-hidden`}>
       <div className="text-5xl font-extrabold leading-none mb-1">{stat}</div>
       <div className="text-sm uppercase tracking-wider font-bold text-white/90 mb-2">{label}</div>
-      <div className="text-xs text-white/75 leading-snug">{text}</div>
+      <div className="text-sm font-medium text-white/95 leading-snug">{text}</div>
     </div>
   );
 }
