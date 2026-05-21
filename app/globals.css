@@ -489,17 +489,17 @@ img.emoji {
 .nijhuis-photo-match {
   background:
     linear-gradient(180deg, rgba(30, 12, 14, 0) 35%, rgba(30, 12, 14, 0.85) 100%),
-    url("/match.png") center/cover;
+    url("/match.jpg") center/cover;
 }
 .nijhuis-photo-crowd {
   background:
     linear-gradient(180deg, rgba(30, 12, 14, 0) 35%, rgba(30, 12, 14, 0.85) 100%),
-    url("/landen.png") center/cover;
+    url("/landen.jpg") center/cover;
 }
 .nijhuis-photo-trophy {
   background:
     linear-gradient(180deg, rgba(30, 12, 14, 0) 35%, rgba(30, 12, 14, 0.85) 100%),
-    url("/winnaar.png") center/cover;
+    url("/winnaar.jpg") center/cover;
 }
 
 /* ───────── Toggle pill iets prominenter in scorito-mode ─────────
