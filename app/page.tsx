@@ -51,8 +51,8 @@ export default async function HomePage() {
               WK 2026 · 11 juni – 19 juli
             </div>
             <h1 className="display text-4xl sm:text-6xl leading-[1.05] mb-4">
-              De WK-poule.<br />
-              <span className="text-trophy">Bouw mee</span> aan jouw stand.
+              De Nijhuis Bouw<br />
+              <span className="text-trophy">WK Poule</span>
             </h1>
             <p className="text-base sm:text-lg text-white/90 max-w-xl mb-8">
               104 wedstrijden, 48 landen, één toernooi. Voorspel alles vooraf
