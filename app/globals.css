@@ -443,31 +443,33 @@ img.emoji {
   display: none;
 }
 
-/* Nijhuis hero op landing page — warm verloop over een mensgerichte foto.
-   Andere foto's dan scorito (geen stadion-aerial). */
+/* Nijhuis hero op landing page — donkere warm-bruine overlay zodat foto-
+   kleuren intact blijven (geen sepia/jaren-60-effect). De Nijhuis-rode
+   accent zit in het pulse-dot bovenaan + CTA-knoppen, niet in de overlay. */
 .nijhuis-hero {
   background:
-    linear-gradient(180deg, rgba(168, 37, 46, 0.35) 0%, rgba(168, 37, 46, 0.85) 100%),
+    linear-gradient(180deg, rgba(30, 12, 14, 0.30) 0%, rgba(45, 18, 22, 0.75) 100%),
     url("https://images.unsplash.com/photo-1543351611-58f69d7c1781?w=1800&q=80&auto=format&fit=crop") center/cover;
   color: #fff;
   border-radius: 20px;
   overflow: hidden;
 }
 
-/* Nijhuis photo-cards — warm-getinte foto's met rode overlay */
+/* Nijhuis photo-cards — donkere warm-bruine onderkant voor tekst-
+   leesbaarheid, foto blijft bovenaan helemaal vrij. */
 .nijhuis-photo-fans {
   background:
-    linear-gradient(180deg, rgba(168, 37, 46, 0) 30%, rgba(168, 37, 46, 0.88) 100%),
+    linear-gradient(180deg, rgba(30, 12, 14, 0) 35%, rgba(30, 12, 14, 0.85) 100%),
     url("https://images.unsplash.com/photo-1577471488278-16eec37ffcc2?w=1200&q=80&auto=format&fit=crop") center/cover;
 }
 .nijhuis-photo-celebration {
   background:
-    linear-gradient(180deg, rgba(168, 37, 46, 0) 30%, rgba(168, 37, 46, 0.88) 100%),
+    linear-gradient(180deg, rgba(30, 12, 14, 0) 35%, rgba(30, 12, 14, 0.85) 100%),
     url("https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1200&q=80&auto=format&fit=crop") center/cover;
 }
 .nijhuis-photo-pitch {
   background:
-    linear-gradient(180deg, rgba(168, 37, 46, 0) 30%, rgba(168, 37, 46, 0.88) 100%),
+    linear-gradient(180deg, rgba(30, 12, 14, 0) 35%, rgba(30, 12, 14, 0.85) 100%),
     url("https://images.unsplash.com/photo-1486286701208-1d58e9338013?w=1200&q=80&auto=format&fit=crop") center/cover;
 }
 
