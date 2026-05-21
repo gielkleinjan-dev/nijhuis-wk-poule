@@ -52,7 +52,7 @@ export default async function HomePage() {
             </div>
             <h1 className="display text-4xl sm:text-6xl leading-[1.05] mb-4">
               De WK-poule.<br />
-              <span className="text-trophy-soft">Bouw mee</span> aan de stand.
+              <span className="text-trophy">Bouw mee</span> aan jouw stand.
             </h1>
             <p className="text-base sm:text-lg text-white/90 max-w-xl mb-8">
               104 wedstrijden, 48 landen, één toernooi. Voorspel alles vooraf

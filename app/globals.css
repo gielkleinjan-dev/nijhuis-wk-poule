@@ -443,17 +443,29 @@ img.emoji {
   display: none;
 }
 
-/* Nijhuis hero op landing page — donkere warm-bruine overlay zodat foto-
-   kleuren intact blijven (geen sepia/jaren-60-effect). De Nijhuis-rode
-   accent zit in het pulse-dot bovenaan + CTA-knoppen, niet in de overlay.
-   Foto: vol stadion met fans — levendiger dan een lege goal. */
+/* Nijhuis hero op landing page — fotoloos, diep bordeaux verloop met een
+   subtiele warme gloed linksboven (geen platte effen kleur). Parallel
+   aan scorito's grijsblauwe hero, maar in Nijhuis-huisstijl. */
 .nijhuis-hero {
   background:
-    linear-gradient(180deg, rgba(30, 12, 14, 0.30) 0%, rgba(45, 18, 22, 0.75) 100%),
-    url("https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?w=1800&q=80&auto=format&fit=crop") center/cover;
+    radial-gradient(ellipse 70% 50% at 25% 15%, rgba(208, 52, 62, 0.30) 0%, transparent 65%),
+    linear-gradient(135deg, #1a0a0c 0%, #2d1218 35%, #3d1820 60%, #1f0c0f 100%);
   color: #fff;
   border-radius: 20px;
   overflow: hidden;
+  position: relative;
+}
+/* Dunne goud-rode accent-streep onderaan voor 'premium'-detail. */
+.nijhuis-hero::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent 0%, var(--color-brand) 25%, var(--color-trophy) 75%, transparent 100%);
+  pointer-events: none;
+  opacity: 0.7;
 }
 
 /* Nijhuis photo-cards — donkere warm-bruine onderkant voor tekst-
