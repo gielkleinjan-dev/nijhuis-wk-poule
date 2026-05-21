@@ -417,10 +417,15 @@ img.emoji {
   box-shadow: 0 2px 6px rgba(168, 37, 46, 0.28);
 }
 
-/* Tab-hero in nijhuis-mode: warm verloop, accent-streep, donkere tekst.
-   Tegenhanger van scorito's donkere variant, met dezelfde "premium feel". */
+/* Tab-hero in nijhuis-mode: zacht rosé verloop in alleen-rode tinten,
+   geen geel meer. Lage opacity zodat het opaal en kalm blijft. */
 [data-theme="nijhuis"] .tab-hero {
-  background: linear-gradient(135deg, #fff 0%, var(--color-trophy-soft) 60%, var(--color-brand-soft) 100%);
+  background:
+    linear-gradient(135deg,
+      rgba(208, 52, 62, 0.02) 0%,
+      rgba(208, 52, 62, 0.07) 50%,
+      rgba(208, 52, 62, 0.13) 100%),
+    #fff;
   border-color: rgba(168, 37, 46, 0.15);
   border-radius: 18px;
   position: relative;
