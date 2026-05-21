@@ -302,27 +302,11 @@ img.emoji {
   background: linear-gradient(180deg, #0066ff 0%, #10b981 100%);
 }
 
-/* ───────── Cards in scorito krijgen subtiele stadium-glow accent ─────────
-   1px verloop bovenaan elke surface-card. Niet té heftig — gewoon een hint. */
-[data-theme="scorito"] .bg-surface {
-  position: relative;
-}
-[data-theme="scorito"] .bg-surface::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 12%;
-  right: 12%;
-  height: 2px;
-  background: linear-gradient(90deg, transparent 0%, #0066ff 30%, #10b981 70%, transparent 100%);
-  border-radius: 0 0 2px 2px;
-  pointer-events: none;
-  opacity: 0.55;
-}
-/* Maar niet binnen genest oppervlak (anders krijg je 5x dezelfde streep). */
-[data-theme="scorito"] .bg-surface .bg-surface::before {
-  display: none;
-}
+/* Cards in scorito krijgen iets sterkere shadow voor diepte. Geen pseudo-
+   element glow-streep meer — die forceerde position:relative op elke
+   surface-card en dat brak absolute/fixed positionering in dropdown-
+   portals (CountryDropdown). De stadium-glow zit nu alleen op de
+   prominente .tab-hero accent-strepen. */
 
 /* ───────── Intro-cards op invul-tabs ─────────
    De grote "Knock-out / Groepsfase / Bonus"-uitleg-card boven aan elke tab
@@ -337,12 +321,14 @@ img.emoji {
   overflow: hidden;
 }
 [data-theme="scorito"] .tab-hero::before {
-  /* Vervang de generieke accent-streep door iets prominenters in de hero. */
+  content: "";
+  position: absolute;
+  top: 0;
   left: 0;
   right: 0;
   height: 3px;
   background: linear-gradient(90deg, #0066ff 0%, #10b981 50%, #fbbf24 100%);
-  opacity: 1;
+  pointer-events: none;
 }
 [data-theme="scorito"] .tab-hero h1,
 [data-theme="scorito"] .tab-hero h2,
@@ -398,13 +384,13 @@ img.emoji {
 
 /* ───────── Scorito kleur-discipline ─────────
    Scorito-look is monochroom blauw + één warm accent voor warnings.
-   We overschrijven daarom de groen/oranje pill-achtergronden naar
-   varianten in de blauw-familie. Tekstkleur (text-pitch) blijft groen —
-   dat is een prima subtiele "succes"-accent op witte score-cijfers.
+   We overschrijven de groen/oranje achtergronden, borders én tekstkleuren
+   naar varianten in de blauw-familie.
 
    - bg-pitch (winnaar-pill, punten-badge) -> navy (brand-dark)
    - bg-pitch-soft (override-pill achtergrond) -> brand-soft (licht blauw)
-   - border-pitch -> navy border
+   - border-pitch -> navy
+   - text-pitch (ProgressBar-checks, score-totalen) -> brand (helder blauw)
    - bg-amber-500 (Beste-nrs-3 marker) -> brand-blauw
    - border-amber-500 -> brand-blauw
 
@@ -419,6 +405,9 @@ img.emoji {
 [data-theme="scorito"] .bg-pitch-soft {
   background-color: var(--color-brand-soft) !important;
 }
+[data-theme="scorito"] .text-pitch {
+  color: var(--color-brand) !important;
+}
 [data-theme="scorito"] .bg-amber-500 {
   background-color: var(--color-brand) !important;
 }
@@ -427,3 +416,21 @@ img.emoji {
 }
 /* Progress-fill in done-state werd pitch (groen) - nu via override navy. */
 /* In-progress blijft bg-brand (blauw lichter). Done = navy donkerder.    */
+
+/* ───────── LockBadge in scorito-header subtieler ─────────
+   De pill in de donkere header valt te dik aan op mobile (chunky witte
+   pil met groen icoontje). In scorito: transparante backdrop, witte
+   border, witte tekst — past bij de toggle-pill ernaast. */
+[data-theme="scorito"] header.bg-surface span[title*="Poule"] {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  color: #fff !important;
+  border-width: 1px !important;
+  padding: 0.25rem 0.6rem !important;
+}
+/* Locked-variant krijgt brand-blauwe accent zodat 'gesloten' duidelijk
+   visueel anders is dan 'open'. */
+[data-theme="scorito"] header.bg-surface span[title="Poule gesloten — invullen kan niet meer"] {
+  background-color: var(--color-brand) !important;
+  border-color: var(--color-brand) !important;
+}
