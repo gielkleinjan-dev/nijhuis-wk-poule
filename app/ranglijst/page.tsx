@@ -136,7 +136,7 @@ export default async function RanglijstPage({
         <div className="flex flex-col lg:grid lg:grid-cols-[1fr_16rem] gap-6">
 
           {/* ── Individueel header ── row 1 col 1 */}
-          <div className="order-1 bg-surface border border-border rounded-lg p-5">
+          <div className="order-1 tab-hero bg-surface border border-border rounded-lg p-5">
             <h1 className="text-2xl font-bold mb-1">Individueel klassement</h1>
             <p className="text-sm text-muted">
               {tournamentStarted
@@ -152,7 +152,7 @@ export default async function RanglijstPage({
           </div>
 
           {/* ── Team header ── row 1 col 2 (desktop) / after ind-table on mobile */}
-          <div className="order-3 lg:order-2 bg-surface border border-border rounded-lg p-5">
+          <div className="order-3 lg:order-2 tab-hero bg-surface border border-border rounded-lg p-5">
             <h2 className="text-2xl font-bold mb-1">Team klassement</h2>
             <p className="text-sm text-muted">
               Gemiddeld aantal punten per teamlid.

@@ -11,7 +11,7 @@ export default async function VoorspellingenPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-8 space-y-6">
-      <div className="bg-surface border border-border rounded-lg p-5">
+      <div className="tab-hero bg-surface border border-border rounded-lg p-5">
         <h1 className="text-2xl font-bold mb-1">Voorspellingen van alle deelnemers</h1>
         <p className="text-sm text-muted">
           De poule is gesloten en alle keuzes zijn vastgezet. Klik op een naam om iemands
