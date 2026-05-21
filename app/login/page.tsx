@@ -81,59 +81,34 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen relative">
-      {/* Compact brand-logo linksboven + theme-toggle rechtsboven */}
-      <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-20">
-        <BrandLogo size="compact" />
-      </div>
-      <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20">
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12 relative">
+      {/* Theme-toggle rechtsboven — gebruiker kan thema kiezen vóór inloggen */}
+      <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>
+      <header className="mb-8">
+        <BrandLogo size="large" />
+      </header>
 
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-20 sm:pt-24 pb-12 lg:pb-16">
-        <div className="grid lg:grid-cols-[1.1fr_minmax(0,28rem)] gap-6 lg:gap-10 items-stretch">
-
-          {/* ── Hero block (links op desktop, boven op mobile) ── */}
-          <div className="tab-hero bg-surface border border-border rounded-2xl p-8 sm:p-10 lg:p-12 flex flex-col justify-center">
-            <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur border border-white/25 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider mb-5 self-start">
-              <span className="w-2 h-2 rounded-full bg-trophy animate-pulse" />
-              WK 2026 · 11 juni – 19 juli
-            </div>
-            <h1 className="display text-3xl sm:text-5xl leading-[1.05] mb-4">
-              De Nijhuis Bouw<br />
-              <span className="text-trophy">WK Poule</span>
-            </h1>
-            <p className="text-base sm:text-lg text-muted max-w-md mb-6">
-              Voorspel alle 104 wedstrijden, volg je stand live tijdens het toernooi.
-              Inschrijven kan tot 11 juni 18:00.
-            </p>
-            <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
-              <span className="inline-flex items-center gap-1.5"><span className="text-trophy">48</span> landen</span>
-              <span className="inline-flex items-center gap-1.5"><span className="text-trophy">104</span> wedstrijden</span>
-              <span className="inline-flex items-center gap-1.5"><span className="text-trophy">1</span> winnaar</span>
-            </div>
-          </div>
-
-          {/* ── Form card (rechts op desktop, onder op mobile) ── */}
-          <div className="w-full bg-surface border border-border rounded-2xl shadow-sm overflow-hidden">
-        {/* Mode tabs */}
-        <div className="flex border-b border-border">
+      <div className="w-full max-w-md bg-surface border border-border rounded-lg shadow-sm overflow-hidden">
+        {/* Mode tabs — actieve tab krijgt brand-soft fill + brand tekst voor kleur */}
+        <div className="flex border-b border-border bg-bg/40">
           <button
             onClick={() => switchMode("new")}
-            className={`flex-1 px-4 py-3 text-sm font-medium border-b-2 transition ${
+            className={`flex-1 px-4 py-3.5 text-sm font-semibold border-b-2 transition ${
               mode === "new"
-                ? "border-brand text-brand"
-                : "border-transparent text-muted hover:text-ink"
+                ? "border-brand bg-brand-soft text-brand"
+                : "border-transparent text-muted hover:text-ink hover:bg-bg/60"
             }`}
           >
             Eerste keer
           </button>
           <button
             onClick={() => switchMode("returning")}
-            className={`flex-1 px-4 py-3 text-sm font-medium border-b-2 transition ${
+            className={`flex-1 px-4 py-3.5 text-sm font-semibold border-b-2 transition ${
               mode === "returning"
-                ? "border-brand text-brand"
-                : "border-transparent text-muted hover:text-ink"
+                ? "border-brand bg-brand-soft text-brand"
+                : "border-transparent text-muted hover:text-ink hover:bg-bg/60"
             }`}
           >
             Al ingeschreven
@@ -236,15 +211,13 @@ export default function LoginPage() {
               </form>
             </>
           )}
-          </div>
-          </div>
         </div>
-
-        <p className="text-xs text-muted mt-8 text-center">
-          Met liefde gebouwd voor collega&apos;s • WK 2026
-        </p>
       </div>
-    </main>
+
+      <p className="text-xs text-muted mt-6">
+        Met liefde gebouwd voor collega&apos;s • WK 2026
+      </p>
+    </div>
   );
 }
 
