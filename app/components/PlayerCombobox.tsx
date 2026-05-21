@@ -121,7 +121,7 @@ export default function PlayerCombobox({
                   i === activeIdx ? "bg-brand text-white" : "hover:bg-bg"
                 }`}
               >
-                <span className="text-base leading-none">{flagEmoji(p.tla)}</span>
+                <span className="flag-emoji text-base leading-none" aria-hidden>{flagEmoji(p.tla)}</span>
                 <span className="flex-1">{p.name}</span>
                 <span className="text-[11px] text-muted font-mono shrink-0">{p.tla}</span>
               </button>

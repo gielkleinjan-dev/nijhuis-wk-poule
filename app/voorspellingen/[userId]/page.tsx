@@ -20,14 +20,14 @@ function TeamSpan({ code, name, highlighted }: { code: string | undefined | null
     // Winnaar-pill, zelfde stijl als in de invul-knock-out
     return (
       <span className="inline-flex items-center gap-1 bg-pitch text-white font-semibold border border-pitch rounded px-1.5 py-0.5 max-w-full min-w-0">
-        <span aria-hidden className="shrink-0">{flagEmoji(code)}</span>
+        <span aria-hidden className="flag-emoji shrink-0">{flagEmoji(code)}</span>
         <span className="truncate min-w-0">{name ?? code}</span>
       </span>
     );
   }
   return (
     <span className="inline-flex items-center gap-1 max-w-full min-w-0">
-      <span aria-hidden className="shrink-0">{flagEmoji(code)}</span>
+      <span aria-hidden className="flag-emoji shrink-0">{flagEmoji(code)}</span>
       <span className="truncate min-w-0">{name ?? code}</span>
     </span>
   );
@@ -353,7 +353,7 @@ export default async function VoorspellingDetailPage({
         </Link>
       </div>
 
-      <div className="bg-surface border border-border rounded-lg p-5 flex items-center justify-between">
+      <div className="tab-hero bg-surface border border-border rounded-lg p-5 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold mb-0.5">{profile.display_name}</h1>
           <p className="text-sm text-muted">
@@ -401,11 +401,11 @@ export default async function VoorspellingDetailPage({
                   <li key={m.id} className="px-3 sm:px-4 py-2.5 sm:grid sm:grid-cols-[1fr_5rem_8rem_3rem] sm:gap-2 sm:items-center">
                     <div>
                       <div className="flex items-center gap-1.5 font-medium text-xs flex-wrap">
-                        <span>{flagEmoji(m.home_team ?? "")}</span>
+                        <span className="flag-emoji" aria-hidden>{flagEmoji(m.home_team ?? "")}</span>
                         <span className="text-muted">{teamName.get(m.home_team ?? "") ?? m.home_team}</span>
                         <span className="text-muted mx-0.5">vs</span>
                         <span className="text-muted">{teamName.get(m.away_team ?? "") ?? m.away_team}</span>
-                        <span>{flagEmoji(m.away_team ?? "")}</span>
+                        <span className="flag-emoji" aria-hidden>{flagEmoji(m.away_team ?? "")}</span>
                       </div>
                       <div className="text-[10px] text-muted mt-0.5">{fmt(m.kickoff_at)}</div>
                     </div>

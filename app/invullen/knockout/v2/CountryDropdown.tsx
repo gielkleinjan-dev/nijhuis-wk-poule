@@ -117,7 +117,7 @@ export function CountryDropdown({
               isSelected ? "bg-pitch-soft text-pitch font-semibold" : "text-fg"
             }`}
           >
-            <span className="text-base leading-none shrink-0" aria-hidden>{flagEmoji(t.code)}</span>
+            <span className="flag-emoji text-base leading-none shrink-0" aria-hidden>{flagEmoji(t.code)}</span>
             <span className="truncate flex-1">{t.name}</span>
             {isSelected && <span className="text-xs shrink-0">✓</span>}
           </button>

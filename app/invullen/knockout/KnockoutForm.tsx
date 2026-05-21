@@ -49,7 +49,7 @@ function TeamButton({
       disabled={isLocked || atMax}
       className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium border transition text-left ${baseClass}`}
     >
-      <span className="text-lg leading-none" aria-hidden>{flagEmoji(team.code)}</span>
+      <span className="flag-emoji text-lg leading-none" aria-hidden>{flagEmoji(team.code)}</span>
       <span className={`truncate flex-1 ${survivorStatus === "wrong" && selected ? "line-through" : ""}`}>
         {team.name}
       </span>

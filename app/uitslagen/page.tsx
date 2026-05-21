@@ -151,7 +151,7 @@ export default async function UitslagenPage() {
       <div className="mx-auto max-w-5xl px-6 py-8 space-y-10">
 
         {/* ── Totaal ── */}
-        <div className="bg-surface border border-border rounded-lg p-5 flex items-center justify-between">
+        <div className="tab-hero bg-surface border border-border rounded-lg p-5 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold mb-0.5">Jouw uitslagen</h1>
             <p className="text-sm text-muted">Overzicht van voorspellingen, uitslagen en behaalde punten.</p>
@@ -201,11 +201,11 @@ export default async function UitslagenPage() {
                       <tr key={m.id} className="border-b border-border last:border-0">
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-1.5 font-medium">
-                            <span>{flagEmoji(m.home_team ?? "")}</span>
+                            <span className="flag-emoji" aria-hidden>{flagEmoji(m.home_team ?? "")}</span>
                             <span className="text-xs text-muted">{teamName.get(m.home_team ?? "") ?? m.home_team}</span>
                             <span className="text-muted mx-0.5">vs</span>
                             <span className="text-xs text-muted">{teamName.get(m.away_team ?? "") ?? m.away_team}</span>
-                            <span>{flagEmoji(m.away_team ?? "")}</span>
+                            <span className="flag-emoji" aria-hidden>{flagEmoji(m.away_team ?? "")}</span>
                           </div>
                           <div className="text-xs text-muted mt-0.5">{fmt(m.kickoff_at)}</div>
                         </td>
@@ -294,7 +294,7 @@ export default async function UitslagenPage() {
                           <tr key={code} className="border-b border-border last:border-0">
                             <td className="px-4 py-2.5">
                               <span className="flex items-center gap-2">
-                                <span>{flagEmoji(code)}</span>
+                                <span className="flag-emoji" aria-hidden>{flagEmoji(code)}</span>
                                 <span>{teamName.get(code) ?? code}</span>
                               </span>
                             </td>

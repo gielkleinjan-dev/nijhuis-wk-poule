@@ -144,7 +144,7 @@ export default function GroupStageForm({
 
   return (
     <div className="space-y-8">
-      <div className="bg-surface border border-border rounded-lg p-5 flex flex-col-reverse sm:flex-row sm:items-start sm:justify-between gap-4">
+      <div className="tab-hero bg-surface border border-border rounded-lg p-5 flex flex-col-reverse sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold mb-1">Groepsfase</h1>
           <p className="text-sm text-muted">
@@ -267,7 +267,7 @@ function MatchRow({
 
         <div className="flex items-center justify-end gap-1.5 flex-1 min-w-0">
           <span className="font-medium text-sm truncate leading-tight text-right">{match.home.name}</span>
-          <span className="text-lg leading-none shrink-0" aria-hidden>{flagEmoji(match.home.code)}</span>
+          <span className="flag-emoji text-lg leading-none shrink-0" aria-hidden>{flagEmoji(match.home.code)}</span>
         </div>
 
         <div className="flex flex-col items-center gap-0.5 shrink-0">
@@ -286,7 +286,7 @@ function MatchRow({
         </div>
 
         <div className="flex items-center gap-1.5 flex-1 min-w-0">
-          <span className="text-lg leading-none shrink-0" aria-hidden>{flagEmoji(match.away.code)}</span>
+          <span className="flag-emoji text-lg leading-none shrink-0" aria-hidden>{flagEmoji(match.away.code)}</span>
           <span className="font-medium text-sm truncate leading-tight">{match.away.name}</span>
         </div>
 
@@ -302,7 +302,7 @@ function MatchRow({
         <div className="flex items-center gap-2">
           <div className="flex items-center justify-end gap-1 flex-1 min-w-0">
             <span className="font-medium text-sm truncate leading-tight text-right">{match.home.name}</span>
-            <span className="text-base leading-none shrink-0" aria-hidden>{flagEmoji(match.home.code)}</span>
+            <span className="flag-emoji text-base leading-none shrink-0" aria-hidden>{flagEmoji(match.home.code)}</span>
           </div>
           <div className="flex items-center gap-1 shrink-0">
             <ScoreInput value={prediction?.home ?? undefined} disabled={disabled}
@@ -312,7 +312,7 @@ function MatchRow({
               onChange={(v) => onScoreChange(match.id, "away", v)} ariaLabel={`Score ${match.away.name}`} />
           </div>
           <div className="flex items-center gap-1 flex-1 min-w-0">
-            <span className="text-base leading-none shrink-0" aria-hidden>{flagEmoji(match.away.code)}</span>
+            <span className="flag-emoji text-base leading-none shrink-0" aria-hidden>{flagEmoji(match.away.code)}</span>
             <span className="font-medium text-sm truncate leading-tight">{match.away.name}</span>
           </div>
         </div>

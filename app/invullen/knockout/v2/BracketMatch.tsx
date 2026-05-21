@@ -283,7 +283,7 @@ function TeamPill({
           onClick={onClickPill}
           className={`flex-1 flex items-center gap-1.5 px-2 py-2 text-sm text-left min-w-0 ${isLocked ? "cursor-not-allowed" : ""}`}
         >
-          <span className="text-base leading-none shrink-0" aria-hidden>{flagEmoji(code!)}</span>
+          <span className="flag-emoji text-base leading-none shrink-0" aria-hidden>{flagEmoji(code!)}</span>
           <span className="truncate flex-1">{t?.name ?? code}</span>
         </button>
       )}

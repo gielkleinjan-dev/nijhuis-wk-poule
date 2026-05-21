@@ -77,7 +77,7 @@ export function PhaseBPicker({
                           3e
                         </span>
                       )}
-                      <span className="text-base leading-none" aria-hidden>{flagEmoji(t.code)}</span>
+                      <span className="flag-emoji text-base leading-none" aria-hidden>{flagEmoji(t.code)}</span>
                       <span className="truncate flex-1">{t.name}</span>
                       {isTop2 && (
                         <span className="text-[10px] text-muted shrink-0">

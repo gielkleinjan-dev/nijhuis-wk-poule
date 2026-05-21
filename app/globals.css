@@ -83,25 +83,26 @@ img.emoji {
    de CSS-vars gebruiken switchen automatisch mee.
    ============================================================ */
 [data-theme="scorito"] {
-  /* Primaire actiekleur — Scorito helder blauw */
-  --color-brand: #0073ff;
-  --color-brand-dark: #00365b;
-  --color-brand-soft: #e6f0ff;
+  /* Primaire actiekleur — helder blauw, iets dieper dan Scorito-direct */
+  --color-brand: #0066ff;
+  --color-brand-dark: #00284a;
+  --color-brand-soft: #e3edff;
   --color-ink: #00112c;
 
-  /* Twist: behoud onze veldgroen + trofee-goud, iets levendiger */
-  --color-pitch: #11c38b;
-  --color-pitch-soft: #d4f4e8;
-  --color-trophy: #ffb800;
-  --color-trophy-soft: #fff4d6;
+  /* Pitch verschuift van groen naar emerald — past natuurlijker bij navy.
+     Trophy van fluo-geel naar amber — minder schreeuwerig. */
+  --color-pitch: #10b981;
+  --color-pitch-soft: #d1fae5;
+  --color-trophy: #fbbf24;
+  --color-trophy-soft: #fef3c7;
 
   /* Koele lichtgrijze achtergrond i.p.v. warmwit */
-  --color-bg: #f2f4f8;
+  --color-bg: #eef1f6;
   --color-surface: #ffffff;
-  --color-border: #dbdee2;
-  --color-muted: #5c687c;
+  --color-border: #d4d9e0;
+  --color-muted: #56627a;
 
-  --color-background: #f2f4f8;
+  --color-background: #eef1f6;
   --color-foreground: #00112c;
 
   /* Inter ipv PT Sans — moderner, neutraler */
@@ -221,11 +222,13 @@ img.emoji {
   border-color: #11c38b;
 }
 
-/* Top-bar header in scorito-mode ook donker */
+/* Top-bar header in scorito-mode ook donker — met decoratieve groene accent-strip */
 [data-theme="scorito"] header.bg-surface {
-  background: linear-gradient(180deg, #122434 0%, #1a364b 100%);
-  border-bottom-color: rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, #00284a 0%, #002e5e 100%);
+  border-bottom: 2px solid transparent;
+  border-image: linear-gradient(90deg, #0066ff 0%, #10b981 100%) 1;
   color: #fff;
+  position: relative;
 }
 [data-theme="scorito"] header.bg-surface .font-bold,
 [data-theme="scorito"] header.bg-surface .font-medium {
@@ -235,8 +238,155 @@ img.emoji {
   color: rgba(255, 255, 255, 0.65);
 }
 [data-theme="scorito"] header.bg-surface .text-brand {
-  color: #11c38b;
+  color: #10b981;
 }
 [data-theme="scorito"] header.bg-surface .border-border {
   border-color: rgba(255, 255, 255, 0.18);
+}
+[data-theme="scorito"] header.bg-surface button {
+  color: rgba(255, 255, 255, 0.85);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+[data-theme="scorito"] header.bg-surface button:hover {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+/* Nijhuis-logo wit kleuren in scorito-mode — anders rood-op-navy fight */
+[data-theme="scorito"] header img[alt="Nijhuis Bouw"] {
+  filter: brightness(0) invert(1);
+  opacity: 0.95;
+}
+
+/* ───────── Vlaggetjes via .flag-emoji wrapper ─────────
+   In nijhuis-mode verbergen we ze (Citrix-fix). In scorito-mode tonen
+   we ze iets groter dan de omliggende tekst, met ademruimte. */
+.flag-emoji {
+  display: none;
+}
+[data-theme="scorito"] .flag-emoji {
+  display: inline-flex;
+  align-items: center;
+  font-size: 1.3em;
+  line-height: 1;
+  vertical-align: -0.15em;
+}
+[data-theme="scorito"] .flag-emoji img.emoji {
+  height: 1em;
+  width: 1em;
+  margin: 0 0.05em;
+}
+
+/* ───────── Sectie-headers: rubric-line accent ─────────
+   In scorito-mode krijgt elke <h1> en <h2> een dun groen blokje links
+   ervoor — verwijst naar sport-magazine layout. */
+[data-theme="scorito"] section > div > h1,
+[data-theme="scorito"] section > h2 {
+  position: relative;
+  padding-left: 14px;
+}
+[data-theme="scorito"] section > div > h1::before,
+[data-theme="scorito"] section > h2::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.2em;
+  bottom: 0.2em;
+  width: 4px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #0066ff 0%, #10b981 100%);
+}
+
+/* ───────── Cards in scorito krijgen subtiele stadium-glow accent ─────────
+   1px verloop bovenaan elke surface-card. Niet té heftig — gewoon een hint. */
+[data-theme="scorito"] .bg-surface {
+  position: relative;
+}
+[data-theme="scorito"] .bg-surface::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 12%;
+  right: 12%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, #0066ff 30%, #10b981 70%, transparent 100%);
+  border-radius: 0 0 2px 2px;
+  pointer-events: none;
+  opacity: 0.55;
+}
+/* Maar niet binnen genest oppervlak (anders krijg je 5x dezelfde streep). */
+[data-theme="scorito"] .bg-surface .bg-surface::before {
+  display: none;
+}
+
+/* ───────── Intro-cards op invul-tabs ─────────
+   De grote "Knock-out / Groepsfase / Bonus"-uitleg-card boven aan elke tab
+   is nu wit op licht. In scorito-mode geven we 'm de hero-treatment: donker
+   verloop, witte tekst, accent-streep. Activeren met klasse .tab-hero. */
+[data-theme="scorito"] .tab-hero {
+  background: linear-gradient(135deg, #00284a 0%, #002e5e 60%, #003a7a 100%);
+  color: #fff;
+  border-color: transparent;
+  border-radius: 18px;
+  position: relative;
+  overflow: hidden;
+}
+[data-theme="scorito"] .tab-hero::before {
+  /* Vervang de generieke accent-streep door iets prominenters in de hero. */
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #0066ff 0%, #10b981 50%, #fbbf24 100%);
+  opacity: 1;
+}
+[data-theme="scorito"] .tab-hero h1,
+[data-theme="scorito"] .tab-hero h2,
+[data-theme="scorito"] .tab-hero h3,
+[data-theme="scorito"] .tab-hero .font-bold,
+[data-theme="scorito"] .tab-hero .font-medium {
+  color: #fff;
+}
+[data-theme="scorito"] .tab-hero .text-muted {
+  color: rgba(255, 255, 255, 0.75);
+}
+[data-theme="scorito"] .tab-hero .text-fg {
+  color: #10b981;
+}
+[data-theme="scorito"] .tab-hero .text-pitch {
+  color: #34d399;
+}
+[data-theme="scorito"] .tab-hero .text-brand {
+  color: #ffffff;
+}
+/* In de tab-hero geen extra glow-streep nodig (heeft eigen accent) */
+[data-theme="scorito"] .tab-hero h1::before,
+[data-theme="scorito"] .tab-hero h2::before {
+  display: none;
+}
+
+/* ───────── Stap-progress chips ─────────
+   De drie "Top 2 / Beste 3e / Winnaars" knoppen krijgen in scorito-mode
+   een gradient als ze actief zijn, en een groene gradient als ze compleet
+   zijn. We laten Tailwind-classes intact; CSS schuift erover heen. */
+[data-theme="scorito"] button.border-brand.bg-brand-soft {
+  background: linear-gradient(135deg, #003a7a 0%, #0066ff 100%);
+  border-color: transparent;
+  color: #fff;
+}
+[data-theme="scorito"] button.border-brand.bg-brand-soft .text-brand,
+[data-theme="scorito"] button.border-brand.bg-brand-soft .text-muted {
+  color: #fff;
+}
+
+/* ───────── Toggle pill iets prominenter in scorito-mode ─────────
+   De N/⚽-knop moet duidelijk vindbaar zijn op de donkere balk. */
+[data-theme="scorito"] header.bg-surface > div > div > button[aria-label="Wissel thema"],
+[data-theme="scorito"] nav.bg-surface button[aria-label="Wissel thema"] {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+[data-theme="scorito"] header.bg-surface button[aria-label="Wissel thema"]:hover,
+[data-theme="scorito"] nav.bg-surface button[aria-label="Wissel thema"]:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.5);
 }

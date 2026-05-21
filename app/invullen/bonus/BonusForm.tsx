@@ -258,7 +258,7 @@ export default function BonusForm({
 
   return (
     <div className="space-y-8">
-      <div className="bg-surface border border-border rounded-lg p-5 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+      <div className="tab-hero bg-surface border border-border rounded-lg p-5 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold mb-1">Bonusvragen</h1>
           <p className="text-sm text-muted">
