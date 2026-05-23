@@ -68,17 +68,17 @@
 .nijhuis-photo-match {
   background:
     linear-gradient(180deg, transparent 60%, rgba(15, 6, 8, 0.55) 100%),
-    url("/match.jpg") center/cover;
+    url("/match.webp") center/cover;
 }
 .nijhuis-photo-crowd {
   background:
     linear-gradient(180deg, transparent 60%, rgba(15, 6, 8, 0.55) 100%),
-    url("/landen.jpg") center/cover;
+    url("/landen.webp") center/cover;
 }
 .nijhuis-photo-trophy {
   background:
     linear-gradient(180deg, transparent 60%, rgba(15, 6, 8, 0.55) 100%),
-    url("/winnaar.jpg") center/cover;
+    url("/winnaar.webp") center/cover;
 }
 .nijhuis-photo-match,
 .nijhuis-photo-crowd,

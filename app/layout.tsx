@@ -88,6 +88,12 @@ export default async function RootLayout({
       data-theme={theme}
       className={`${ptSans.variable} ${inter.variable} h-full antialiased`}
     >
+      <head>
+        {/* Preconnect naar Unsplash voor scorito-mode hero/photo-cards.
+            Bespaart 100-300ms DNS+TLS-roundtrip op die foto's. */}
+        <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="" />
+        <link rel="dns-prefetch" href="https://images.unsplash.com" />
+      </head>
       <body className="min-h-full flex flex-col">
         <TwemojiLoader />
         {children}
