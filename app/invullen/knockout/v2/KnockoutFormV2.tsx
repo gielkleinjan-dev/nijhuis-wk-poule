@@ -8,6 +8,7 @@ import { PhaseBPicker } from "./PhaseBPicker";
 import { BracketBuilder } from "./BracketBuilder";
 import { useBracketState, type V2InitialPicks } from "./useBracketState";
 import SaveStatusBadge from "@/app/components/SaveStatusBadge";
+import OnboardingTip from "@/app/components/OnboardingTip";
 
 type Team = { code: string; name: string; group: GroupCode };
 
@@ -134,6 +135,14 @@ export default function KnockoutFormV2({
               title="Top 2 per poule"
               subtitle="Wijs per poule de nummer 1 en de nummer 2 aan. Samen 24 landen."
             />
+            <div className="px-3 pt-3">
+              <OnboardingTip id="ko-step-a">
+                <strong>Eerste keer hier?</strong> Tik op een land — eerste tik
+                wordt <strong>nummer 1</strong> (donkergroen), tweede tik wordt
+                <strong> nummer 2</strong> (lichter groen). Nog een keer tikken
+                op een gemarkeerd land wist je keuze.
+              </OnboardingTip>
+            </div>
             <PhaseAPicker
               teamsByGroup={teamsByGroup}
               phaseA={s.phaseA}
@@ -150,6 +159,15 @@ export default function KnockoutFormV2({
               title="Beste nummers 3"
               subtitle="Niet elke nummer 3 plaatst zich — alleen de 8 beste. Markeer in welke 8 poules dat lukt."
             />
+            <div className="px-3 pt-3">
+              <OnboardingTip id="ko-step-b">
+                <strong>Eerste keer hier?</strong> Klik op exact <strong>8 van
+                de 12 poules</strong> waarvan jij denkt dat de nummer 3 ver
+                genoeg komt om door te gaan. Welk specifiek land het wordt
+                bepaalt FIFA na de groepsfase — jij voorspelt alleen <em>uit
+                welke 8 poules</em> ze komen.
+              </OnboardingTip>
+            </div>
             <PhaseBPicker
               teamsByGroup={teamsByGroup}
               phaseA={s.phaseA}
@@ -172,7 +190,14 @@ export default function KnockoutFormV2({
                 { ico: "↺", text: "wis deze keuze" },
               ]}
             />
-            <div className="p-3">
+            <div className="p-3 space-y-3">
+              <OnboardingTip id="ko-step-c">
+                <strong>Eerste keer hier?</strong> Het schema is automatisch
+                ingevuld op basis van stap 1 + 2. <strong>Tik op een land</strong>
+                {" "}om 'm als winnaar te kiezen (wordt donkergroen). Wil je een
+                ander land op die plek? Klik op het <strong>pijltje ▾</strong>
+                {" "}en kies. De <strong>↺</strong> wist je keuze.
+              </OnboardingTip>
               <BracketBuilder
                 phaseA={s.phaseA}
                 phaseB={s.phaseB}
