@@ -144,39 +144,38 @@ export default function GroupStageForm({
 
   return (
     <div className="space-y-8">
-      <div className="tab-hero bg-surface border border-border rounded-lg p-5 flex flex-col-reverse sm:flex-row sm:items-start sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold mb-1">Groepsfase</h1>
-          <p className="text-sm text-muted">
-            Elk onderdeel telt apart: thuisscore, uitscore en de toto (1/X/2) leveren los punten op.
-          </p>
-          <div className="mt-2 flex flex-wrap gap-2 text-xs">
-            <span className="bg-pitch-soft text-pitch px-1.5 py-0.5 rounded font-semibold">2 pt</span>
-            <span className="text-muted self-center">thuisscore goed ·</span>
-            <span className="bg-pitch-soft text-pitch px-1.5 py-0.5 rounded font-semibold">2 pt</span>
-            <span className="text-muted self-center">uitscore goed ·</span>
-            <span className="bg-pitch-soft text-pitch px-1.5 py-0.5 rounded font-semibold">1 pt</span>
-            <span className="text-muted self-center">toto goed · max 5 pt</span>
-          </div>
-          <p className="mt-1.5 text-xs text-muted">
-            De toto volgt automatisch uit je uitslag, maar je kunt 'm ook handmatig kiezen — bijvoorbeeld als je een gelijkspel verwacht maar voor de zekerheid op winst gokt.
-          </p>
-        </div>
-        <div className="shrink-0 flex flex-row sm:flex-col items-start sm:items-end gap-6 sm:gap-2 text-left sm:text-right">
-          {(totalPoints ?? 0) > 0 && (
+      <div className="tab-hero bg-surface border border-border rounded-lg p-5">
+        <div className="flex items-start justify-between gap-3 mb-1">
+          <h1 className="text-2xl font-bold leading-tight">Groepsfase</h1>
+          <div className="shrink-0 text-right leading-tight flex items-baseline gap-3">
+            {(totalPoints ?? 0) > 0 && (
+              <div>
+                <div className="text-xl font-bold tabular-nums text-pitch">{totalPoints}</div>
+                <div className="text-[10px] text-muted">punten</div>
+              </div>
+            )}
             <div>
-              <div className="text-3xl font-bold tabular-nums text-pitch">{totalPoints}</div>
-              <div className="text-xs text-muted">punten</div>
+              <div className="text-xl font-bold tabular-nums">
+                {filledCount}<span className="text-sm text-muted font-normal">/{matches.length}</span>
+              </div>
+              <div className="text-[10px] text-muted">ingevuld</div>
             </div>
-          )}
-          <div>
-            <div className="text-2xl font-bold tabular-nums">
-              {filledCount}
-              <span className="text-base text-muted font-normal">/{matches.length}</span>
-            </div>
-            <div className="text-xs text-muted">ingevuld</div>
           </div>
         </div>
+        <p className="text-sm text-muted">
+          Elk onderdeel telt apart: thuisscore, uitscore en de toto (1/X/2) leveren los punten op.
+        </p>
+        <div className="mt-2 flex flex-wrap gap-2 text-xs">
+          <span className="bg-pitch-soft text-pitch px-1.5 py-0.5 rounded font-semibold">2 pt</span>
+          <span className="text-muted self-center">thuisscore goed ·</span>
+          <span className="bg-pitch-soft text-pitch px-1.5 py-0.5 rounded font-semibold">2 pt</span>
+          <span className="text-muted self-center">uitscore goed ·</span>
+          <span className="bg-pitch-soft text-pitch px-1.5 py-0.5 rounded font-semibold">1 pt</span>
+          <span className="text-muted self-center">toto goed · max 5 pt</span>
+        </div>
+        <p className="mt-1.5 text-xs text-muted">
+          De toto volgt automatisch uit je uitslag, maar je kunt 'm ook handmatig kiezen — bijvoorbeeld als je een gelijkspel verwacht maar voor de zekerheid op winst gokt.
+        </p>
       </div>
 
       {isLocked && (

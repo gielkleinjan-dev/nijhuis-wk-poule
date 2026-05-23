@@ -258,24 +258,24 @@ export default function BonusForm({
 
   return (
     <div className="space-y-8">
-      <div className="tab-hero bg-surface border border-border rounded-lg p-5 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold mb-1">Bonusvragen</h1>
-          <p className="text-sm text-muted">
-            Elke vraag levert <span className="font-medium text-ink">10 punten</span> op bij een
-            exact antwoord, en <span className="font-medium text-ink">5 punten</span> bij een
-            getal binnen ±3 van het werkelijke aantal. Het totaal aantal doelpunten in het
-            toernooi is ook de <span className="font-medium text-ink">beslisser</span>: bij
-            een gelijke eindstand in het algemeen klassement wint wie het dichtst bij het
-            werkelijke aantal zit.
-          </p>
+      <div className="tab-hero bg-surface border border-border rounded-lg p-5">
+        <div className="flex items-start justify-between gap-3 mb-1">
+          <h1 className="text-2xl font-bold leading-tight">Bonusvragen</h1>
+          {(totalPoints ?? 0) > 0 && (
+            <div className="shrink-0 text-right leading-tight">
+              <div className="text-xl font-bold tabular-nums text-pitch">{totalPoints}</div>
+              <div className="text-[10px] text-muted">punten</div>
+            </div>
+          )}
         </div>
-        {(totalPoints ?? 0) > 0 && (
-          <div className="text-right shrink-0">
-            <div className="text-3xl font-bold tabular-nums text-pitch">{totalPoints}</div>
-            <div className="text-xs text-muted">punten</div>
-          </div>
-        )}
+        <p className="text-sm text-muted">
+          Elke vraag levert <span className="font-medium text-ink">10 punten</span> op bij een
+          exact antwoord, en <span className="font-medium text-ink">5 punten</span> bij een
+          getal binnen ±3 van het werkelijke aantal. Het totaal aantal doelpunten in het
+          toernooi is ook de <span className="font-medium text-ink">beslisser</span>: bij
+          een gelijke eindstand in het algemeen klassement wint wie het dichtst bij het
+          werkelijke aantal zit.
+        </p>
       </div>
 
       {isLocked && (

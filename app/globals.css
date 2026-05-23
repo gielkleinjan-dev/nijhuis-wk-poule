@@ -430,16 +430,18 @@ img.emoji {
 [data-theme="nijhuis"] .tab-hero .text-brand {
   color: #fff;
 }
-/* Punten-badges (bg-pitch-soft etc.) in de hero → glass-pills */
+/* Punten-badges (bg-pitch-soft etc.) in de hero → solide wit met
+   Nijhuis-rode tekst. Geeft veel meer contrast op rood dan de eerdere
+   semi-transparante witte pills. */
 [data-theme="nijhuis"] .tab-hero .bg-pitch-soft {
-  background-color: rgba(255, 255, 255, 0.18) !important;
+  background-color: #ffffff !important;
 }
 [data-theme="nijhuis"] .tab-hero .text-pitch {
-  color: #fff !important;
+  color: var(--color-brand) !important;
 }
 [data-theme="nijhuis"] .tab-hero .border-pitch,
 [data-theme="nijhuis"] .tab-hero [class*="border-pitch"] {
-  border-color: rgba(255, 255, 255, 0.35) !important;
+  border-color: rgba(255, 255, 255, 0.4) !important;
 }
 [data-theme="nijhuis"] .tab-hero::before {
   content: "";

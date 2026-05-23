@@ -62,39 +62,38 @@ export default function KnockoutFormV2({
 
   return (
     <div className="space-y-4">
-      <div className="tab-hero bg-surface border border-border rounded-lg p-5 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold mb-1">Knock-out</h1>
-          <div className="text-sm text-muted space-y-2">
-            <p>
-              In drie stappen voorspel je het knock-out schema. Elke volgende stap opent zodra
-              de vorige klaar is.
-            </p>
-            <p>
-              <span className="font-medium text-fg">Stap 1 en 2</span> bepalen welke 32 landen
-              aan jouw knock-out beginnen — de nummer 1 en 2 per poule en jouw 8 beste nummers 3.
-              Daarop bouwen we automatisch jouw persoonlijke schema. Daarvoor krijg je nog geen punten.
-            </p>
-            <p>
-              <span className="font-medium text-fg">Stap 3</span> is waar je punten verdient:
-              kies per wedstrijd wie wint. Goed gegokt op de juiste plek levert de volle punten op.
-            </p>
+      <div className="tab-hero bg-surface border border-border rounded-lg p-5">
+        <div className="flex items-start justify-between gap-3 mb-1">
+          <h1 className="text-2xl font-bold leading-tight">Knock-out</h1>
+          <div className="shrink-0 text-right leading-tight flex items-baseline gap-3">
+            {(totalPoints ?? 0) > 0 && (
+              <div>
+                <div className="text-xl font-bold tabular-nums text-pitch">{totalPoints}</div>
+                <div className="text-[10px] text-muted">punten</div>
+              </div>
+            )}
+            <div>
+              <div className="text-xl font-bold tabular-nums">
+                {s.phaseACount + s.phaseB.size + s.bracketCount}<span className="text-sm text-muted font-normal">/63</span>
+              </div>
+              <div className="text-[10px] text-muted">ingevuld</div>
+            </div>
           </div>
         </div>
-        <div className="shrink-0 flex flex-row sm:flex-col items-start sm:items-end gap-6 sm:gap-2 text-left sm:text-right">
-          {(totalPoints ?? 0) > 0 && (
-            <div>
-              <div className="text-3xl font-bold tabular-nums text-pitch">{totalPoints}</div>
-              <div className="text-xs text-muted">punten</div>
-            </div>
-          )}
-          <div>
-            <div className="text-2xl font-bold tabular-nums">
-              {s.phaseACount + s.phaseB.size + s.bracketCount}
-              <span className="text-base text-muted font-normal">/63</span>
-            </div>
-            <div className="text-xs text-muted">ingevuld</div>
-          </div>
+        <div className="text-sm text-muted space-y-2">
+          <p>
+            In drie stappen voorspel je het knock-out schema. Elke volgende stap opent zodra
+            de vorige klaar is.
+          </p>
+          <p>
+            <span className="font-medium text-fg">Stap 1 en 2</span> bepalen welke 32 landen
+            aan jouw knock-out beginnen — de nummer 1 en 2 per poule en jouw 8 beste nummers 3.
+            Daarop bouwen we automatisch jouw persoonlijke schema. Daarvoor krijg je nog geen punten.
+          </p>
+          <p>
+            <span className="font-medium text-fg">Stap 3</span> is waar je punten verdient:
+            kies per wedstrijd wie wint. Goed gegokt op de juiste plek levert de volle punten op.
+          </p>
         </div>
       </div>
 
