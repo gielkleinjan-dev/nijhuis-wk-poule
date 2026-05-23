@@ -1,0 +1,11 @@
+# WK Poule Nijhuis — robots-config
+# Toestaan: alle publieke routes (homepage, login)
+# Niet indexeren: admin- en API-routes (gevoelig of irrelevant)
+
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /api
+Disallow: /auth
+
+Sitemap: https://nijhuis-wk-poule.vercel.app/sitemap.xml
