@@ -19,6 +19,13 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  // metadataBase is nodig zodat Next.js absolute URLs genereert voor OG-image,
+  // manifest etc. Zonder deze maken WhatsApp/Teams/email-clients geen preview
+  // (ze weigeren relatieve image-paths).
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ??
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://nijhuis-wk-poule.vercel.app"),
+  ),
   title: "WK Poule 2026 — Nijhuis",
   description:
     "De WK 2026 poule van Nijhuis Bouw — voorspel alle 104 wedstrijden, volg je stand live tijdens het toernooi.",
