@@ -137,10 +137,10 @@ export default function KnockoutFormV2({
             />
             <div className="px-3 pt-3">
               <OnboardingTip id="ko-step-a">
-                <strong>Eerste keer hier?</strong> Tik op een land — eerste tik
-                wordt <strong>nummer 1</strong> (donkergroen), tweede tik wordt
-                <strong> nummer 2</strong> (lichter groen). Nog een keer tikken
-                op een gemarkeerd land wist je keuze.
+                <strong>Tip:</strong> tik op een land — eerste tik wordt jouw
+                <strong> nummer 1</strong> (donkergroen), tweede tik wordt
+                <strong> nummer 2</strong> (lichter groen). Nogmaals tikken
+                op een gemarkeerd land wist de keuze.
               </OnboardingTip>
             </div>
             <PhaseAPicker
@@ -161,12 +161,11 @@ export default function KnockoutFormV2({
             />
             <div className="px-3 pt-3">
               <OnboardingTip id="ko-step-b">
-                <strong>Eerste keer hier?</strong> Markeer <strong>de 8 beste
-                nummers 3</strong>. Er zijn 12 poules — dus de nummer 3 van
-                4 poules valt sowieso af. Tik per poule op het land dat in
-                stap 1 géén 1 of 2 was. Op basis van jouw 8 keuzes bouwt
-                het systeem automatisch het knock-out schema (welke nr 3
-                tegen welke poulewinnaar speelt in de 1/16e finale).
+                <strong>Tip:</strong> tik op een land om 'm te markeren als
+                jouw nummer 3 — hij krijgt een oranje <strong>3e</strong>-badge.
+                Nogmaals tikken wist de markering. In elke poule staan twee
+                kandidaten klikbaar; de andere twee zijn jouw 1 en 2 uit
+                stap 1.
               </OnboardingTip>
             </div>
             <PhaseBPicker
@@ -193,11 +192,10 @@ export default function KnockoutFormV2({
             />
             <div className="p-3 space-y-3">
               <OnboardingTip id="ko-step-c">
-                <strong>Eerste keer hier?</strong> Het schema is automatisch
-                ingevuld op basis van stap 1 + 2. <strong>Tik op een land</strong>
-                {" "}om 'm als winnaar te kiezen (wordt donkergroen). Wil je een
-                ander land op die plek? Klik op het <strong>pijltje ▾</strong>
-                {" "}en kies. De <strong>↺</strong> wist je keuze.
+                <strong>Tip:</strong> tik op een land om 'm als winnaar te
+                kiezen — wordt donkergroen. Wil je een ander land op die
+                plek? Klik op het <strong>pijltje ▾</strong> en kies. De
+                <strong> ↺</strong> wist je keuze.
               </OnboardingTip>
               <BracketBuilder
                 phaseA={s.phaseA}
