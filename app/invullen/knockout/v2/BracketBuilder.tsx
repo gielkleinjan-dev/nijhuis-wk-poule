@@ -69,28 +69,26 @@ export function BracketBuilder({
         const filled = ids.filter((id) => bracket[id]).length;
         return (
           <section key={round} className="bg-surface border border-border rounded-lg overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-3 border-b border-border bg-bg/50 gap-4">
-              <div className="min-w-0">
-                <h2 className="text-lg font-bold flex items-center gap-2 flex-wrap">
-                  {meta.title}
-                </h2>
-                <p className="text-xs text-muted mt-0.5">{meta.hint}</p>
-                <div className="flex flex-wrap gap-1.5 mt-1.5">
-                  <span className="bg-pitch text-white text-[11px] font-semibold px-1.5 py-0.5 rounded">
-                    {meta.full} pt juiste land op juiste plek
-                  </span>
-                  {meta.half > 0 && (
-                    <span className="bg-amber-100 text-amber-800 border border-amber-200 text-[11px] font-semibold px-1.5 py-0.5 rounded">
-                      {meta.half} pt juiste land op verkeerde plek
-                    </span>
-                  )}
+            <div className="px-5 py-3 border-b border-border bg-bg/50">
+              <div className="flex items-start justify-between gap-3 mb-0.5">
+                <h2 className="text-lg font-bold leading-tight">{meta.title}</h2>
+                <div className="shrink-0 text-right leading-tight">
+                  <div className="text-xl font-bold tabular-nums">
+                    {filled}<span className="text-sm text-muted font-normal">/{ids.length}</span>
+                  </div>
+                  <div className="text-[10px] text-muted">ingevuld</div>
                 </div>
               </div>
-              <div className="text-right shrink-0">
-                <div className="text-2xl font-bold tabular-nums">
-                  {filled}<span className="text-base text-muted font-normal">/{ids.length}</span>
-                </div>
-                <div className="text-xs text-muted">ingevuld</div>
+              <p className="text-xs text-muted">{meta.hint}</p>
+              <div className="flex flex-wrap gap-1.5 mt-1.5">
+                <span className="bg-pitch text-white text-[11px] font-semibold px-1.5 py-0.5 rounded">
+                  {meta.full} pt juiste land op juiste plek
+                </span>
+                {meta.half > 0 && (
+                  <span className="bg-amber-100 text-amber-800 border border-amber-200 text-[11px] font-semibold px-1.5 py-0.5 rounded">
+                    {meta.half} pt juiste land op verkeerde plek
+                  </span>
+                )}
               </div>
             </div>
             <ul>
