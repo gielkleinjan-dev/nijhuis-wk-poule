@@ -20,7 +20,24 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "WK Poule 2026 — Nijhuis",
-  description: "De WK 2026 poule van Nijhuis Bouw",
+  description:
+    "De WK 2026 poule van Nijhuis Bouw — voorspel alle 104 wedstrijden, volg je stand live tijdens het toernooi.",
+  // Open Graph (WhatsApp, Teams, mail-previews) en Twitter card. De og-image
+  // wordt automatisch gegenereerd door app/opengraph-image.tsx.
+  openGraph: {
+    title: "WK Poule Nijhuis Bouw — WK 2026",
+    description:
+      "Voorspel alle 104 wedstrijden, volg je stand live tijdens het toernooi.",
+    type: "website",
+    locale: "nl_NL",
+    siteName: "WK Poule Nijhuis",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "WK Poule Nijhuis Bouw — WK 2026",
+    description:
+      "Voorspel alle 104 wedstrijden, volg je stand live tijdens het toernooi.",
+  },
   manifest: "/manifest.json",
   // Apple-specific (iOS toevoegen-aan-beginscherm):
   // - title is wat onder het icoon op het home-screen verschijnt
