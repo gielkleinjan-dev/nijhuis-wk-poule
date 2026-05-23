@@ -6,11 +6,25 @@ import ProgressBar from "./ProgressBar";
 import BrandLogo from "@/app/components/BrandLogo";
 import UserHeader from "@/app/components/UserHeader";
 import LockCountdown from "@/app/components/LockCountdown";
-import { ROUNDS } from "./knockout/rounds";
 
-const KO_TOTAL = ROUNDS.reduce((s, r) => s + r.count, 0);
+// Knock-out V2 telling: 24 (top 2 per poule) + 8 (beste nrs 3) + 16+8+4+2+1
+// (winnaars per ronde) = 63 keuzes totaal. De oude ROUNDS-export is V1-spec
+// en deugt hier niet voor — daar telde LAST_32 nog 32 'overlevende landen'
+// in plaats van de 16 wedstrijd-winnaars die V2 heeft.
+const KO_V2_ROUNDS: ReadonlyArray<{ key: string; count: number }> = [
+  { key: "GROUP_TOP_2",     count: 24 },
+  { key: "BEST_THIRDS",     count: 8 },
+  { key: "LAST_32",         count: 16 },
+  { key: "LAST_16",         count: 8 },
+  { key: "QUARTER_FINALS",  count: 4 },
+  { key: "SEMI_FINALS",     count: 2 },
+  { key: "FINAL",           count: 1 },
+];
+const KO_TOTAL = KO_V2_ROUNDS.reduce((s, r) => s + r.count, 0);
 const GROUP_TOTAL = 72;
-const BONUS_TOTAL = 3;
+// 6 bonusvragen: topscorer toernooi + gele kaarten + doelpunten + 3x NL
+// (topscorer NL, doelpunten NL, hoever komt NL).
+const BONUS_TOTAL = 6;
 
 export default async function InvullenLayout({
   children,
@@ -32,21 +46,35 @@ export default async function InvullenLayout({
     supabase.from("settings").select("lock_at").eq("id", 1).single(),
     supabase.from("predictions").select("*", { count: "exact", head: true }).eq("user_id", user.id),
     supabase.from("bracket_picks").select("round").eq("user_id", user.id),
-    supabase.from("bonus_picks").select("top_scorer, total_goals_tiebreak, total_yellow_cards_tiebreak").eq("user_id", user.id).maybeSingle(),
+    supabase
+      .from("bonus_picks")
+      .select("top_scorer, total_goals_tiebreak, total_yellow_cards_tiebreak, nl_top_scorer, nl_total_goals, nl_progress")
+      .eq("user_id", user.id)
+      .maybeSingle(),
   ]);
 
   const lockAt = settings?.lock_at ?? "2026-06-11T17:00:00Z";
   const isLocked = new Date(lockAt) <= new Date();
 
-  // Count knockout picks per round, capped at round.count
+  // Tel knockout-picks per ronde, gecapt op de V2-count.
   const picksByRound = new Map<string, number>();
   for (const row of bracketRows ?? []) {
     picksByRound.set(row.round, (picksByRound.get(row.round) ?? 0) + 1);
   }
-  const koFilled = ROUNDS.reduce((s, r) => s + Math.min(picksByRound.get(r.key) ?? 0, r.count), 0);
+  const koFilled = KO_V2_ROUNDS.reduce(
+    (s, r) => s + Math.min(picksByRound.get(r.key) ?? 0, r.count),
+    0,
+  );
 
   const bonusFilled = bonusRow
-    ? [bonusRow.top_scorer, bonusRow.total_goals_tiebreak, bonusRow.total_yellow_cards_tiebreak].filter((v) => v != null && v !== "").length
+    ? [
+        bonusRow.top_scorer,
+        bonusRow.total_goals_tiebreak,
+        bonusRow.total_yellow_cards_tiebreak,
+        bonusRow.nl_top_scorer,
+        bonusRow.nl_total_goals,
+        bonusRow.nl_progress,
+      ].filter((v) => v != null && v !== "").length
     : 0;
 
   const sections = [
