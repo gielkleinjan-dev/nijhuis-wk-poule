@@ -145,7 +145,7 @@ export default function GroupStageForm({
   return (
     <div className="space-y-8">
       <div className="tab-hero bg-surface border border-border rounded-lg p-5">
-        <div className="flex items-start justify-between gap-3 mb-1">
+        <div className="flex items-baseline justify-between gap-3 mb-1">
           <h1 className="text-2xl font-bold leading-tight">Groepsfase</h1>
           <div className="shrink-0 text-right leading-tight flex items-baseline gap-3">
             {(totalPoints ?? 0) > 0 && (

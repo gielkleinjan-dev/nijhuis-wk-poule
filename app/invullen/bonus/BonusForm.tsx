@@ -259,7 +259,7 @@ export default function BonusForm({
   return (
     <div className="space-y-8">
       <div className="tab-hero bg-surface border border-border rounded-lg p-5">
-        <div className="flex items-start justify-between gap-3 mb-1">
+        <div className="flex items-baseline justify-between gap-3 mb-1">
           <h1 className="text-2xl font-bold leading-tight">Bonusvragen</h1>
           {(totalPoints ?? 0) > 0 && (
             <div className="shrink-0 text-right leading-tight">

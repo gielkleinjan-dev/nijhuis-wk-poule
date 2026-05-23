@@ -70,7 +70,7 @@ export function BracketBuilder({
         return (
           <section key={round} className="bg-surface border border-border rounded-lg overflow-hidden">
             <div className="px-5 py-3 border-b border-border bg-bg/50">
-              <div className="flex items-start justify-between gap-3 mb-0.5">
+              <div className="flex items-baseline justify-between gap-3 mb-0.5">
                 <h2 className="text-lg font-bold leading-tight">{meta.title}</h2>
                 <div className="shrink-0 text-right leading-tight">
                   <div className="text-xl font-bold tabular-nums">
