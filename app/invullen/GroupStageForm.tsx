@@ -251,10 +251,18 @@ function MatchRow({
       </span>
     )
   ) : (
-    <div className="text-xs h-4">
+    <div className="h-5 w-5 flex items-center justify-center text-xs">
       {saveState === "saving" && <span className="text-muted">…</span>}
-      {saveState === "saved" && <span className="text-pitch">✓</span>}
-      {saveState === "error" && <span className="text-brand">!</span>}
+      {saveState === "saved" && (
+        <span
+          key="saved"
+          className="save-flash inline-flex items-center justify-center w-5 h-5 rounded-full bg-pitch text-white text-[11px] font-bold leading-none"
+          aria-label="Opgeslagen"
+        >
+          ✓
+        </span>
+      )}
+      {saveState === "error" && <span className="text-brand font-bold">!</span>}
     </div>
   );
 

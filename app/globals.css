@@ -67,6 +67,32 @@ img.emoji {
   display: inline-block;
 }
 
+/* Save-success flash voor invul-velden: een groene pill die kort in
+   schaalt + fade-out doet zodra een veld is opgeslagen. */
+@keyframes save-flash {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  20% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+  35% {
+    transform: scale(1);
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+}
+.save-flash {
+  animation: save-flash 1.8s ease-out forwards;
+}
+
 /* Brand stripe — knipoog naar het Nijhuis logo (4 horizontale rode balken) */
 .brand-stripe {
   background-image: repeating-linear-gradient(
