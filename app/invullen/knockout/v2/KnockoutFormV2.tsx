@@ -161,12 +161,12 @@ export default function KnockoutFormV2({
             />
             <div className="px-3 pt-3">
               <OnboardingTip id="ko-step-b">
-                <strong>Eerste keer hier?</strong> Markeer in <strong>8 van
-                de 12 poules</strong> het land dat volgens jou als nummer 3
-                doorgaat. Tik op het land dat in stap 1 géén 1 of 2 was —
-                dat zijn de overgebleven kandidaten. Je hoeft niet exact te
-                weten welke poule het oplevert; het gaat om jouw 8 beste
-                voorspellingen voor de nummer 3.
+                <strong>Eerste keer hier?</strong> Markeer <strong>de 8 beste
+                nummers 3</strong>. Er zijn 12 poules — dus de nummer 3 van
+                4 poules valt sowieso af. Tik per poule op het land dat in
+                stap 1 géén 1 of 2 was. Op basis van jouw 8 keuzes bouwt
+                het systeem automatisch het knock-out schema (welke nr 3
+                tegen welke poulewinnaar speelt in de 1/16e finale).
               </OnboardingTip>
             </div>
             <PhaseBPicker
