@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import PlayerCombobox from "@/app/components/PlayerCombobox";
+import SaveStatusBadge from "@/app/components/SaveStatusBadge";
 
 type NLProgress =
   | "GROUP_STAGE"
@@ -354,14 +355,8 @@ export default function BonusForm({
         onChange={(v) => patch("nl_progress", v)}
       />
 
-      <div className="text-sm h-5 text-right">
-        {saveState === "saving" && <span className="text-muted">opslaan…</span>}
-        {saveState === "saved" && (
-          <span className="text-pitch">✓ opgeslagen</span>
-        )}
-        {saveState === "error" && (
-          <span className="text-brand">opslaan mislukt</span>
-        )}
+      <div className="text-sm h-5 flex justify-end">
+        <SaveStatusBadge saveStates={{ bonus: saveState }} />
       </div>
     </div>
   );

@@ -7,6 +7,7 @@ import { PhaseAPicker } from "./PhaseAPicker";
 import { PhaseBPicker } from "./PhaseBPicker";
 import { BracketBuilder } from "./BracketBuilder";
 import { useBracketState, type V2InitialPicks } from "./useBracketState";
+import SaveStatusBadge from "@/app/components/SaveStatusBadge";
 
 type Team = { code: string; name: string; group: GroupCode };
 
@@ -57,9 +58,6 @@ export default function KnockoutFormV2({
     return "C";
   });
 
-  const anySaving = Object.values(s.saveStates).some((x) => x === "saving");
-  const anyError = Object.values(s.saveStates).some((x) => x === "error");
-
   return (
     <div className="space-y-4">
       <div className="tab-hero bg-surface border border-border rounded-lg p-5">
@@ -103,12 +101,8 @@ export default function KnockoutFormV2({
         </div>
       )}
 
-      <div className="text-xs h-4 flex justify-end px-1">
-        {anyError ? (
-          <span className="text-brand font-semibold">opslaan mislukt — probeer opnieuw</span>
-        ) : anySaving ? (
-          <span className="text-muted">opslaan…</span>
-        ) : null}
+      <div className="text-xs h-5 flex justify-end px-1">
+        <SaveStatusBadge saveStates={s.saveStates} />
       </div>
 
       {s.toast && (
