@@ -4,6 +4,7 @@ import { isAdmin } from "@/lib/admin";
 import MainNav from "@/app/components/MainNav";
 import BrandLogo from "@/app/components/BrandLogo";
 import UserHeader from "@/app/components/UserHeader";
+import LockCountdown from "@/app/components/LockCountdown";
 
 export default async function AdminLayout({
   children,
@@ -29,6 +30,7 @@ export default async function AdminLayout({
 
   return (
     <main className="min-h-screen">
+      <LockCountdown lockAt={lockAt} />
       <header className="border-b border-border bg-surface">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 py-4 flex items-center justify-between gap-3 sm:gap-4">
           <div className="flex items-center gap-3">

@@ -5,6 +5,7 @@ import InvullenNav from "./nav";
 import ProgressBar from "./ProgressBar";
 import BrandLogo from "@/app/components/BrandLogo";
 import UserHeader from "@/app/components/UserHeader";
+import LockCountdown from "@/app/components/LockCountdown";
 import { ROUNDS } from "./knockout/rounds";
 
 const KO_TOTAL = ROUNDS.reduce((s, r) => s + r.count, 0);
@@ -56,6 +57,7 @@ export default async function InvullenLayout({
 
   return (
     <main className="min-h-screen">
+      <LockCountdown lockAt={lockAt} />
       <header className="border-b border-border bg-surface">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 py-4 flex items-center justify-between gap-3 sm:gap-4">
           <BrandLogo href="/invullen" />

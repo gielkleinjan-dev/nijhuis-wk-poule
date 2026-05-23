@@ -2,6 +2,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { isAdmin } from "@/lib/admin";
 import MainNav from "@/app/components/MainNav";
+import LockCountdown from "@/app/components/LockCountdown";
 
 export default async function VoorspellingenLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createSupabaseServerClient();
@@ -24,6 +25,7 @@ export default async function VoorspellingenLayout({ children }: { children: Rea
 
   return (
     <>
+      <LockCountdown lockAt={lockAt} />
       <MainNav isAdmin={isAdmin(user.email)} isLocked={isLocked} lockAt={lockAt} maxWidth="max-w-5xl" />
       {children}
     </>

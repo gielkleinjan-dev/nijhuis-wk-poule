@@ -4,6 +4,7 @@ import { isAdmin } from "@/lib/admin";
 import BrandLogo from "@/app/components/BrandLogo";
 import UserHeader from "@/app/components/UserHeader";
 import ThemeToggle from "@/app/components/ThemeToggle";
+import LockCountdown from "@/app/components/LockCountdown";
 
 export default async function HomePage() {
   const supabase = await createSupabaseServerClient();
@@ -25,6 +26,7 @@ export default async function HomePage() {
 
   return (
     <main className="min-h-screen flex flex-col">
+      <LockCountdown lockAt={lockAt} />
       <header className="border-b border-border bg-surface">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 py-4 flex items-center justify-between gap-3 sm:gap-4">
           <BrandLogo />
