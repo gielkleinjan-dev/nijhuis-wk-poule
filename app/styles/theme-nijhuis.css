@@ -1,0 +1,113 @@
+/* ============================================================
+   Theme: Nijhuis huisstijl — eigen uitwerking parallel aan scorito.
+   Warmer en met rood/goud/groen-veld accenten, ipv donker en blauw.
+   Nijhuis is de default (gedefinieerd in @theme), dus alleen
+   theme-specifieke uitbreidingen hier — geen --color-* overrides nodig.
+   ============================================================ */
+
+/* Subtiele warme glow bovenaan de pagina */
+[data-theme="nijhuis"] body {
+  background:
+    radial-gradient(ellipse 90% 40% at 50% -10%, rgba(208, 52, 62, 0.08), transparent 70%),
+    var(--color-bg);
+}
+
+/* Sectie-headers krijgen een verticaal rood/goud accent-blokje links */
+[data-theme="nijhuis"] section > div > h1,
+[data-theme="nijhuis"] section > h2 {
+  position: relative;
+  padding-left: 14px;
+}
+[data-theme="nijhuis"] section > div > h1::before,
+[data-theme="nijhuis"] section > h2::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.2em;
+  bottom: 0.2em;
+  width: 4px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--color-brand) 0%, var(--color-trophy) 100%);
+}
+
+/* Cards krijgen warme subtiele shadow voor diepte */
+[data-theme="nijhuis"] .bg-surface {
+  box-shadow: 0 1px 3px rgba(168, 37, 46, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+/* Knoppen: Nijhuis-rood flat, zachte hover + subtiele rode shadow */
+[data-theme="nijhuis"] a.bg-brand,
+[data-theme="nijhuis"] button.bg-brand {
+  box-shadow: 0 1px 2px rgba(168, 37, 46, 0.18);
+  letter-spacing: 0.005em;
+}
+[data-theme="nijhuis"] a.bg-brand:hover,
+[data-theme="nijhuis"] button.bg-brand:hover {
+  box-shadow: 0 2px 6px rgba(168, 37, 46, 0.28);
+}
+
+/* ───────── Tab-hero in nijhuis-mode ─────────
+   Massief Nijhuis-rood blok met witte tekst, parallel aan scorito's
+   massief navy variant. Diagonaal verloop in rood-familie + subtiele
+   wit-radial linksboven voor diepte. */
+[data-theme="nijhuis"] .tab-hero {
+  background:
+    radial-gradient(ellipse 65% 50% at 18% 18%, rgba(255, 255, 255, 0.16) 0%, transparent 60%),
+    linear-gradient(135deg,
+      var(--color-brand) 0%,
+      #c2303a 50%,
+      var(--color-brand-dark) 100%);
+  color: #fff;
+  border-color: transparent;
+  border-radius: 18px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(168, 37, 46, 0.25);
+}
+[data-theme="nijhuis"] .tab-hero::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-brand) 0%, var(--color-trophy) 50%, var(--color-pitch) 100%);
+  pointer-events: none;
+}
+/* Tekstkleuren binnen tab-hero: alles wit / trophy-goud-accent */
+[data-theme="nijhuis"] .tab-hero h1,
+[data-theme="nijhuis"] .tab-hero h2,
+[data-theme="nijhuis"] .tab-hero h3,
+[data-theme="nijhuis"] .tab-hero .font-bold,
+[data-theme="nijhuis"] .tab-hero .font-medium {
+  color: #fff;
+}
+[data-theme="nijhuis"] .tab-hero .text-muted {
+  color: rgba(255, 255, 255, 0.85);
+}
+[data-theme="nijhuis"] .tab-hero .text-fg,
+[data-theme="nijhuis"] .tab-hero .text-ink {
+  color: var(--color-trophy);
+}
+[data-theme="nijhuis"] .tab-hero .text-brand {
+  color: #fff;
+}
+/* In tab-hero geen extra accent-blokje voor h1 (heeft eigen streep boven) */
+[data-theme="nijhuis"] .tab-hero h1::before,
+[data-theme="nijhuis"] .tab-hero h2::before {
+  display: none;
+}
+
+/* Punten-badges (bg-pitch-soft etc.) in de hero → solide wit met
+   Nijhuis-rode tekst. Veel meer contrast op rood dan semi-transparante
+   witte pills. */
+[data-theme="nijhuis"] .tab-hero .bg-pitch-soft {
+  background-color: #ffffff !important;
+}
+[data-theme="nijhuis"] .tab-hero .text-pitch {
+  color: var(--color-brand) !important;
+}
+[data-theme="nijhuis"] .tab-hero .border-pitch,
+[data-theme="nijhuis"] .tab-hero [class*="border-pitch"] {
+  border-color: rgba(255, 255, 255, 0.4) !important;
+}

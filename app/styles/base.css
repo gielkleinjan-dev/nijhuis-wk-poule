@@ -1,0 +1,96 @@
+/* ============================================================
+   Base — html/body resets, typografie en pure utility-classes.
+   Geen thema-specifieke regels hier; die staan in theme-*.css.
+   ============================================================ */
+
+html, body {
+  /* Voorkom horizontaal pannen op mobile (zoals een native app: alleen verticaal scrollen).
+     Plus geen horizontale overflow als ergens een element net iets te breed is. */
+  overflow-x: hidden;
+  touch-action: pan-y;
+  overscroll-behavior-x: none;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, .display {
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+/* Twemoji injects <img class="emoji"> tags; render them inline op tekstgrootte. */
+img.emoji {
+  height: 1.15em;
+  width: 1.15em;
+  margin: 0 0.05em 0 0.1em;
+  vertical-align: -0.1em;
+  display: inline-block;
+}
+
+/* Vlaggetjes via .flag-emoji wrapper — zichtbaar in beide thema's, iets
+   groter dan tekst voor sportieve look. Citrix-gebruikers zien helaas
+   broken-image-blokjes; geaccepteerde tradeoff. */
+.flag-emoji {
+  display: inline-flex;
+  align-items: center;
+  font-size: 1.3em;
+  line-height: 1;
+  vertical-align: -0.15em;
+}
+.flag-emoji img.emoji {
+  height: 1em;
+  width: 1em;
+  margin: 0 0.05em;
+}
+
+/* Save-success flash voor invul-velden: een groene pill die kort
+   inschaalt + fade-out doet zodra een veld is opgeslagen. */
+@keyframes save-flash {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  20% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+  35% {
+    transform: scale(1);
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+}
+.save-flash {
+  animation: save-flash 1.8s ease-out forwards;
+}
+
+/* Brand stripe — knipoog naar het Nijhuis logo (4 horizontale rode balken).
+   In scorito-mode wordt deze vervangen door een stadion-tile (zie theme-scorito.css). */
+.brand-stripe {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    var(--color-brand) 0 4px,
+    transparent 4px 9px
+  );
+  height: 35px;
+  width: 32px;
+  display: inline-block;
+}
+
+/* Theme-conditional rendering via CSS — geen extra JS-state nodig.
+   Elementen met .scorito-only verschijnen alleen bij data-theme="scorito",
+   .nijhuis-only alleen bij data-theme="nijhuis". */
+.scorito-only { display: none !important; }
+[data-theme="scorito"] .scorito-only { display: revert !important; }
+[data-theme="scorito"] .nijhuis-only { display: none !important; }

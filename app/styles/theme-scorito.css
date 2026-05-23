@@ -1,0 +1,262 @@
+/* ============================================================
+   Theme: Scorito — sportstats-vibe met Nijhuis-twist.
+   Activeer met data-theme="scorito" op <html>. Componenten die de
+   CSS-vars gebruiken switchen automatisch mee.
+   ============================================================ */
+[data-theme="scorito"] {
+  /* Primaire actiekleur — helder blauw, iets dieper dan Scorito-direct */
+  --color-brand: #0066ff;
+  --color-brand-dark: #00284a;
+  --color-brand-soft: #e3edff;
+  --color-ink: #00112c;
+
+  /* Pitch verschuift van groen naar emerald — past natuurlijker bij navy.
+     Trophy van fluo-geel naar amber — minder schreeuwerig. */
+  --color-pitch: #10b981;
+  --color-pitch-soft: #d1fae5;
+  --color-trophy: #fbbf24;
+  --color-trophy-soft: #fef3c7;
+
+  /* Koele lichtgrijze achtergrond i.p.v. warmwit */
+  --color-bg: #eef1f6;
+  --color-surface: #ffffff;
+  --color-border: #d4d9e0;
+  --color-muted: #56627a;
+
+  --color-background: #eef1f6;
+  --color-foreground: #00112c;
+}
+
+/* Subtiele blue glow bovenaan de pagina */
+[data-theme="scorito"] body {
+  background:
+    radial-gradient(ellipse 80% 40% at 50% -10%, rgba(0, 115, 255, 0.12), transparent 70%),
+    var(--color-bg);
+}
+
+/* Stadion-tile vervangt Nijhuis-stripe */
+[data-theme="scorito"] .brand-stripe {
+  background-image: linear-gradient(135deg, #00365b 0%, #0073ff 60%, #11c38b 100%);
+  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  position: relative;
+}
+[data-theme="scorito"] .brand-stripe::after {
+  content: "⚽";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,.3));
+}
+
+/* Knoppen: flat (geen gradient), wel subtiele shadow */
+[data-theme="scorito"] a.bg-brand,
+[data-theme="scorito"] button.bg-brand {
+  background-color: var(--color-brand);
+  background-image: none;
+  box-shadow: 0 1px 2px rgba(0, 17, 44, 0.12);
+  letter-spacing: 0.005em;
+}
+[data-theme="scorito"] a.bg-brand:hover,
+[data-theme="scorito"] button.bg-brand:hover {
+  background-color: #1a86ff;
+  box-shadow: 0 2px 6px rgba(0, 102, 255, 0.25);
+}
+
+/* Cards: iets diepere shadow */
+[data-theme="scorito"] .bg-surface {
+  box-shadow: 0 1px 3px rgba(0, 17, 44, 0.06), 0 1px 2px rgba(0, 17, 44, 0.04);
+}
+
+/* Nav: donkerblauwe header met witte tekst */
+[data-theme="scorito"] nav.bg-surface {
+  background: linear-gradient(180deg, #122434 0%, #00365b 100%);
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+[data-theme="scorito"] nav.bg-surface a {
+  color: rgba(255, 255, 255, 0.7);
+}
+[data-theme="scorito"] nav.bg-surface a:hover {
+  color: #fff;
+}
+[data-theme="scorito"] nav.bg-surface a.text-brand {
+  color: #fff;
+  border-color: #11c38b;
+}
+
+/* Top-bar header: donker met decoratieve groene accent-strip */
+[data-theme="scorito"] header.bg-surface {
+  background: linear-gradient(180deg, #00284a 0%, #002e5e 100%);
+  border-bottom: 2px solid transparent;
+  border-image: linear-gradient(90deg, #0066ff 0%, #10b981 100%) 1;
+  color: #fff;
+  position: relative;
+}
+[data-theme="scorito"] header.bg-surface .font-bold,
+[data-theme="scorito"] header.bg-surface .font-medium {
+  color: #fff;
+}
+[data-theme="scorito"] header.bg-surface .text-muted {
+  color: rgba(255, 255, 255, 0.65);
+}
+[data-theme="scorito"] header.bg-surface .text-brand {
+  color: #10b981;
+}
+[data-theme="scorito"] header.bg-surface .border-border {
+  border-color: rgba(255, 255, 255, 0.18);
+}
+[data-theme="scorito"] header.bg-surface button {
+  color: rgba(255, 255, 255, 0.85);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+[data-theme="scorito"] header.bg-surface button:hover {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+/* Nijhuis-logo wit kleuren — strikt op header.bg-surface zodat het rode
+   logo op de licht-gekleurde login-pagina onaangetast blijft. */
+[data-theme="scorito"] header.bg-surface img[alt="Nijhuis Bouw"] {
+  filter: brightness(0) invert(1);
+  opacity: 0.95;
+}
+
+/* ───────── Sectie-headers: rubric-line accent ─────────
+   Elke <h1> en <h2> krijgt een dun blauw→groen blokje links — verwijst
+   naar sport-magazine layout. */
+[data-theme="scorito"] section > div > h1,
+[data-theme="scorito"] section > h2 {
+  position: relative;
+  padding-left: 14px;
+}
+[data-theme="scorito"] section > div > h1::before,
+[data-theme="scorito"] section > h2::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.2em;
+  bottom: 0.2em;
+  width: 4px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #0066ff 0%, #10b981 100%);
+}
+
+/* ───────── Tab-hero (intro-cards op invul-tabs) ─────────
+   Donker verloop, witte tekst, drielingen accent-streep boven. */
+[data-theme="scorito"] .tab-hero {
+  background: linear-gradient(135deg, #00284a 0%, #002e5e 60%, #003a7a 100%);
+  color: #fff;
+  border-color: transparent;
+  border-radius: 18px;
+  position: relative;
+  overflow: hidden;
+}
+[data-theme="scorito"] .tab-hero::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #0066ff 0%, #10b981 50%, #fbbf24 100%);
+  pointer-events: none;
+}
+[data-theme="scorito"] .tab-hero h1,
+[data-theme="scorito"] .tab-hero h2,
+[data-theme="scorito"] .tab-hero h3,
+[data-theme="scorito"] .tab-hero .font-bold,
+[data-theme="scorito"] .tab-hero .font-medium {
+  color: #fff;
+}
+[data-theme="scorito"] .tab-hero .text-muted {
+  color: rgba(255, 255, 255, 0.75);
+}
+[data-theme="scorito"] .tab-hero .text-fg {
+  color: #10b981;
+}
+[data-theme="scorito"] .tab-hero .text-pitch {
+  color: #34d399;
+}
+[data-theme="scorito"] .tab-hero .text-brand {
+  color: #ffffff;
+}
+/* In de tab-hero geen extra accent-blokje voor h1 (heeft eigen streep boven) */
+[data-theme="scorito"] .tab-hero h1::before,
+[data-theme="scorito"] .tab-hero h2::before {
+  display: none;
+}
+
+/* Step-progress chips ("Top 2 / Beste 3e / Winnaars"): actief = gradient */
+[data-theme="scorito"] button.border-brand.bg-brand-soft {
+  background: linear-gradient(135deg, #003a7a 0%, #0066ff 100%);
+  border-color: transparent;
+  color: #fff;
+}
+[data-theme="scorito"] button.border-brand.bg-brand-soft .text-brand,
+[data-theme="scorito"] button.border-brand.bg-brand-soft .text-muted {
+  color: #fff;
+}
+
+/* Toggle pill iets prominenter op de donkere balk */
+[data-theme="scorito"] header.bg-surface > div > div > button[aria-label="Wissel thema"],
+[data-theme="scorito"] nav.bg-surface button[aria-label="Wissel thema"] {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+[data-theme="scorito"] header.bg-surface button[aria-label="Wissel thema"]:hover,
+[data-theme="scorito"] nav.bg-surface button[aria-label="Wissel thema"]:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* ───────── Scorito kleur-discipline ─────────
+   Monochroom blauw + amber alleen voor warnings. Overschrijven van
+   groen/oranje achtergronden, borders én tekstkleuren naar blauw-familie.
+
+   - bg-pitch (winnaar-pill, punten-badge) -> navy (brand-dark)
+   - bg-pitch-soft (override-pill achtergrond) -> brand-soft (licht blauw)
+   - border-pitch -> navy
+   - text-pitch (ProgressBar-checks, score-totalen) -> brand (helder blauw)
+   - bg-amber-500 (Beste-nrs-3 marker) -> brand-blauw
+   - border-amber-500 -> brand-blauw
+
+   Halve-pt badges (bg-amber-100/200/800) en de live-dot blijven amber/
+   emerald — die zijn semantisch (warning resp. live) niet decoratief. */
+[data-theme="scorito"] .bg-pitch {
+  background-color: var(--color-brand-dark) !important;
+}
+[data-theme="scorito"] .border-pitch {
+  border-color: var(--color-brand-dark) !important;
+}
+[data-theme="scorito"] .bg-pitch-soft {
+  background-color: var(--color-brand-soft) !important;
+}
+[data-theme="scorito"] .text-pitch {
+  color: var(--color-brand) !important;
+}
+[data-theme="scorito"] .bg-amber-500 {
+  background-color: var(--color-brand) !important;
+}
+[data-theme="scorito"] .border-amber-500 {
+  border-color: var(--color-brand) !important;
+}
+
+/* ───────── LockBadge in scorito-header subtieler ─────────
+   Was chunky witte pil met groen icoon. Nu: transparante backdrop,
+   witte border, witte tekst — past bij de toggle-pill ernaast. */
+[data-theme="scorito"] header.bg-surface span[title*="Poule"] {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  color: #fff !important;
+  border-width: 1px !important;
+  padding: 0.25rem 0.6rem !important;
+}
+/* Locked-variant: brand-blauwe accent zodat 'gesloten' visueel anders is dan 'open'. */
+[data-theme="scorito"] header.bg-surface span[title="Poule gesloten — invullen kan niet meer"] {
+  background-color: var(--color-brand) !important;
+  border-color: var(--color-brand) !important;
+}
