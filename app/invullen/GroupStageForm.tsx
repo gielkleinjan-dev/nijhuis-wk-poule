@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { flagEmoji } from "@/lib/flags";
+import { useProgressRefresh } from "@/lib/hooks/useProgressRefresh";
 
 export type Team = { code: string; name: string };
 export type Match = {
@@ -80,6 +81,9 @@ export default function GroupStageForm({
   const debounceTimers = useRef<Record<number, NodeJS.Timeout>>({});
   const predictionsRef = useRef(predictions);
   useEffect(() => { predictionsRef.current = predictions; }, [predictions]);
+  // Triggert na elke save een debounced layout-refresh zodat de ProgressBar
+  // (X/72 ingevuld) mee-update zonder hard refresh.
+  const refreshProgress = useProgressRefresh();
 
   const grouped = useMemo(() => {
     const map = new Map<string, Match[]>();
@@ -121,7 +125,10 @@ export default function GroupStageForm({
       { onConflict: "user_id,match_id" }
     );
     setSaveStates((s) => ({ ...s, [matchId]: error ? "error" : "saved" }));
-    if (!error) setTimeout(() => setSaveStates((s) => ({ ...s, [matchId]: "idle" })), 1800);
+    if (!error) {
+      refreshProgress();
+      setTimeout(() => setSaveStates((s) => ({ ...s, [matchId]: "idle" })), 1800);
+    }
   }
 
   async function saveToto(matchId: number) {
@@ -139,7 +146,10 @@ export default function GroupStageForm({
       { onConflict: "user_id,match_id" }
     );
     setSaveStates((s) => ({ ...s, [matchId]: error ? "error" : "saved" }));
-    if (!error) setTimeout(() => setSaveStates((s) => ({ ...s, [matchId]: "idle" })), 1800);
+    if (!error) {
+      refreshProgress();
+      setTimeout(() => setSaveStates((s) => ({ ...s, [matchId]: "idle" })), 1800);
+    }
   }
 
   return (

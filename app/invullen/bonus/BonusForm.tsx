@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import PlayerCombobox from "@/app/components/PlayerCombobox";
 import SaveStatusBadge from "@/app/components/SaveStatusBadge";
+import { useProgressRefresh } from "@/lib/hooks/useProgressRefresh";
 
 type NLProgress =
   | "GROUP_STAGE"
@@ -225,6 +226,9 @@ export default function BonusForm({
   const [values, setValues] = useState<BonusValues>(initial);
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
+  // Triggert na elke save een debounced layout-refresh zodat de ProgressBar
+  // mee-update met de huidige bonus-counts.
+  const refreshProgress = useProgressRefresh();
   const valuesRef = useRef(values);
   useEffect(() => {
     valuesRef.current = values;
@@ -254,7 +258,10 @@ export default function BonusForm({
       { onConflict: "user_id" }
     );
     setSaveState(error ? "error" : "saved");
-    if (!error) setTimeout(() => setSaveState("idle"), 1800);
+    if (!error) {
+      refreshProgress();
+      setTimeout(() => setSaveState("idle"), 1800);
+    }
   }
 
   return (

@@ -5,6 +5,7 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { smartClearAfterMatchChange, type PhaseA, type Bracket } from "@/lib/bracket/cascade";
 import type { GroupCode, MatchId } from "@/lib/bracket/types";
 import { useDebouncedSave } from "./useDebouncedSave";
+import { useProgressRefresh } from "@/lib/hooks/useProgressRefresh";
 
 export type Side = "home" | "away";
 export type MatchOverrides = Partial<Record<MatchId, { home?: string; away?: string }>>;
@@ -27,6 +28,9 @@ export function useBracketState(
   const [bracket, setBracket] = useState<Bracket>(initial.bracket);
   const [overrides, setOverrides] = useState<MatchOverrides>(initial.overrides);
   const [toast, setToast] = useState<string | null>(null);
+  // Triggert na elke save een debounced layout-refresh zodat de ProgressBar
+  // mee-update met de huidige knock-out-counts.
+  const refreshProgress = useProgressRefresh();
 
   const showToast = useCallback((msg: string) => {
     setToast(msg);
@@ -34,33 +38,33 @@ export function useBracketState(
   }, []);
 
   const { states, schedule } = useDebouncedSave<unknown>(async (key, payload) => {
+    let ok = false;
     if (key === "phaseA") {
       const { error } = await supabase.rpc("bracket_v2_save_phase_a", { p_picks: payload });
-      return { ok: !error };
-    }
-    if (key === "phaseB") {
+      ok = !error;
+    } else if (key === "phaseB") {
       const { error } = await supabase.rpc("bracket_v2_save_phase_b", { p_teams: payload });
-      return { ok: !error };
-    }
-    if (key.startsWith("match:")) {
+      ok = !error;
+    } else if (key.startsWith("match:")) {
       const { matchId, winner } = payload as { matchId: MatchId; winner: string | undefined };
       const { error } = await supabase.rpc("bracket_v2_save_match", {
         p_match_id: matchId,
         p_winner: winner ?? null,
         p_clear_descendants: [],
       });
-      return { ok: !error };
-    }
-    if (key.startsWith("override:")) {
+      ok = !error;
+    } else if (key.startsWith("override:")) {
       const { matchId, side, teamCode } = payload as { matchId: MatchId; side: Side; teamCode: string | null };
       const { error } = await supabase.rpc("bracket_v2_save_override", {
         p_match_id: matchId,
         p_side: side,
         p_team_code: teamCode,
       });
-      return { ok: !error };
+      ok = !error;
     }
-    return { ok: false };
+    // Bij elke succesvolle save: ProgressBar laten refreshen
+    if (ok) refreshProgress();
+    return { ok };
   });
 
   // ── Pill-overrides per match per side ─────────────────────────────────────
