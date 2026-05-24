@@ -54,18 +54,11 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: "default",
   },
-  // Browser favicon + PWA-icons. Apple gebruikt 'apple' veld, Android het manifest.
-  // ?v=2 forceert Chrome om de nieuwe apptegel V2 te fetchen — browsers cachen
-  // favicons agressief en negeren soms zelfs hard refresh voor /favicon.ico.
-  icons: {
-    icon: [
-      { url: "/apptegel-192.png?v=2", sizes: "192x192", type: "image/png" },
-      { url: "/apptegel-512.png?v=2", sizes: "512x512", type: "image/png" },
-    ],
-    apple: [
-      { url: "/apptegel-1024.png?v=2", sizes: "1024x1024", type: "image/png" },
-    ],
-  },
+  // Browser favicon + PWA-icons komen via de Next-file-conventie:
+  //   app/icon.png       -> <link rel="icon"> + favicon route
+  //   app/apple-icon.png -> <link rel="apple-touch-icon">
+  // Safari respecteert die conventie consistent, terwijl metadata.icons soms
+  // werd genegeerd waardoor de Vercel-default-icon werd getoond.
 };
 
 // Browser-chrome (Android pull-down statusbalk + iOS Safari URL-balk) krijgt
