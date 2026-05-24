@@ -21,7 +21,7 @@ export default async function VoorspellingenPage({
   return (
     <div className="mx-auto max-w-5xl px-4 sm:px-6 py-6 sm:py-8 space-y-6">
       <div className="tab-hero bg-surface border border-border rounded-lg p-5">
-        <div className="flex items-baseline justify-between gap-3 mb-1">
+        <div className="flex items-baseline justify-between gap-3 mb-1 flex-wrap">
           <h1 className="text-2xl font-bold leading-tight">Voorspellingen van alle deelnemers</h1>
           <div className="shrink-0 text-right leading-tight">
             <div className="text-xl font-bold tabular-nums">
@@ -33,10 +33,16 @@ export default async function VoorspellingenPage({
             <div className="text-[10px] text-muted">deelnemers</div>
           </div>
         </div>
-        <p className="text-sm text-muted">
+        <p className="text-sm text-muted mb-3">
           De poule is gesloten en alle keuzes zijn vastgezet. Klik op een naam om iemands
           ingevulde voorspellingen te bekijken.
         </p>
+        <Link
+          href="/voorspellingen/stats"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:underline"
+        >
+          📊 Bekijk Nijhuis-stats →
+        </Link>
       </div>
 
       {/* Filter-pillen op afdeling — zelfde patroon als /ranglijst */}
