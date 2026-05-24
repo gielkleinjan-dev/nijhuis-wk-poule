@@ -55,13 +55,15 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
   },
   // Browser favicon + PWA-icons. Apple gebruikt 'apple' veld, Android het manifest.
+  // ?v=2 forceert Chrome om de nieuwe apptegel V2 te fetchen — browsers cachen
+  // favicons agressief en negeren soms zelfs hard refresh voor /favicon.ico.
   icons: {
     icon: [
-      { url: "/apptegel-192.png", sizes: "192x192", type: "image/png" },
-      { url: "/apptegel-512.png", sizes: "512x512", type: "image/png" },
+      { url: "/apptegel-192.png?v=2", sizes: "192x192", type: "image/png" },
+      { url: "/apptegel-512.png?v=2", sizes: "512x512", type: "image/png" },
     ],
     apple: [
-      { url: "/apptegel-1024.png", sizes: "1024x1024", type: "image/png" },
+      { url: "/apptegel-1024.png?v=2", sizes: "1024x1024", type: "image/png" },
     ],
   },
 };

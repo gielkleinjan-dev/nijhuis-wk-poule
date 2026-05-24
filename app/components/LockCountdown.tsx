@@ -74,13 +74,6 @@ export default function LockCountdown({ lockAt }: { lockAt: string }) {
     urgent: "bg-brand text-white border-brand-dark",
   };
 
-  const iconForPhase: Record<Exclude<Phase, "past">, string> = {
-    far:    "⏱",
-    soon:   "⏱",
-    warn:   "⚠️",
-    urgent: "🔥",
-  };
-
   const labelForPhase: Record<Exclude<Phase, "past">, string> = {
     far:    "tot sluiting",
     soon:   "tot sluiting",
@@ -92,7 +85,24 @@ export default function LockCountdown({ lockAt }: { lockAt: string }) {
     <div className={`${baseClass} ${phaseClass[phase]}`}>
       <div className="mx-auto max-w-5xl px-4 sm:px-6 py-1.5 sm:py-2 flex items-center justify-between gap-3 text-[11px] sm:text-sm">
         <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
-          <span aria-hidden className="shrink-0">{iconForPhase[phase]}</span>
+          {/* Inline SVG i.p.v. ⏱-emoji — die werd door Twemoji clip-art op desktop. */}
+          <svg
+            aria-hidden
+            className={`shrink-0 ${phase === "urgent" ? "animate-pulse" : ""}`}
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="12" cy="13" r="8" />
+            <path d="M12 9v4l2.5 2" />
+            <path d="M9 2h6" />
+            <path d="M12 2v3" />
+          </svg>
           <span
             className={`font-bold tabular-nums ${phase === "urgent" ? "animate-pulse" : ""}`}
             // Verberg tot na mount om SSR-flicker te voorkomen — toon dan
