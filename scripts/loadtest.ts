@@ -103,10 +103,46 @@ function percentile(arr: number[], p: number): number {
 function pick<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
 
 async function simulateUser(n: number): Promise<void> {
-  const userId = testUserId(n);
   const name = `Loadtest #${n}`;
+  const email = `loadtest+${n}@nijhuis-test.local`;
 
-  // 1. Profile (markeer met department='__LOADTEST__' voor cleanup)
+  // 1. Auth-user aanmaken (profiles.id heeft FK naar auth.users).
+  //    Try-catch nodig omdat fetch() raw network-errors (TCP timeout etc.)
+  //    throw't i.p.v. een nette { error } te returnen. Bij N parallel TLS-
+  //    handshakes kan dit op grote N voorkomen.
+  const t0 = performance.now();
+  let userId: string;
+  try {
+    const { data: created, error: createErr } = await supabase.auth.admin.createUser({
+      email,
+      password: "loadtest-internal-only",
+      email_confirm: true,
+    });
+    if (createErr && /registered|exists/i.test(createErr.message)) {
+      // Bestaat al — id ophalen via listUsers (max 1000) en hergebruiken.
+      const { data: list } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 });
+      const existing = list?.users.find((u) => u.email === email);
+      if (!existing) {
+        errors.profile++;
+        latencies.profile.push(performance.now() - t0);
+        return;
+      }
+      userId = existing.id;
+    } else if (createErr || !created?.user) {
+      errors.profile++;
+      latencies.profile.push(performance.now() - t0);
+      return;
+    } else {
+      userId = created.user.id;
+    }
+  } catch (e) {
+    // Network error (fetch failed, ECONNRESET, timeout etc.)
+    errors.profile++;
+    latencies.profile.push(performance.now() - t0);
+    return;
+  }
+
+  // 2. Profile (markeer met department='__LOADTEST__' voor cleanup)
   await timed("profile", () =>
     supabase.from("profiles").upsert(
       { id: userId, display_name: name, department: "__LOADTEST__" },
@@ -196,8 +232,10 @@ async function main() {
 
   const t0 = performance.now();
 
-  // Parallel maar in batches van 25 om niet alle N tegelijk te firen
-  const BATCH = 25;
+  // Parallel maar in batches om niet alle N tegelijk te firen. Bij 25 in
+  // parallel kreeg Supabase Auth API ConnectTimeoutErrors — TLS-handshakes
+  // overweldigden de connection-pool. 10 is een veilige sweet spot.
+  const BATCH = 10;
   for (let i = 0; i < N; i += BATCH) {
     const batch = Array.from({ length: Math.min(BATCH, N - i) }, (_, j) =>
       simulateUser(i + j + 1),

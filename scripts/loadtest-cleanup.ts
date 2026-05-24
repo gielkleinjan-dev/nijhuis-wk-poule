@@ -32,8 +32,8 @@ const confirm = process.argv.includes("--confirm");
 const supabase = createClient(url, key, { auth: { persistSession: false } });
 
 async function main() {
-  // 1. Vind alle test-user-IDs
-  const { data: testUsers, error: findErr } = await supabase
+  // 1a. Vind test-users via profile-marker
+  const { data: testProfiles, error: findErr } = await supabase
     .from("profiles")
     .select("id, display_name")
     .eq("department", "__LOADTEST__");
@@ -43,9 +43,19 @@ async function main() {
     process.exit(1);
   }
 
-  const userIds = (testUsers ?? []).map((u) => u.id);
+  // 1b. Plus orphan auth-users (email-pattern, geen profile gekoppeld)
+  //     Bij een gecrashte run kan auth-user wel gemaakt zijn, profile niet.
+  const { data: allAuth } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 });
+  const profileIds = new Set((testProfiles ?? []).map((p) => p.id));
+  const orphanAuth = (allAuth?.users ?? []).filter(
+    (u) => u.email?.match(/^loadtest\+\d+@nijhuis-test\.local$/) && !profileIds.has(u.id),
+  );
+
+  const userIds = [...(testProfiles ?? []).map((u) => u.id), ...orphanAuth.map((u) => u.id)];
+
   console.log(`\n🧹 Cleanup load-test data`);
-  console.log(`Gevonden: ${userIds.length} test-users (department='__LOADTEST__')\n`);
+  console.log(`Gevonden: ${testProfiles?.length ?? 0} via profile-marker`);
+  console.log(`         + ${orphanAuth.length} orphan auth-users (van gecrashte run)\n`);
 
   if (userIds.length === 0) {
     console.log("Niets om op te ruimen. Klaar.\n");
@@ -85,6 +95,18 @@ async function main() {
       console.log(`  ✅ ${op.table.padEnd(28)} verwijderd (${count ?? "?"} rijen)`);
     }
   }
+
+  // Tot slot ook de auth.users — die zitten niet in een gewone tabel,
+  // maar in Supabase's auth-schema. Verwijderen via de admin-API.
+  console.log("");
+  let authDeleted = 0;
+  let authFailed = 0;
+  for (const id of userIds) {
+    const { error } = await supabase.auth.admin.deleteUser(id);
+    if (error) authFailed++;
+    else authDeleted++;
+  }
+  console.log(`  ✅ auth.users                  verwijderd (${authDeleted}${authFailed > 0 ? `, ${authFailed} mislukt` : ""})`);
 
   console.log("\nKlaar. Test-data is weg.\n");
 }

@@ -30,18 +30,37 @@ import {
 } from "@/lib/scoring";
 
 const MARKER = "__SCORING_TEST__";
-// Deterministische UUID voor de test-user — herhaaldelijk runnen is idempotent.
-const TEST_USER_ID = "fe7e57ee-7e57-4e57-be57-7e577e577e57";
+const TEST_EMAIL = "scoring-test@nijhuis-test.local";
 
 let supabase: SupabaseClient;
+let TEST_USER_ID: string;
 
+/** Verwijder alle data van eerdere test-runs + bijhorende auth-users. */
 async function cleanup() {
-  await supabase.from("predictions").delete().eq("user_id", TEST_USER_ID);
-  await supabase.from("bracket_picks").delete().eq("user_id", TEST_USER_ID);
-  await supabase.from("bracket_match_overrides").delete().eq("user_id", TEST_USER_ID);
-  await supabase.from("bonus_picks").delete().eq("user_id", TEST_USER_ID);
-  await supabase.from("points").delete().eq("user_id", TEST_USER_ID);
+  const { data: testProfiles } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("department", MARKER);
+  const ids = (testProfiles ?? []).map((p) => p.id);
+
+  for (const table of [
+    "predictions",
+    "bracket_picks",
+    "bracket_match_overrides",
+    "bonus_picks",
+    "points",
+  ]) {
+    if (ids.length > 0) {
+      await supabase.from(table).delete().in("user_id", ids);
+    }
+  }
   await supabase.from("profiles").delete().eq("department", MARKER);
+
+  // Auth-users opruimen — profiles.id is FK naar auth.users, dus auth-user
+  // moet bestaan voordat we profile kunnen maken. Cleanup omgekeerd.
+  for (const id of ids) {
+    await supabase.auth.admin.deleteUser(id).catch(() => {});
+  }
 }
 
 beforeAll(async () => {
@@ -50,15 +69,28 @@ beforeAll(async () => {
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
     { auth: { persistSession: false } },
   );
+
   // Schoonmaken van eventuele vorige test-runs voordat we beginnen
   await cleanup();
 
-  // Test-profile aanmaken
+  // Auth-user aanmaken — profiles heeft FK naar auth.users, dus geen
+  // shortcut. email_confirm:true omzeilt verificatie-mail.
+  const { data: created, error: authErr } = await supabase.auth.admin.createUser({
+    email: TEST_EMAIL,
+    password: "scoring-test-internal-do-not-use",
+    email_confirm: true,
+  });
+  if (authErr || !created.user) {
+    throw new Error(`Auth setup faalt: ${authErr?.message ?? "geen user terug"}`);
+  }
+  TEST_USER_ID = created.user.id;
+
+  // Profile linken aan auth-user
   const { error } = await supabase.from("profiles").upsert(
     { id: TEST_USER_ID, display_name: "Scoring Test", department: MARKER },
     { onConflict: "id" },
   );
-  if (error) throw new Error(`Setup faalt: ${error.message}`);
+  if (error) throw new Error(`Profile setup faalt: ${error.message}`);
 });
 
 afterAll(async () => {
@@ -126,11 +158,12 @@ describe("Groepsfase scoring", () => {
     expect(pts).toBe(5);
   });
 
-  it("score: alleen toto correct (3-0 voorspeld, 1-0 uitslag) = 1 pt", () => {
+  it("score: alleen toto correct (3-2 voorspeld, 1-0 uitslag) = 1 pt", () => {
     const pts = scoreGroupPrediction(
-      { match_id: 1, home_score: 3, away_score: 0, toto_pick: "1" },
+      { match_id: 1, home_score: 3, away_score: 2, toto_pick: "1" },
       { id: 1, home_score: 1, away_score: 0 },
     );
+    // Beide scores fout, alleen toto "1" klopt (home wint) = 1 pt
     expect(pts).toBe(1);
   });
 
