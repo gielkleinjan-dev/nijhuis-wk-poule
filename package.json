@@ -11,7 +11,8 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "loadtest": "tsx scripts/loadtest.ts",
-    "loadtest:cleanup": "tsx scripts/loadtest-cleanup.ts"
+    "loadtest:cleanup": "tsx scripts/loadtest-cleanup.ts",
+    "test:integration": "vitest run --config vitest.config.integration.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.3",

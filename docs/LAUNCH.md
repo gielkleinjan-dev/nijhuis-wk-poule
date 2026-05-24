@@ -111,6 +111,21 @@ Vereist `.env.local` met `NEXT_PUBLIC_SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY
 fenster. Effectief equivalent van een avond met ~30 echte parallel-actieve
 collega's.
 
+## 🧪 Integratie-test (scoring-keten)
+
+Verifieert dat de hele scoring-pipeline correct werkt: DB-writes, reads,
+en scoring-functies bij realistische scenario's. Schrijft een test-user
+in de DB (marker `department='__SCORING_TEST__'`), runt ~15 assertions,
+ruimt zichzelf op vóór + na elke run.
+
+```bash
+npm run test:integration
+```
+
+Vereist `.env.local` met service-role-key. Run lokaal vóór fase 1/2 om
+zeker te weten dat scoring-bugs niet voor de neus van je collega's
+opduiken.
+
 ## 🔍 Health-check
 
 `GET /api/admin/health` (login als admin) geeft JSON met:
