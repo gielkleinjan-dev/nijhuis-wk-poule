@@ -83,6 +83,34 @@ Elke fase: **geef minstens 24u** zodat bugs aan het licht komen vóór je opscha
 | Cron heeft uitslag gemist | football-data.org rate-limit of API down | Handmatig via `/admin` invullen; cron retry volgt automatisch |
 | Punten kloppen niet | Scoring-bug | `/api/admin/health` checken, eventueel cron handmatig opnieuw runnen |
 
+## 🧪 Load-test
+
+Voor fase 2 (~50 users) loont een echte stress-test. Het script schrijft
+direct via service-role naar de DB, gebruikt deterministische UUIDs, en
+markeert alle test-data met `department='__LOADTEST__'` zodat cleanup
+triviaal is.
+
+```bash
+# 1. Dry-run om te zien wat 'm zou doen
+npm run loadtest -- --users=50
+
+# 2. Echt schrijven (5-sec countdown, Ctrl-C om te annuleren)
+npm run loadtest -- --users=50 --confirm
+
+# 3. Resultaat lezen: p50/p95/p99 latencies + errors per fase
+
+# 4. Opruimen (dry-run eerst, dan --confirm)
+npm run loadtest:cleanup
+npm run loadtest:cleanup -- --confirm
+```
+
+Vereist `.env.local` met `NEXT_PUBLIC_SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY`.
+
+**Per user worden ~52 upserts gegenereerd** (1 profile + 30 predictions
++ 20 bracket_picks + 1 bonus). Bij 50 users: 2600 writes in een ~10s
+fenster. Effectief equivalent van een avond met ~30 echte parallel-actieve
+collega's.
+
 ## 🔍 Health-check
 
 `GET /api/admin/health` (login als admin) geeft JSON met:
