@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { flagEmoji } from "@/lib/flags";
 import { useProgressRefresh } from "@/lib/hooks/useProgressRefresh";
+import TodayButton from "@/app/components/TodayButton";
 
 export type Team = { code: string; name: string };
 export type Match = {
@@ -218,6 +219,7 @@ export default function GroupStageForm({
           </section>
         );
       })}
+      <TodayButton />
     </div>
   );
 }
@@ -277,7 +279,7 @@ function MatchRow({
   );
 
   return (
-    <li className="px-3 sm:px-4 py-3">
+    <li data-kickoff={match.kickoff} className="px-3 sm:px-4 py-3">
       {/* Desktop layout (sm+): alles op één rij */}
       <div className="hidden sm:flex items-center gap-3">
         <div className="text-xs text-muted w-24 shrink-0 leading-tight">{fmt}</div>

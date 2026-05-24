@@ -13,6 +13,7 @@ import {
 import { computeR32Slots } from "@/lib/bracket/cascade";
 import { BRACKET_GRAPH } from "@/lib/bracket/bracket-graph";
 import { isGroupCode, type GroupCode, type MatchId } from "@/lib/bracket/types";
+import TodayButton from "@/app/components/TodayButton";
 
 function TeamSpan({ code, name, highlighted }: { code: string | undefined | null; name?: string; highlighted?: boolean }) {
   if (!code) return <span className="text-muted italic">—</span>;
@@ -398,7 +399,7 @@ export default async function VoorspellingDetailPage({
                     : "X"
                   : null)) : null;
                 return (
-                  <li key={m.id} className="px-3 sm:px-4 py-2.5 sm:grid sm:grid-cols-[1fr_5rem_8rem_3rem] sm:gap-2 sm:items-center">
+                  <li key={m.id} data-kickoff={m.kickoff_at} className="px-3 sm:px-4 py-2.5 sm:grid sm:grid-cols-[1fr_5rem_8rem_3rem] sm:gap-2 sm:items-center">
                     <div>
                       <div className="flex items-center gap-1.5 font-medium text-xs flex-wrap">
                         <span className="flag-emoji" aria-hidden>{flagEmoji(m.home_team ?? "")}</span>
@@ -477,7 +478,7 @@ export default async function VoorspellingDetailPage({
                   const realHomeWon = finished && (m.home_score ?? 0) > (m.away_score ?? 0);
                   const realAwayWon = finished && (m.away_score ?? 0) > (m.home_score ?? 0);
                   return (
-                    <li key={m.id} className="px-3 sm:px-4 py-2.5 sm:grid sm:grid-cols-[7rem_1fr_1fr_3rem] sm:gap-2 sm:items-center">
+                    <li key={m.id} data-kickoff={m.kickoff_at} className="px-3 sm:px-4 py-2.5 sm:grid sm:grid-cols-[7rem_1fr_1fr_3rem] sm:gap-2 sm:items-center">
                       <div>
                         <div className="text-[10px] font-mono text-muted">W{m.id}</div>
                         <div className="text-[10px] text-muted">{fmt(m.kickoff_at)}</div>
@@ -584,6 +585,7 @@ export default async function VoorspellingDetailPage({
           </ul>
         </div>
       </section>
+      <TodayButton />
     </div>
   );
 }

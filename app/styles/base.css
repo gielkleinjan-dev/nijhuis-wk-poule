@@ -94,3 +94,13 @@ img.emoji {
 .scorito-only { display: none !important; }
 [data-theme="scorito"] .scorito-only { display: revert !important; }
 [data-theme="scorito"] .nijhuis-only { display: none !important; }
+
+/* Highlight voor wedstrijd-rijen die vandaag spelen. <TodayButton/> zet
+   data-today="true" op alle [data-kickoff] rows die op vandaag vallen. */
+[data-today="true"] {
+  background: linear-gradient(90deg,
+    rgba(232, 183, 48, 0.18) 0%,
+    rgba(232, 183, 48, 0.10) 50%,
+    rgba(232, 183, 48, 0.04) 100%);
+  box-shadow: inset 3px 0 0 var(--color-trophy);
+}

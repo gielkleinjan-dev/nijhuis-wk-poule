@@ -7,6 +7,7 @@ import { isAdmin } from "@/lib/admin";
 import MainNav from "@/app/components/MainNav";
 import BrandLogo from "@/app/components/BrandLogo";
 import LockCountdown from "@/app/components/LockCountdown";
+import TodayButton from "@/app/components/TodayButton";
 
 function PtsChip({ pts, label }: { pts: number; label?: string }) {
   const color =
@@ -200,7 +201,7 @@ export default async function UitslagenPage() {
                       ? pred.home_score > pred.away_score ? "1" : pred.home_score < pred.away_score ? "2" : "X"
                       : pred?.toto_pick ?? null;
                     return (
-                      <tr key={m.id} className="border-b border-border last:border-0">
+                      <tr key={m.id} data-kickoff={m.kickoff_at} className="border-b border-border last:border-0">
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-1.5 font-medium">
                             <span className="flag-emoji" aria-hidden>{flagEmoji(m.home_team ?? "")}</span>
@@ -372,6 +373,7 @@ export default async function UitslagenPage() {
         </section>
 
       </div>
+      <TodayButton />
     </main>
   );
 }
