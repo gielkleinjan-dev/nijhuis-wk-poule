@@ -6,34 +6,63 @@ import Link from "next/link";
 export const dynamic = "force-dynamic";
 
 /**
- * Visueel health-dashboard voor admins. Toont in één oogopslag:
- *  - hoeveel deelnemers, gem. invul-niveau per fase
- *  - aantal FINISHED matches t.o.v. totaal
- *  - lock-status + tijd tot lock
- *  - link naar de raw JSON-endpoint voor extern monitoring
+ * Visueel health-dashboard voor admins. Doel: in 5 sec zien of de app
+ * gezond draait, met expliciete checks (✓ / ⚠) per onderdeel.
  *
- * Bedoeld voor handmatige check vóór en tijdens het toernooi.
+ * Niet alleen cijfers - elk getal krijgt een verdict.
  */
 
-type Stat = {
+type CheckStatus = "ok" | "warn" | "info";
+
+type Check = {
   label: string;
   value: string;
+  status: CheckStatus;
   hint?: string;
-  tone?: "ok" | "warn" | "info";
 };
 
-function StatCard({ label, value, hint, tone = "info" }: Stat) {
-  const toneClass =
-    tone === "ok"
-      ? "border-pitch/30"
-      : tone === "warn"
-      ? "border-amber-300 bg-amber-50/40"
-      : "border-border";
+function StatusIcon({ status }: { status: CheckStatus }) {
+  if (status === "ok") {
+    return (
+      <span
+        aria-label="OK"
+        className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-pitch text-white text-sm font-bold shrink-0"
+      >
+        ✓
+      </span>
+    );
+  }
+  if (status === "warn") {
+    return (
+      <span
+        aria-label="Waarschuwing"
+        className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-amber-500 text-white text-sm font-bold shrink-0"
+      >
+        !
+      </span>
+    );
+  }
   return (
-    <div className={`bg-surface border rounded-lg p-4 ${toneClass}`}>
-      <div className="text-xs text-muted uppercase tracking-wider font-semibold">{label}</div>
-      <div className="text-2xl font-bold tabular-nums mt-1">{value}</div>
-      {hint && <div className="text-xs text-muted mt-1">{hint}</div>}
+    <span
+      aria-label="Info"
+      className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-border text-muted text-sm font-bold shrink-0"
+    >
+      i
+    </span>
+  );
+}
+
+function CheckRow({ check }: { check: Check }) {
+  return (
+    <div className="flex items-start gap-3 px-4 py-3 border-b border-border last:border-0">
+      <StatusIcon status={check.status} />
+      <div className="flex-1 min-w-0">
+        <div className="flex items-baseline justify-between gap-3 flex-wrap">
+          <span className="font-medium text-sm">{check.label}</span>
+          <span className="text-sm font-semibold tabular-nums text-right">{check.value}</span>
+        </div>
+        {check.hint && <div className="text-xs text-muted mt-0.5">{check.hint}</div>}
+      </div>
     </div>
   );
 }
@@ -54,7 +83,6 @@ export default async function HealthPage() {
     { count: matchesTotal },
     { count: matchesFinished },
     { count: loadtestCount },
-    { data: lastMatch },
     { data: settings },
   ] = await Promise.all([
     supabase.from("profiles").select("id", { count: "exact", head: true }),
@@ -65,12 +93,6 @@ export default async function HealthPage() {
     supabase.from("matches").select("id", { count: "exact", head: true }),
     supabase.from("matches").select("id", { count: "exact", head: true }).eq("status", "FINISHED"),
     supabase.from("profiles").select("id", { count: "exact", head: true }).eq("department", "__LOADTEST__"),
-    supabase
-      .from("matches")
-      .select("id, status, kickoff_at")
-      .order("kickoff_at", { ascending: false })
-      .limit(1)
-      .maybeSingle(),
     supabase.from("settings").select("lock_at").eq("id", 1).maybeSingle(),
   ]);
 
@@ -79,8 +101,7 @@ export default async function HealthPage() {
   const lockAt = settings?.lock_at ? new Date(settings.lock_at) : null;
   const isLocked = lockAt ? lockAt.getTime() <= now : false;
   const msToLock = lockAt ? lockAt.getTime() - now : null;
-  const finishedPct =
-    (matchesTotal ?? 0) === 0 ? 0 : Math.round(((matchesFinished ?? 0) / (matchesTotal ?? 1)) * 100);
+  const tournamentStarted = (matchesFinished ?? 0) > 0;
 
   function timeUntilLock(): string {
     if (!msToLock) return "—";
@@ -98,110 +119,118 @@ export default async function HealthPage() {
     return `${a}/${total}`;
   }
 
+  // ── Checks samenstellen ──
+  const checks: Check[] = [
+    // Lock
+    {
+      label: "Lock-datum ingesteld",
+      value: lockAt ? lockAt.toLocaleString("nl-NL") : "niet ingesteld",
+      status: lockAt ? "ok" : "warn",
+      hint: !lockAt ? "Stel lock-datum in via /admin" : undefined,
+    },
+    {
+      label: "Lock-status",
+      value: isLocked ? "Gesloten" : "Open",
+      status: "info",
+      hint: !isLocked && msToLock ? `Nog ${timeUntilLock()} tot sluiting` : undefined,
+    },
+    // Deelnemers
+    {
+      label: "Geregistreerde deelnemers",
+      value: String(realUsers),
+      status: realUsers > 0 ? "ok" : "warn",
+      hint: realUsers === 0 ? "Nog niemand ingeschreven" : undefined,
+    },
+    {
+      label: "Loadtest-data opgeruimd",
+      value: (loadtestCount ?? 0) === 0 ? "Schoon" : `${loadtestCount} test-users aanwezig`,
+      status: (loadtestCount ?? 0) === 0 ? "ok" : "warn",
+      hint: (loadtestCount ?? 0) > 0 ? "→ npm run loadtest:cleanup -- --confirm" : undefined,
+    },
+    // Wedstrijden
+    {
+      label: "Matches geïmporteerd",
+      value: `${matchesTotal ?? 0} / 104`,
+      status: (matchesTotal ?? 0) >= 104 ? "ok" : (matchesTotal ?? 0) >= 100 ? "info" : "warn",
+      hint: (matchesTotal ?? 0) < 100 ? "Verwacht: 104 wedstrijden" : undefined,
+    },
+    {
+      label: "FINISHED-wedstrijden",
+      value: `${matchesFinished ?? 0}${(matchesTotal ?? 0) > 0 ? ` (${Math.round(((matchesFinished ?? 0) / (matchesTotal ?? 1)) * 100)}%)` : ""}`,
+      status: tournamentStarted ? "ok" : "info",
+      hint: !tournamentStarted ? "Toernooi nog niet begonnen" : undefined,
+    },
+    // Invul-niveau
+    {
+      label: "Groepsfase ingevuld",
+      value: `${predictionCount ?? 0} picks · gem ${avg(predictionCount, 72)} per user`,
+      status: realUsers === 0 ? "info" : (predictionCount ?? 0) > 0 ? "ok" : "warn",
+    },
+    {
+      label: "Knock-out ingevuld",
+      value: `${bracketPickCount ?? 0} picks · gem ${avg(bracketPickCount, 63)} per user`,
+      status: realUsers === 0 ? "info" : (bracketPickCount ?? 0) > 0 ? "ok" : "warn",
+    },
+    {
+      label: "Bonus ingevuld",
+      value: `${bonusPickCount ?? 0} / ${realUsers} deelnemers`,
+      status: realUsers === 0 ? "info" : (bonusPickCount ?? 0) > 0 ? "ok" : "warn",
+    },
+    // Scoring
+    {
+      label: "Punten berekend",
+      value: pointRowCount ?? 0 === 0 ? "Nog geen punten" : `${pointRowCount} rijen`,
+      status: !tournamentStarted ? "info" : (pointRowCount ?? 0) > 0 ? "ok" : "warn",
+      hint: !tournamentStarted ? "Punten komen na eerste FINISHED-match" : undefined,
+    },
+  ];
+
+  const warnCount = checks.filter((c) => c.status === "warn").length;
+  const okCount = checks.filter((c) => c.status === "ok").length;
+
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="tab-hero bg-surface border border-border rounded-lg p-5">
-        <div className="flex items-baseline justify-between gap-3 mb-1">
-          <h1 className="text-2xl font-bold leading-tight">Health dashboard</h1>
-          <Link href="/api/admin/health" className="text-xs text-muted hover:text-fg underline shrink-0">
-            JSON-endpoint
+    <div className="space-y-6">
+      {/* Overall verdict-banner */}
+      <div
+        className={`tab-hero bg-surface border rounded-lg p-5 ${
+          warnCount === 0 ? "border-pitch/40" : "border-amber-400"
+        }`}
+      >
+        <div className="flex items-center gap-4">
+          <span
+            className={`inline-flex items-center justify-center w-14 h-14 rounded-full text-3xl font-bold shrink-0 ${
+              warnCount === 0 ? "bg-pitch text-white" : "bg-amber-500 text-white"
+            }`}
+          >
+            {warnCount === 0 ? "✓" : "!"}
+          </span>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl font-bold leading-tight">
+              {warnCount === 0 ? "Alles in orde" : `${warnCount} waarschuwing${warnCount === 1 ? "" : "en"}`}
+            </h1>
+            <p className="text-sm text-muted mt-0.5">
+              {okCount} van {checks.length} checks groen
+              {warnCount > 0 ? " — bekijk de geel/oranje rijen hieronder" : ""}
+            </p>
+          </div>
+          <Link
+            href="/api/admin/health"
+            className="text-xs text-muted hover:text-fg underline shrink-0 whitespace-nowrap"
+          >
+            JSON
           </Link>
         </div>
-        <p className="text-sm text-muted">
-          Eén blik op de hele app-state — bij twijfel of de boel draait, hier eerst kijken.
-          Auto-refresh om de 60 seconden niet ingebouwd: hard refresh (Cmd/Ctrl+R) of klik de
-          tab opnieuw aan om verse cijfers te halen.
-        </p>
       </div>
 
-      {/* Lock-status */}
-      <section>
-        <h2 className="text-lg font-bold mb-3">Lock</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <StatCard
-            label="Status"
-            value={isLocked ? "Gesloten" : "Open"}
-            tone={isLocked ? "ok" : "info"}
-            hint={lockAt ? lockAt.toLocaleString("nl-NL") : "niet ingesteld"}
-          />
-          <StatCard
-            label="Tijd tot lock"
-            value={timeUntilLock()}
-            tone={msToLock !== null && msToLock < 6 * 60 * 60 * 1000 && msToLock > 0 ? "warn" : "info"}
-          />
-          <StatCard
-            label="Deelnemers"
-            value={String(realUsers)}
-            hint={loadtestCount && loadtestCount > 0 ? `+ ${loadtestCount} loadtest` : undefined}
-          />
-          <StatCard
-            label="Loadtest-data?"
-            value={loadtestCount && loadtestCount > 0 ? "Aanwezig" : "Schoon"}
-            tone={loadtestCount && loadtestCount > 0 ? "warn" : "ok"}
-            hint={loadtestCount && loadtestCount > 0 ? "→ npm run loadtest:cleanup -- --confirm" : undefined}
-          />
-        </div>
-      </section>
-
-      {/* Invul-niveau per fase */}
-      <section>
-        <h2 className="text-lg font-bold mb-3">Invul-niveau</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <StatCard
-            label="Groepsfase totaal"
-            value={String(predictionCount ?? 0)}
-            hint={`gem. ${avg(predictionCount, 72)} per user`}
-          />
-          <StatCard
-            label="Knock-out totaal"
-            value={String(bracketPickCount ?? 0)}
-            hint={`gem. ${avg(bracketPickCount, 63)} per user`}
-          />
-          <StatCard
-            label="Bonus totaal"
-            value={String(bonusPickCount ?? 0)}
-            hint={`${realUsers > 0 ? Math.round(((bonusPickCount ?? 0) / realUsers) * 100) : 0}% deelnemers`}
-          />
-          <StatCard
-            label="Punten-rijen"
-            value={String(pointRowCount ?? 0)}
-            hint={pointRowCount === 0 ? "nog geen uitslagen" : undefined}
-          />
-        </div>
-      </section>
-
-      {/* Matches + cron */}
-      <section>
-        <h2 className="text-lg font-bold mb-3">Wedstrijden & cron</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <StatCard
-            label="Matches in DB"
-            value={String(matchesTotal ?? 0)}
-            tone={(matchesTotal ?? 0) === 0 ? "warn" : "info"}
-            hint={(matchesTotal ?? 0) === 0 ? "matches-tabel is leeg!" : undefined}
-          />
-          <StatCard
-            label="FINISHED"
-            value={`${matchesFinished ?? 0} (${finishedPct}%)`}
-            tone={finishedPct > 0 ? "ok" : "info"}
-          />
-          <StatCard
-            label="Laatste match in DB"
-            value={lastMatch?.kickoff_at ? new Date(lastMatch.kickoff_at).toLocaleDateString("nl-NL") : "—"}
-            hint={lastMatch?.status ?? undefined}
-          />
-          <StatCard
-            label="Match-import"
-            value={(matchesTotal ?? 0) >= 100 ? "Compleet" : "Onvolledig"}
-            tone={(matchesTotal ?? 0) >= 100 ? "ok" : "warn"}
-            hint="104 wedstrijden verwacht"
-          />
-        </div>
-      </section>
+      {/* Check-list */}
+      <div className="bg-surface border border-border rounded-lg overflow-hidden">
+        {checks.map((c, i) => (
+          <CheckRow key={i} check={c} />
+        ))}
+      </div>
 
       <div className="text-xs text-muted">
-        Geüpdatet: {new Date().toLocaleString("nl-NL")} · Dit dashboard refresht alleen bij page-reload.
+        Geüpdatet: {new Date().toLocaleString("nl-NL")} · Hard refresh voor verse cijfers.
       </div>
     </div>
   );
