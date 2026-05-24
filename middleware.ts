@@ -1,7 +1,27 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/", "/login", "/wachtwoord-vergeten", "/wachtwoord-instellen", "/auth/callback", "/api/register", "/api/login", "/api/logout", "/api/forgot-password", "/api/cron", "/styleguide"];
+const PUBLIC_PATHS = [
+  "/",
+  "/login",
+  "/wachtwoord-vergeten",
+  "/wachtwoord-instellen",
+  "/auth/callback",
+  "/api/register",
+  "/api/login",
+  "/api/logout",
+  "/api/forgot-password",
+  "/api/cron",
+  "/styleguide",
+  // Metadata-routes die door bots/crawlers (WhatsApp, Google, FB) bezocht
+  // moeten worden zonder login. Zonder deze rules: 307-redirect naar /login
+  // en de OG-image-preview valt weg.
+  "/opengraph-image",
+  "/twitter-image",
+  "/sitemap.xml",
+  "/robots.txt",
+  "/manifest.json",
+];
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });

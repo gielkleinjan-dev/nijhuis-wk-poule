@@ -283,11 +283,19 @@ export default async function AdminPage() {
 
       {/* ── Deelnemers ── */}
       <section className="space-y-4">
-        <div className="bg-surface border border-border rounded-lg p-5">
-          <h2 className="text-xl font-bold mb-0.5">Deelnemers</h2>
-          <p className="text-sm text-muted">
-            {participants.length} ingeschreven · {paidCount} betaald · {fullyDone} volledig ingevuld
-          </p>
+        <div className="bg-surface border border-border rounded-lg p-5 flex items-baseline justify-between gap-3 flex-wrap">
+          <div>
+            <h2 className="text-xl font-bold mb-0.5">Deelnemers</h2>
+            <p className="text-sm text-muted">
+              {participants.length} ingeschreven · {paidCount} betaald · {fullyDone} volledig ingevuld
+            </p>
+          </div>
+          <a
+            href="/admin/health"
+            className="text-sm font-medium text-brand hover:underline shrink-0"
+          >
+            → Health dashboard
+          </a>
         </div>
         <AdminSearch participants={participants} />
       </section>
