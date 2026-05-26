@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 type Participant = {
   user_id: string;
@@ -19,6 +20,7 @@ type Participant = {
 type Sort = "rank" | "name" | "progress_asc" | "unpaid_first";
 
 export default function AdminSearch({ participants }: { participants: Participant[] }) {
+  const router = useRouter();
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<Sort>("rank");
   const [paidState, setPaidState] = useState<Record<string, boolean>>(() => {
@@ -27,6 +29,38 @@ export default function AdminSearch({ participants }: { participants: Participan
     return m;
   });
   const [savingId, setSavingId] = useState<string | null>(null);
+  // Verwijder-modal state — open voor een specifieke deelnemer, tekst-bevestiging
+  const [deleteTarget, setDeleteTarget] = useState<Participant | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  async function confirmDelete() {
+    if (!deleteTarget || deleteConfirm !== "verwijderen") return;
+    setDeleting(true);
+    setDeleteError(null);
+    const res = await fetch("/api/admin/delete-user", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ userId: deleteTarget.user_id, confirm: deleteConfirm }),
+    });
+    setDeleting(false);
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      setDeleteError(body?.error ?? "Verwijderen mislukt");
+      return;
+    }
+    setDeleteTarget(null);
+    setDeleteConfirm("");
+    router.refresh();
+  }
+
+  function closeDeleteModal() {
+    if (deleting) return;
+    setDeleteTarget(null);
+    setDeleteConfirm("");
+    setDeleteError(null);
+  }
 
   async function togglePaid(userId: string, next: boolean) {
     setPaidState((s) => ({ ...s, [userId]: next }));
@@ -154,12 +188,27 @@ export default function AdminSearch({ participants }: { participants: Participan
                       {p.total_points}
                     </td>
                     <td className="px-2 sm:px-3 py-3 text-right">
-                      <Link
-                        href={`/voorspellingen/${p.user_id}`}
-                        className="text-brand text-xs font-medium hover:underline whitespace-nowrap"
-                      >
-                        bekijk →
-                      </Link>
+                      <div className="flex items-center justify-end gap-2 whitespace-nowrap">
+                        <Link
+                          href={`/voorspellingen/${p.user_id}`}
+                          className="text-brand text-xs font-medium hover:underline"
+                        >
+                          bekijk →
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setDeleteTarget(p);
+                            setDeleteConfirm("");
+                            setDeleteError(null);
+                          }}
+                          title="Deelnemer verwijderen"
+                          aria-label={`Verwijder ${p.display_name}`}
+                          className="text-muted/60 hover:text-brand transition text-base leading-none px-1.5"
+                        >
+                          ✕
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -176,6 +225,72 @@ export default function AdminSearch({ participants }: { participants: Participan
             wis filter
           </button>
         </p>
+      )}
+
+      {/* ── Verwijder-modal ── */}
+      {deleteTarget && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/40 backdrop-blur-sm"
+          onClick={closeDeleteModal}
+        >
+          <div
+            className="w-full max-w-md bg-surface border border-border rounded-lg shadow-xl p-5 space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div>
+              <h3 className="text-lg font-bold">Deelnemer verwijderen?</h3>
+              <p className="text-sm text-muted mt-1">
+                <strong>{deleteTarget.display_name}</strong>
+                {deleteTarget.department && (
+                  <span className="text-muted"> · {deleteTarget.department}</span>
+                )}
+                <br />
+                Dit wist alle voorspellingen, knock-out picks, bonus, punten én het
+                account. <strong>Niet terug te draaien.</strong>
+              </p>
+            </div>
+
+            <label className="block">
+              <span className="block text-sm font-medium mb-1.5">
+                Typ <code className="bg-bg/60 px-1 rounded text-brand font-mono">verwijderen</code> om te bevestigen:
+              </span>
+              <input
+                type="text"
+                value={deleteConfirm}
+                onChange={(e) => setDeleteConfirm(e.target.value)}
+                disabled={deleting}
+                autoFocus
+                placeholder="verwijderen"
+                className="w-full border border-border bg-surface rounded-md px-3 py-2.5 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand"
+              />
+            </label>
+
+            {deleteError && (
+              <div className="text-sm text-brand bg-brand-soft border border-brand/20 rounded px-3 py-2">
+                {deleteError}
+              </div>
+            )}
+
+            <div className="flex gap-2 justify-end pt-1">
+              <button
+                type="button"
+                onClick={closeDeleteModal}
+                disabled={deleting}
+                className="px-4 py-2 text-sm font-medium border border-border rounded-md hover:bg-bg/60 transition disabled:opacity-50"
+              >
+                Annuleren
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                disabled={deleting || deleteConfirm !== "verwijderen"}
+                className="px-4 py-2 text-sm font-semibold bg-brand text-white rounded-md hover:opacity-90 transition disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {deleting ? "Bezig…" : "Definitief verwijderen"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
