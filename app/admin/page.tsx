@@ -29,6 +29,40 @@ async function updateTournamentResults(formData: FormData) {
   revalidatePath("/admin");
 }
 
+/**
+ * Converteert een 'datetime-local' string ("2026-06-10T17:00") naar een Date
+ * waarin die wand-klok-tijd geldt in Europe/Amsterdam. Werkt door eerst de
+ * timezone-offset op die specifieke datum op te zoeken via Intl.DateTimeFormat,
+ * en die offset terug af te trekken. Robuust voor DST-overgangen (CET <-> CEST).
+ */
+function amsterdamLocalToUtc(localIso: string): Date {
+  const m = localIso.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/);
+  if (!m) return new Date(localIso);
+  const [, y, mo, d, h, mi, s] = m;
+  const asIfUtc = new Date(`${y}-${mo}-${d}T${h}:${mi}:${s ?? "00"}.000Z`);
+  // Wat geeft Amsterdam aan op het exact-die-UTC-moment?
+  const fmt = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Europe/Amsterdam",
+    year: "numeric", month: "numeric", day: "numeric",
+    hour: "numeric", minute: "numeric", second: "numeric",
+    hour12: false,
+  });
+  const parts = fmt.formatToParts(asIfUtc).reduce<Record<string, string>>((acc, p) => {
+    if (p.type !== "literal") acc[p.type] = p.value;
+    return acc;
+  }, {});
+  const tzMs = Date.UTC(
+    Number(parts.year),
+    Number(parts.month) - 1,
+    Number(parts.day),
+    Number(parts.hour) % 24,
+    Number(parts.minute),
+    Number(parts.second),
+  );
+  const offsetMs = tzMs - asIfUtc.getTime(); // positief tijdens CEST (+2u)
+  return new Date(asIfUtc.getTime() - offsetMs);
+}
+
 async function updateLockAt(formData: FormData) {
   "use server";
   const { createSupabaseServerClient: mkClient } = await import(
@@ -42,7 +76,12 @@ async function updateLockAt(formData: FormData) {
   if (!user || !checkAdmin(user.email)) return;
   const val = formData.get("lock_at") as string;
   if (!val) return;
-  const dt = new Date(val + ":00");
+  // Het datetime-local input geeft een string zonder timezone (bv. "2026-06-10T17:00").
+  // Vercel-server draait in UTC; zonder timezone-suffix interpreteert new Date() de
+  // string als UTC. Maar de gebruiker bedoelt Amsterdamse tijd. Bereken expliciet de
+  // Amsterdam-naar-UTC offset voor die specifieke datum (CET wintertijd = -1u,
+  // CEST zomertijd = -2u).
+  const dt = amsterdamLocalToUtc(val);
   await supabase.rpc("admin_set_lock_at", { new_lock_at: dt.toISOString() });
   // Cache verversen op /admin (lock-veld) en op alle plekken waar lock_at
   // wordt getoond: homepage, layouts met LockCountdown, etc.

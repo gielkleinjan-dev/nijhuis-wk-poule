@@ -33,16 +33,10 @@ export default async function VoorspellingenPage({
             <div className="text-[10px] text-muted">deelnemers</div>
           </div>
         </div>
-        <p className="text-sm text-muted mb-3">
+        <p className="text-sm text-muted">
           De poule is gesloten en alle keuzes zijn vastgezet. Klik op een naam om iemands
           ingevulde voorspellingen te bekijken.
         </p>
-        <Link
-          href="/voorspellingen/stats"
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:underline"
-        >
-          📊 Bekijk Nijhuis-stats →
-        </Link>
       </div>
 
       {/* Filter-pillen op afdeling — zelfde patroon als /ranglijst */}

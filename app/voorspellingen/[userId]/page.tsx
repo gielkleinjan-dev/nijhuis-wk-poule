@@ -700,14 +700,24 @@ export default async function VoorspellingDetailPage({
       </section>
 
       {/* ── Hoe afwijkend? ── */}
-      {userPicks.length >= 5 && (
-        <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold">🦄 Hoe afwijkend?</h2>
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold">🦄 Hoe afwijkend?</h2>
+          {userPicks.length >= 3 && (
             <span className="text-sm font-semibold text-trophy tabular-nums">
               {Math.round(uniqueness)}% uniek
             </span>
+          )}
+        </div>
+        {userPicks.length < 3 ? (
+          <div className="bg-surface border border-border rounded-lg p-5">
+            <p className="text-sm text-muted">
+              Te weinig vergelijkbare picks om deze sectie te kunnen tonen.
+              Hoort hier te verschijnen zodra {profile.display_name} (of de
+              andere deelnemers) meer voorspellingen heeft ingevuld.
+            </p>
           </div>
+        ) : (
           <div className="bg-surface border border-border rounded-lg p-5">
             <p className="text-sm text-muted mb-4">
               Gemiddeld over {userPicks.length} picks: hoeveel deelnemers kozen
@@ -767,8 +777,8 @@ export default async function VoorspellingDetailPage({
               </div>
             </div>
           </div>
-        </section>
-      )}
+        )}
+      </section>
 
       {/* ── Bonus ── */}
       <section className="space-y-4">
