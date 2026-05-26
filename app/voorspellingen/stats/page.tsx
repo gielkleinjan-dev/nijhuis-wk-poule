@@ -311,9 +311,9 @@ export default async function StatsPage() {
           </Link>
         </div>
         <p className="text-sm text-muted">
-          Geaggregeerde voorspellingen van alle {users} deelnemers. Geen
-          individuele picks — alleen tellingen en percentages. Wat heeft
-          Nijhuis collectief gekozen?
+          Iedereens voorspellingen op één hoop. Niet wie wat koos, maar hoe
+          vaak: favoriete wereldkampioen, vaakst voorspelde uitslag, de
+          eenzaamste outsider.
         </p>
       </div>
 
