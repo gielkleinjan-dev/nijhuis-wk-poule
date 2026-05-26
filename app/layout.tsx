@@ -18,14 +18,23 @@ const inter = Inter({
   weight: ["400", "500", "600", "700", "800"],
 });
 
+// metadataBase = de basis-URL voor OG-image, manifest, etc. Volgorde:
+//   1. NEXT_PUBLIC_SITE_URL — handmatige override (bv. nieuw bedrijfs-domein)
+//   2. VERCEL_PROJECT_PRODUCTION_URL — door Vercel auto-gezet op het stabiele
+//      productie-domein (nijhuis-wk-poule.vercel.app). NOOIT VERCEL_URL
+//      gebruiken: die wijst naar de per-deploy preview-URL die achter Vercel
+//      deployment-protection zit en WhatsApp-bot 401 geeft.
+//   3. Hardcoded fallback voor lokale dev.
+function siteBaseUrl(): URL {
+  if (process.env.NEXT_PUBLIC_SITE_URL) return new URL(process.env.NEXT_PUBLIC_SITE_URL);
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    return new URL(`https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`);
+  }
+  return new URL("https://nijhuis-wk-poule.vercel.app");
+}
+
 export const metadata: Metadata = {
-  // metadataBase is nodig zodat Next.js absolute URLs genereert voor OG-image,
-  // manifest etc. Zonder deze maken WhatsApp/Teams/email-clients geen preview
-  // (ze weigeren relatieve image-paths).
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ??
-      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://nijhuis-wk-poule.vercel.app"),
-  ),
+  metadataBase: siteBaseUrl(),
   title: "WK Poule 2026 — Nijhuis",
   description:
     "De WK 2026 poule van Nijhuis Bouw — voorspel alle 104 wedstrijden, volg je stand live tijdens het toernooi.",
