@@ -569,8 +569,12 @@ export default async function VoorspellingDetailPage({
         ) : (
           <div className="bg-surface border border-border rounded-lg p-5">
             <p className="text-sm text-muted mb-4">
-              Gemiddeld koos <strong>{Math.round(uniqueness)}%</strong> van de
-              Nijhuis-collega's iets anders dan {profile.display_name}.{" "}
+              Per pick van {profile.display_name} keek ik hoeveel andere
+              collega's exact dezelfde keuze maakten. Gemiddeld over alle{" "}
+              <strong>{userPicks.length} voorspellingen</strong>:{" "}
+              <strong>{Math.round(100 - uniqueness)}%</strong> koos hetzelfde,
+              de overige <strong>{Math.round(uniqueness)}%</strong> gokte
+              anders.{" "}
               {uniqueness >= 75
                 ? "Een echte eenling — bijna niemand zat op dezelfde lijn."
                 : uniqueness >= 50
