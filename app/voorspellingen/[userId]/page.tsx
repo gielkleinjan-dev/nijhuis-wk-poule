@@ -446,16 +446,32 @@ export default async function VoorspellingDetailPage({
     });
   }
 
-  // Knock-out: alle slot-picks van deze user
-  const roundLabel: Record<string, string> = {
-    GROUP_TOP_2: "Top 2 poule",
-    BEST_THIRDS: "Beste 3e",
+  // Knock-out: alle slot-picks van deze user. Label is sprekend per type:
+  //   GROUP_TOP_2 slot 0..11 = Nummer 1 poule A..L
+  //   GROUP_TOP_2 slot 12..23 = Nummer 2 poule A..L
+  //   BEST_THIRDS slot 0..11 = Beste 3e van poule A..L
+  //   LAST_32..FINAL slot N = "1/16e wedstrijd #N" enz.
+  const roundLabelGeneric: Record<string, string> = {
     LAST_32: "1/16e finale",
     LAST_16: "1/8e finale",
     QUARTER_FINALS: "Kwartfinale",
     SEMI_FINALS: "Halve finale",
     FINAL: "Finale",
   };
+  function bracketLabel(round: string, slot: number): string {
+    if (round === "GROUP_TOP_2") {
+      const rank = Math.floor(slot / 12) + 1;
+      const group = String.fromCharCode(65 + (slot % 12));
+      return `Nummer ${rank} poule ${group}`;
+    }
+    if (round === "BEST_THIRDS") {
+      const group = String.fromCharCode(65 + (slot % 12));
+      return `Beste 3e (poule ${group})`;
+    }
+    const generic = roundLabelGeneric[round];
+    if (generic) return `${generic} (wedstrijd ${slot})`;
+    return round;
+  }
   for (const p of bracketPicksRaw ?? []) {
     if (!p.team_code) continue;
     const slotKey = `${p.round}|${p.slot}`;
@@ -467,7 +483,7 @@ export default async function VoorspellingDetailPage({
     if (totalOthers === 0) continue;
     userPicks.push({
       category: "knockout",
-      label: roundLabel[p.round] ?? p.round,
+      label: bracketLabel(p.round, p.slot ?? 0),
       value: tupleKey,
       valueDisplay: teamName.get(p.team_code) ?? p.team_code,
       agreementPct: (others / totalOthers) * 100,
