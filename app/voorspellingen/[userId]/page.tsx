@@ -532,6 +532,89 @@ export default async function VoorspellingDetailPage({
         </div>
       </div>
 
+      {/* ── Hoe afwijkend? — direct na header voor prominentie ── */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold">🦄 Hoe afwijkend?</h2>
+          {userPicks.length >= 3 && (
+            <span className="text-sm font-semibold text-trophy tabular-nums">
+              {Math.round(uniqueness)}% uniek
+            </span>
+          )}
+        </div>
+        {userPicks.length < 3 ? (
+          <div className="bg-surface border border-border rounded-lg p-5">
+            <p className="text-sm text-muted">
+              Te weinig vergelijkbare picks om deze sectie te kunnen tonen.
+              Hoort hier te verschijnen zodra {profile.display_name} (of de
+              andere deelnemers) meer voorspellingen heeft ingevuld.
+            </p>
+          </div>
+        ) : (
+          <div className="bg-surface border border-border rounded-lg p-5">
+            <p className="text-sm text-muted mb-4">
+              Gemiddeld over {userPicks.length} picks: hoeveel deelnemers kozen
+              {" "}<strong>iets anders</strong> dan {profile.display_name}.{" "}
+              {uniqueness >= 75
+                ? "Een echte eenling — bijna niemand dacht zoals deze deelnemer."
+                : uniqueness >= 50
+                ? "Echt eigenwijs — meer dan de helft van de Nijhuis-collega's dacht hier anders over."
+                : uniqueness >= 30
+                ? "Een mooie mix: gedeeltelijk consensus, gedeeltelijk eigen koers."
+                : uniqueness >= 15
+                ? "Vooral mainstream, met hier en daar een afwijkende keuze."
+                : "Volledig in lijn met de groep — bijna iedereen dacht hetzelfde."}
+            </p>
+            <div className="grid sm:grid-cols-2 gap-4">
+              {/* Mainstream */}
+              <div>
+                <h3 className="text-sm font-bold uppercase tracking-wider text-pitch mb-2">
+                  Mainstream-picks
+                </h3>
+                <p className="text-xs text-muted mb-3">
+                  Eensgezind met de meerderheid van Nijhuis
+                </p>
+                <ul className="space-y-2 text-sm">
+                  {mostMainstream.map((p, i) => (
+                    <li key={i} className="flex items-start gap-2">
+                      <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-pitch/15 text-pitch text-[10px] font-bold shrink-0 mt-0.5">
+                        {Math.round(p.agreementPct)}%
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs text-muted">{p.label}</div>
+                        <div className="font-medium truncate">{p.valueDisplay}</div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              {/* Contrarian */}
+              <div>
+                <h3 className="text-sm font-bold uppercase tracking-wider text-trophy mb-2">
+                  Tegen de stroom
+                </h3>
+                <p className="text-xs text-muted mb-3">
+                  Eenzaamste keuzes — minste anderen kozen dit
+                </p>
+                <ul className="space-y-2 text-sm">
+                  {mostContrarian.map((p, i) => (
+                    <li key={i} className="flex items-start gap-2">
+                      <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-trophy/15 text-trophy-600 text-[10px] font-bold shrink-0 mt-0.5">
+                        {Math.round(p.agreementPct)}%
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs text-muted">{p.label}</div>
+                        <div className="font-medium truncate">{p.valueDisplay}</div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
+      </section>
+
       {/* ── Groepsfase ── */}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
@@ -697,87 +780,6 @@ export default async function VoorspellingDetailPage({
             </div>
           );
         })}
-      </section>
-
-      {/* ── Hoe afwijkend? ── */}
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold">🦄 Hoe afwijkend?</h2>
-          {userPicks.length >= 3 && (
-            <span className="text-sm font-semibold text-trophy tabular-nums">
-              {Math.round(uniqueness)}% uniek
-            </span>
-          )}
-        </div>
-        {userPicks.length < 3 ? (
-          <div className="bg-surface border border-border rounded-lg p-5">
-            <p className="text-sm text-muted">
-              Te weinig vergelijkbare picks om deze sectie te kunnen tonen.
-              Hoort hier te verschijnen zodra {profile.display_name} (of de
-              andere deelnemers) meer voorspellingen heeft ingevuld.
-            </p>
-          </div>
-        ) : (
-          <div className="bg-surface border border-border rounded-lg p-5">
-            <p className="text-sm text-muted mb-4">
-              Gemiddeld over {userPicks.length} picks: hoeveel deelnemers kozen
-              {" "}<strong>iets anders</strong> dan {profile.display_name}.{" "}
-              {uniqueness >= 50
-                ? "Echt eigenwijs — meer dan de helft van de Nijhuis-collega's dacht hier anders over."
-                : uniqueness >= 30
-                ? "Een mooie mix: gedeeltelijk consensus, gedeeltelijk eigen koers."
-                : uniqueness >= 15
-                ? "Vooral mainstream, met hier en daar een afwijkende keuze."
-                : "Volledig in lijn met de groep — bijna iedereen dacht hetzelfde."}
-            </p>
-            <div className="grid sm:grid-cols-2 gap-4">
-              {/* Mainstream */}
-              <div>
-                <h3 className="text-sm font-bold uppercase tracking-wider text-pitch mb-2">
-                  Mainstream-picks
-                </h3>
-                <p className="text-xs text-muted mb-3">
-                  Eensgezind met de meerderheid van Nijhuis
-                </p>
-                <ul className="space-y-2 text-sm">
-                  {mostMainstream.map((p, i) => (
-                    <li key={i} className="flex items-start gap-2">
-                      <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-pitch/15 text-pitch text-[10px] font-bold shrink-0 mt-0.5">
-                        {Math.round(p.agreementPct)}%
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <div className="text-xs text-muted">{p.label}</div>
-                        <div className="font-medium truncate">{p.valueDisplay}</div>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              {/* Contrarian */}
-              <div>
-                <h3 className="text-sm font-bold uppercase tracking-wider text-trophy mb-2">
-                  Tegen de stroom
-                </h3>
-                <p className="text-xs text-muted mb-3">
-                  Eenzaamste keuzes — minste anderen kozen dit
-                </p>
-                <ul className="space-y-2 text-sm">
-                  {mostContrarian.map((p, i) => (
-                    <li key={i} className="flex items-start gap-2">
-                      <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-trophy/15 text-trophy-600 text-[10px] font-bold shrink-0 mt-0.5">
-                        {Math.round(p.agreementPct)}%
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <div className="text-xs text-muted">{p.label}</div>
-                        <div className="font-medium truncate">{p.valueDisplay}</div>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-        )}
       </section>
 
       {/* ── Bonus ── */}
