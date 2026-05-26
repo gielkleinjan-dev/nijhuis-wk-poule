@@ -212,6 +212,94 @@ export default async function StatsPage() {
   const avgGoalsPerMatchPredicted =
     goalsPerMatch.length > 0 ? goalsPerMatch.reduce((s, n) => s + n, 0) / goalsPerMatch.length : 0;
 
+  // ── Extra stats (Niels-suggesties) ──────────────────────────────────────
+
+  // #4 Unieke voorspellingen %: aandeel van predictions waar de exacte (home,
+  //    away, toto) combinatie maar door 1 user gemaakt is. Per match groeperen,
+  //    binnen de match kijken naar tuples.
+  const predictionsByMatch = new Map<number, string[]>();
+  for (const p of predictions ?? []) {
+    if (p.home_score == null || p.away_score == null) continue;
+    const key = `${p.home_score}-${p.away_score}-${p.toto_pick ?? "_"}`;
+    const arr = predictionsByMatch.get(p.match_id) ?? [];
+    arr.push(key);
+    predictionsByMatch.set(p.match_id, arr);
+  }
+  let uniqueCount = 0;
+  let totalPredCount = 0;
+  for (const tuples of predictionsByMatch.values()) {
+    const tupleCounts = new Map<string, number>();
+    for (const t of tuples) tupleCounts.set(t, (tupleCounts.get(t) ?? 0) + 1);
+    for (const c of tupleCounts.values()) {
+      if (c === 1) uniqueCount++;
+      totalPredCount++;
+    }
+  }
+  const uniquePct = totalPredCount > 0 ? (uniqueCount / totalPredCount) * 100 : 0;
+
+  // #6 Clean sheets: predictions waarin minstens één team 0 scoort.
+  //    Aggregated over alle predictions (user_id niet nodig — we tellen
+  //    pure fractie 0-tot-een-zijde predictions).
+  const cleanSheetCount = (predictions ?? []).filter(
+    (p) => p.home_score === 0 || p.away_score === 0,
+  ).length;
+  const predWithScores = (predictions ?? []).filter(
+    (p) => p.home_score != null && p.away_score != null,
+  ).length;
+  const cleanSheetPct = predWithScores > 0 ? (cleanSheetCount / predWithScores) * 100 : 0;
+  // Geprojecteerd over 104 wedstrijden:
+  const projectedCleanSheets = Math.round((cleanSheetPct / 100) * 104);
+
+  // #8 Meest doelpunt-rijke wedstrijd: per match-id de gemiddelde (home+away)
+  //    over alle deelnemers. Sorteer desc, neem top.
+  const matchById = new Map((matchesRaw ?? []).map((m) => [m.id, m]));
+  const totalGoalsByMatch = new Map<number, { sum: number; n: number }>();
+  for (const p of predictions ?? []) {
+    if (p.home_score == null || p.away_score == null) continue;
+    const cur = totalGoalsByMatch.get(p.match_id) ?? { sum: 0, n: 0 };
+    cur.sum += (p.home_score ?? 0) + (p.away_score ?? 0);
+    cur.n += 1;
+    totalGoalsByMatch.set(p.match_id, cur);
+  }
+  const matchSpectacle = Array.from(totalGoalsByMatch.entries())
+    .map(([id, v]) => {
+      const m = matchById.get(id);
+      return {
+        matchId: id,
+        homeCode: m?.home_team ?? "?",
+        awayCode: m?.away_team ?? "?",
+        avg: v.n > 0 ? v.sum / v.n : 0,
+        n: v.n,
+      };
+    })
+    .filter((x) => x.homeCode !== "?" && x.n >= 3) // min 3 voorspellingen voor zinvol gemiddelde
+    .sort((a, b) => b.avg - a.avg);
+  const topSpectacle = matchSpectacle.slice(0, 3);
+
+  // #9 Verwachte beste verdediging: per team, gemiddeld voorspelde tegengoals
+  //    over alle wedstrijden waarin ze speelden (groepsfase).
+  const goalsAgainstByTeam = new Map<string, { sum: number; n: number }>();
+  for (const p of predictions ?? []) {
+    if (p.home_score == null || p.away_score == null) continue;
+    const m = matchById.get(p.match_id);
+    if (!m?.home_team || !m?.away_team) continue;
+    // home team krijgt away_score tegen, en omgekeerd
+    const homeCur = goalsAgainstByTeam.get(m.home_team) ?? { sum: 0, n: 0 };
+    homeCur.sum += p.away_score ?? 0;
+    homeCur.n += 1;
+    goalsAgainstByTeam.set(m.home_team, homeCur);
+
+    const awayCur = goalsAgainstByTeam.get(m.away_team) ?? { sum: 0, n: 0 };
+    awayCur.sum += p.home_score ?? 0;
+    awayCur.n += 1;
+    goalsAgainstByTeam.set(m.away_team, awayCur);
+  }
+  const defenseRank = Array.from(goalsAgainstByTeam.entries())
+    .map(([code, v]) => ({ code, avg: v.n > 0 ? v.sum / v.n : 0, n: v.n }))
+    .filter((x) => x.n >= 10) // minimaal 10 voorspellingen voor signaal-ruis-ratio
+    .sort((a, b) => a.avg - b.avg);
+  const topDefense = defenseRank.slice(0, 5);
+
   // ── Render ──────────────────────────────────────────────────────────────
   return (
     <div className="mx-auto max-w-5xl px-4 sm:px-6 py-6 sm:py-8 space-y-8">
@@ -431,6 +519,90 @@ export default async function StatsPage() {
               );
             })}
           </div>
+        </div>
+      </section>
+
+      {/* ── Extra wedstrijd-stats ── */}
+      <section>
+        <h2 className="text-xl font-bold mb-4">Wedstrijd-spektakel</h2>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <StatCard
+            title="🎆 Meest doelpunt-rijke wedstrijden"
+            subtitle="Top 3 — waar verwacht Nijhuis het meeste spektakel?"
+          >
+            {topSpectacle.length === 0 ? (
+              <div className="text-sm text-muted italic">Nog geen data.</div>
+            ) : (
+              <ol className="space-y-1.5 text-sm">
+                {topSpectacle.map((m) => (
+                  <li key={m.matchId} className="flex items-center gap-2">
+                    <span className="flag-emoji" aria-hidden>{flagEmoji(m.homeCode)}</span>
+                    <span className="text-xs font-medium truncate">{teamName.get(m.homeCode) ?? m.homeCode}</span>
+                    <span className="text-muted text-xs">vs</span>
+                    <span className="text-xs font-medium truncate">{teamName.get(m.awayCode) ?? m.awayCode}</span>
+                    <span className="flag-emoji" aria-hidden>{flagEmoji(m.awayCode)}</span>
+                    <span className="ml-auto font-bold tabular-nums text-pitch text-sm">
+                      {m.avg.toFixed(1)}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            )}
+            <p className="text-xs text-muted mt-2">Gemiddelde voorspelde totaal-doelpunten per wedstrijd.</p>
+          </StatCard>
+          <StatCard
+            title="🧱 Verwachte beste verdediging"
+            subtitle="Top 5 landen met de minste verwachte tegengoals (groepsfase)"
+          >
+            {topDefense.length === 0 ? (
+              <div className="text-sm text-muted italic">Nog niet genoeg data.</div>
+            ) : (
+              <ol className="space-y-1 text-sm">
+                {topDefense.map((d) => (
+                  <li key={d.code} className="flex items-center gap-2">
+                    <span className="flag-emoji" aria-hidden>{flagEmoji(d.code)}</span>
+                    <span className="font-medium truncate">{teamName.get(d.code) ?? d.code}</span>
+                    <span className="ml-auto font-bold tabular-nums text-pitch text-xs">
+                      {d.avg.toFixed(2)}
+                    </span>
+                    <span className="text-[10px] text-muted">/wedstrijd</span>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </StatCard>
+          <StatCard
+            title="🛡️ Verwachte clean sheets"
+            subtitle="Hoeveel wedstrijden eindigen met minstens één team op nul?"
+          >
+            <div className="flex items-baseline gap-2">
+              <div className="text-3xl font-bold tabular-nums text-brand">
+                {projectedCleanSheets}
+              </div>
+              <div className="text-sm text-muted">van de 104 wedstrijden</div>
+            </div>
+            <p className="text-xs text-muted mt-1">
+              {Math.round(cleanSheetPct)}% van alle voorspelde scores heeft een 0 voor één van de teams.
+            </p>
+          </StatCard>
+          <StatCard
+            title="🦄 Unieke voorspellingen"
+            subtitle="Aandeel picks dat door slechts één deelnemer is gedaan"
+          >
+            <div className="flex items-baseline gap-2">
+              <div className="text-3xl font-bold tabular-nums text-trophy">
+                {Math.round(uniquePct)}%
+              </div>
+              <div className="text-sm text-muted">van alle picks is uniek</div>
+            </div>
+            <p className="text-xs text-muted mt-1">
+              {uniquePct >= 30
+                ? "Nijhuis denkt erg verschillend over deze wedstrijden."
+                : uniquePct >= 15
+                ? "Een mooie mix van consensus en eigenwijsheid."
+                : "Iedereen gokt vooral hetzelfde — weinig verrassingen."}
+            </p>
+          </StatCard>
         </div>
       </section>
 
