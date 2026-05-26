@@ -31,7 +31,7 @@ export default function MainNav({
   return (
     <nav className="bg-surface border-b border-border">
       <div className={`mx-auto ${maxWidth} px-4 sm:px-6 flex items-center gap-2`}>
-        <div className="flex gap-2 flex-1 min-w-0 overflow-x-auto">
+        <div className="flex gap-2 flex-1 min-w-0 overflow-x-auto touch-pan-x overscroll-x-contain">
           {tabs.map((t) => {
             const active = path.startsWith(t.href);
             return (

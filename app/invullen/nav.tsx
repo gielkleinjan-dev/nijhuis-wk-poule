@@ -35,7 +35,7 @@ export default function InvullenNav({
       {/* Hoofdtabs */}
       <nav className="bg-surface border-b border-border">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 flex items-center gap-2">
-          <div className="flex gap-2 flex-1 min-w-0 overflow-x-auto">
+          <div className="flex gap-2 flex-1 min-w-0 overflow-x-auto touch-pan-x overscroll-x-contain">
             {mainTabs.map((t) => {
               const active = path.startsWith(t.href);
               return (
@@ -60,7 +60,7 @@ export default function InvullenNav({
       </nav>
       {/* Subtabs — pill-stijl op zachte achtergrond, duidelijk een sub-niveau van Invullen */}
       <div className="bg-bg/60 border-b border-border">
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 py-2 flex gap-1.5 items-center overflow-x-auto">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 py-2 flex gap-1.5 items-center overflow-x-auto touch-pan-x overscroll-x-contain">
           <span className="text-[10px] uppercase tracking-wider text-muted font-semibold mr-1 hidden sm:inline">
             Onderdeel:
           </span>
