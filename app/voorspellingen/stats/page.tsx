@@ -317,7 +317,7 @@ export default async function StatsPage() {
         </p>
       </div>
 
-      {/* ── Team highlights ── */}
+      {/* ── 1. Team highlights ── */}
       <section>
         <h2 className="text-xl font-bold mb-4">Team highlights</h2>
         <div className="grid sm:grid-cols-2 gap-4">
@@ -336,63 +336,7 @@ export default async function StatsPage() {
         </div>
       </section>
 
-      {/* ── Afwijkende stats ── */}
-      <section>
-        <h2 className="text-xl font-bold mb-4">Afwijkende keuzes</h2>
-        <div className="grid sm:grid-cols-2 gap-4">
-          <StatCard
-            title="🐺 Lonely wolves"
-            subtitle="Eenzame deelnemers met een unieke pick voor wereldkampioen"
-          >
-            {lonelyTeams.length === 0 ? (
-              <div className="text-sm text-muted italic">Iedereen kiest mainstream.</div>
-            ) : (
-              <ul className="space-y-1.5 text-sm">
-                {lonelyTeams.map((t) => (
-                  <li key={t.code} className="flex items-center gap-2">
-                    <span className="flag-emoji" aria-hidden>{flagEmoji(t.code)}</span>
-                    <span className="font-medium">{teamName.get(t.code) ?? t.code}</span>
-                    <span className="text-xs text-muted">— 1 deelnemer</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </StatCard>
-          <StatCard
-            title="🚫 Nooit gekozen"
-            subtitle={`${neverPickedAsChampion.length} van de ${teamCount} landen door niemand als wereldkampioen gekozen`}
-          >
-            <div className="text-sm text-muted">
-              {neverPickedAsChampion.length === 0 ? (
-                <em>Elke land heeft minstens één fan.</em>
-              ) : (
-                <>
-                  {neverPickedAsChampion.length <= 12 ? (
-                    <div className="flex flex-wrap gap-1">
-                      {neverPickedAsChampion.map((c) => (
-                        <span
-                          key={c}
-                          className="inline-flex items-center gap-1 bg-bg/60 border border-border rounded px-1.5 py-0.5 text-xs"
-                        >
-                          <span className="flag-emoji" aria-hidden>{flagEmoji(c)}</span>
-                          {teamName.get(c) ?? c}
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    <span>
-                      {neverPickedAsChampion.length} landen die niemand bij Nijhuis ziet winnen — te
-                      veel om allemaal te tonen.
-                    </span>
-                  )}
-                </>
-              )}
-            </div>
-          </StatCard>
-        </div>
-      </section>
-
-      {/* ── Rondom NL ── */}
+      {/* ── 2. Rondom NL ── */}
       <section>
         <h2 className="text-xl font-bold mb-4">🇳🇱 Rondom Nederland</h2>
         <div className="grid sm:grid-cols-2 gap-4">
@@ -450,7 +394,7 @@ export default async function StatsPage() {
         </div>
       </section>
 
-      {/* ── Groepsfase ── */}
+      {/* ── 3. Groepsfase (uitgebreid met spektakel-stats) ── */}
       <section>
         <h2 className="text-xl font-bold mb-4">Groepsfase</h2>
         <div className="grid sm:grid-cols-2 gap-4">
@@ -484,48 +428,6 @@ export default async function StatsPage() {
               ))}
             </div>
           </StatCard>
-        </div>
-
-        {/* Per poule top-pick */}
-        <div className="bg-surface border border-border rounded-lg p-5 mt-4">
-          <h3 className="font-bold text-base mb-1">🏟️ Favoriete nummer 1 per poule</h3>
-          <p className="text-xs text-muted mb-3">
-            Wie zien de meeste deelnemers winnen in elke groep?
-          </p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-            {Array.from(rank1ByGroup.entries()).map(([group, tallyForGroup]) => {
-              const top = tallyForGroup[0];
-              return (
-                <div key={group} className="bg-bg/40 border border-border rounded p-2 text-sm">
-                  <div className="text-[10px] text-muted uppercase tracking-wider font-semibold">
-                    Poule {group}
-                  </div>
-                  {top ? (
-                    <div className="flex items-center gap-1.5 mt-0.5">
-                      <span className="flag-emoji" aria-hidden>{flagEmoji(top.code)}</span>
-                      <span className="font-medium text-sm truncate">
-                        {teamName.get(top.code) ?? top.code}
-                      </span>
-                    </div>
-                  ) : (
-                    <div className="text-xs text-muted italic mt-0.5">geen data</div>
-                  )}
-                  {top && (
-                    <div className="text-[10px] text-muted mt-0.5">
-                      {top.n}× ({Math.round(top.pct)}%)
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Extra wedstrijd-stats ── */}
-      <section>
-        <h2 className="text-xl font-bold mb-4">Wedstrijd-spektakel</h2>
-        <div className="grid sm:grid-cols-2 gap-4">
           <StatCard
             title="🎆 Meest doelpunt-rijke wedstrijden"
             subtitle="Top 3 — waar verwacht Nijhuis het meeste spektakel?"
@@ -585,6 +487,122 @@ export default async function StatsPage() {
               {Math.round(cleanSheetPct)}% van alle voorspelde scores heeft een 0 voor één van de teams.
             </p>
           </StatCard>
+          <StatCard title="📈 Voorspelde productiviteit" subtitle="Gemiddeld doelpunten per wedstrijd">
+            <div className="text-3xl font-bold tabular-nums text-pitch">
+              {avgGoalsPerMatchPredicted.toFixed(2)}
+            </div>
+            <p className="text-xs text-muted">
+              Nijhuis-collectief is{" "}
+              <strong>
+                {avgGoalsPerMatchPredicted > 2.5 ? "optimistisch" : "voorzichtig"}
+              </strong>{" "}
+              over de hoeveelheid spektakel.
+            </p>
+          </StatCard>
+        </div>
+
+        {/* Per poule top-pick — full-width 12-tile grid onder de cards */}
+        <div className="bg-surface border border-border rounded-lg p-5 mt-4">
+          <h3 className="font-bold text-base mb-1">🏟️ Favoriete nummer 1 per poule</h3>
+          <p className="text-xs text-muted mb-3">
+            Wie zien de meeste deelnemers winnen in elke groep?
+          </p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+            {Array.from(rank1ByGroup.entries()).map(([group, tallyForGroup]) => {
+              const top = tallyForGroup[0];
+              return (
+                <div key={group} className="bg-bg/40 border border-border rounded p-2 text-sm">
+                  <div className="text-[10px] text-muted uppercase tracking-wider font-semibold">
+                    Poule {group}
+                  </div>
+                  {top ? (
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <span className="flag-emoji" aria-hidden>{flagEmoji(top.code)}</span>
+                      <span className="font-medium text-sm truncate">
+                        {teamName.get(top.code) ?? top.code}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="text-xs text-muted italic mt-0.5">geen data</div>
+                  )}
+                  {top && (
+                    <div className="text-[10px] text-muted mt-0.5">
+                      {top.n}× ({Math.round(top.pct)}%)
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ── 4. Knock-out ── */}
+      <section>
+        <h2 className="text-xl font-bold mb-4">Knock-out</h2>
+        <div className="grid sm:grid-cols-1 gap-4">
+          <StatCard
+            title="🥉 Meest gekozen 'beste nummer 3'"
+            subtitle="Welke nummers 3 worden het vaakst doorgestuurd naar de knock-out fase?"
+          >
+            <TallyList tally={bestThirdsTally} teamName={teamName} limit={8} />
+          </StatCard>
+        </div>
+      </section>
+
+      {/* ── 5. Afwijkende keuzes (luchtige afsluiter) ── */}
+      <section>
+        <h2 className="text-xl font-bold mb-4">Afwijkende keuzes</h2>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <StatCard
+            title="🐺 Lonely wolves"
+            subtitle="Eenzame deelnemers met een unieke pick voor wereldkampioen"
+          >
+            {lonelyTeams.length === 0 ? (
+              <div className="text-sm text-muted italic">Iedereen kiest mainstream.</div>
+            ) : (
+              <ul className="space-y-1.5 text-sm">
+                {lonelyTeams.map((t) => (
+                  <li key={t.code} className="flex items-center gap-2">
+                    <span className="flag-emoji" aria-hidden>{flagEmoji(t.code)}</span>
+                    <span className="font-medium">{teamName.get(t.code) ?? t.code}</span>
+                    <span className="text-xs text-muted">— 1 deelnemer</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </StatCard>
+          <StatCard
+            title="🚫 Nooit gekozen"
+            subtitle={`${neverPickedAsChampion.length} van de ${teamCount} landen door niemand als wereldkampioen gekozen`}
+          >
+            <div className="text-sm text-muted">
+              {neverPickedAsChampion.length === 0 ? (
+                <em>Elke land heeft minstens één fan.</em>
+              ) : (
+                <>
+                  {neverPickedAsChampion.length <= 12 ? (
+                    <div className="flex flex-wrap gap-1">
+                      {neverPickedAsChampion.map((c) => (
+                        <span
+                          key={c}
+                          className="inline-flex items-center gap-1 bg-bg/60 border border-border rounded px-1.5 py-0.5 text-xs"
+                        >
+                          <span className="flag-emoji" aria-hidden>{flagEmoji(c)}</span>
+                          {teamName.get(c) ?? c}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <span>
+                      {neverPickedAsChampion.length} landen die niemand bij Nijhuis ziet winnen — te
+                      veel om allemaal te tonen.
+                    </span>
+                  )}
+                </>
+              )}
+            </div>
+          </StatCard>
           <StatCard
             title="🦄 Unieke voorspellingen"
             subtitle="Aandeel picks dat door slechts één deelnemer is gedaan"
@@ -601,28 +619,6 @@ export default async function StatsPage() {
                 : uniquePct >= 15
                 ? "Een mooie mix van consensus en eigenwijsheid."
                 : "Iedereen gokt vooral hetzelfde — weinig verrassingen."}
-            </p>
-          </StatCard>
-        </div>
-      </section>
-
-      {/* ── Knock-out ── */}
-      <section>
-        <h2 className="text-xl font-bold mb-4">Knock-out</h2>
-        <div className="grid sm:grid-cols-2 gap-4">
-          <StatCard title="🥉 Meest gekozen 'beste nummer 3'" subtitle="Welke 3e-plaatsen worden het vaakst doorverwezen?">
-            <TallyList tally={bestThirdsTally} teamName={teamName} limit={6} />
-          </StatCard>
-          <StatCard title="📈 Voorspelde productiviteit" subtitle="Doelpunten per wedstrijd in voorspellingen">
-            <div className="text-3xl font-bold tabular-nums text-pitch">
-              {avgGoalsPerMatchPredicted.toFixed(2)}
-            </div>
-            <p className="text-xs text-muted">
-              Nijhuis-collectief is{" "}
-              <strong>
-                {avgGoalsPerMatchPredicted > 2.5 ? "optimistisch" : "voorzichtig"}
-              </strong>{" "}
-              over de hoeveelheid spektakel.
             </p>
           </StatCard>
         </div>
