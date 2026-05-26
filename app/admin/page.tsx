@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { isAdmin } from "@/lib/admin";
 import AdminSearch from "./AdminSearch";
 import LockToggle from "@/app/components/LockToggle";
@@ -24,6 +25,8 @@ async function updateTournamentResults(formData: FormData) {
     actual_nl_total_goals: nlTotalGoals ? parseInt(nlTotalGoals, 10) : null,
     actual_nl_progress: nlProgress,
   }).eq("id", 1);
+  // Verfris page-cache zodat de admin meteen de nieuwe waarden ziet.
+  revalidatePath("/admin");
 }
 
 async function updateLockAt(formData: FormData) {
@@ -41,6 +44,10 @@ async function updateLockAt(formData: FormData) {
   if (!val) return;
   const dt = new Date(val + ":00");
   await supabase.rpc("admin_set_lock_at", { new_lock_at: dt.toISOString() });
+  // Cache verversen op /admin (lock-veld) en op alle plekken waar lock_at
+  // wordt getoond: homepage, layouts met LockCountdown, etc.
+  revalidatePath("/admin");
+  revalidatePath("/", "layout");
 }
 
 const MAX_GROUP = 72;
