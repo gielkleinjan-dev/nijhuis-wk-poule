@@ -95,6 +95,17 @@ img.emoji {
 [data-theme="scorito"] .scorito-only { display: revert !important; }
 [data-theme="scorito"] .nijhuis-only { display: none !important; }
 
+/* Verberg scrollbars zonder scroll-functionaliteit te verliezen. Gebruikt
+   voor horizontale tab-balken: de scrollbar nam vertical ruimte in waardoor
+   tabs een klein 'pan' effect leken te hebben. */
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE/Edge legacy */
+  scrollbar-width: none;     /* Firefox */
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;             /* Chromium/Safari */
+}
+
 /* Highlight voor wedstrijd-rijen die vandaag spelen. <TodayButton/> zet
    data-today="true" op alle [data-kickoff] rows die op vandaag vallen. */
 [data-today="true"] {
