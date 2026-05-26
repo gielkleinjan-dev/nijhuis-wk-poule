@@ -22,18 +22,29 @@ export default function MainNav({
   const path = usePathname();
   const tabs = [
     ...BASE_TABS,
-    // "Voorspellingen" verschijnt voor iedereen zodra de poule gesloten is.
-    // Admins kunnen 'm altijd zien.
-    ...((isLocked || isAdmin) ? [{ href: "/voorspellingen", label: "Voorspellingen" }] : []),
+    // "Voorspellingen" en "Stats" verschijnen voor iedereen zodra de poule
+    // gesloten is. Admins zien ze altijd voor preview.
+    ...((isLocked || isAdmin)
+      ? [
+          { href: "/voorspellingen", label: "Voorspellingen" },
+          { href: "/voorspellingen/stats", label: "Stats" },
+        ]
+      : []),
     ...(isAdmin ? [{ href: "/admin", label: "Admin" }] : []),
   ];
+
+  // Langste-match-wint: /voorspellingen/stats moet Stats actief maken,
+  // niet Voorspellingen (zou allebei matchen op simple startsWith).
+  const activeHref = tabs
+    .filter((t) => path === t.href || path.startsWith(t.href + "/"))
+    .reduce((best, t) => (t.href.length > best.length ? t.href : best), "");
 
   return (
     <nav className="bg-surface border-b border-border">
       <div className={`mx-auto ${maxWidth} px-4 sm:px-6 flex items-center gap-2`}>
         <div className="flex gap-2 flex-1 min-w-0 overflow-x-auto overflow-y-hidden touch-pan-x overscroll-x-contain no-scrollbar">
           {tabs.map((t) => {
-            const active = path.startsWith(t.href);
+            const active = t.href === activeHref;
             return (
               <Link
                 key={t.href}

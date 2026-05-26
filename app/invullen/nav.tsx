@@ -26,9 +26,20 @@ export default function InvullenNav({
   const path = usePathname();
   const mainTabs = [
     ...BASE_TABS,
-    ...((isLocked || isAdmin) ? [{ href: "/voorspellingen", label: "Voorspellingen" }] : []),
+    ...((isLocked || isAdmin)
+      ? [
+          { href: "/voorspellingen", label: "Voorspellingen" },
+          { href: "/voorspellingen/stats", label: "Stats" },
+        ]
+      : []),
     ...(isAdmin ? [{ href: "/admin", label: "Admin" }] : []),
   ];
+
+  // Langste-match-wint: /voorspellingen/stats moet Stats actief maken,
+  // niet Voorspellingen.
+  const activeHref = mainTabs
+    .filter((t) => path === t.href || path.startsWith(t.href + "/"))
+    .reduce((best, t) => (t.href.length > best.length ? t.href : best), "");
 
   return (
     <>
@@ -37,7 +48,7 @@ export default function InvullenNav({
         <div className="mx-auto max-w-4xl px-4 sm:px-6 flex items-center gap-2">
           <div className="flex gap-2 flex-1 min-w-0 overflow-x-auto overflow-y-hidden touch-pan-x overscroll-x-contain no-scrollbar">
             {mainTabs.map((t) => {
-              const active = path.startsWith(t.href);
+              const active = t.href === activeHref;
               return (
                 <Link
                   key={t.href}
