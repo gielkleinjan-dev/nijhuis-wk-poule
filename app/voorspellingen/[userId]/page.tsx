@@ -553,14 +553,14 @@ export default async function VoorspellingDetailPage({
         ) : (
           <div className="bg-surface border border-border rounded-lg p-5">
             <p className="text-sm text-muted mb-4">
-              Gemiddeld over {userPicks.length} picks: hoeveel deelnemers kozen
-              {" "}<strong>iets anders</strong> dan {profile.display_name}.{" "}
+              Gemiddeld koos <strong>{Math.round(uniqueness)}%</strong> van de
+              Nijhuis-collega's iets anders dan {profile.display_name}.{" "}
               {uniqueness >= 75
-                ? "Een echte eenling — bijna niemand dacht zoals deze deelnemer."
+                ? "Een echte eenling — bijna niemand zat op dezelfde lijn."
                 : uniqueness >= 50
-                ? "Echt eigenwijs — meer dan de helft van de Nijhuis-collega's dacht hier anders over."
+                ? "Echt eigenwijs — meer dan de helft koos iets anders."
                 : uniqueness >= 30
-                ? "Een mooie mix: gedeeltelijk consensus, gedeeltelijk eigen koers."
+                ? "Mooie mix: gedeeltelijk consensus, gedeeltelijk eigen koers."
                 : uniqueness >= 15
                 ? "Vooral mainstream, met hier en daar een afwijkende keuze."
                 : "Volledig in lijn met de groep — bijna iedereen dacht hetzelfde."}
