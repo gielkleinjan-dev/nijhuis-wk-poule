@@ -102,6 +102,12 @@ export default async function VoorspellingDetailPage({
     { data: teamsRaw },
     { data: bonusSettings },
     { data: overridesRaw },
+    // Voor 'Hoe afwijkend ben je?' sectie: alle picks van alle deelnemers
+    // (exclusief test-users) om per pick te berekenen hoe mainstream/uniek 'ie is.
+    { data: testProfiles },
+    { data: allPredictions },
+    { data: allBracketPicks },
+    { data: allBonusPicks },
   ] = await Promise.all([
     supabase
       .from("profiles")
@@ -135,6 +141,13 @@ export default async function VoorspellingDetailPage({
       .from("bracket_match_overrides")
       .select("match_id, side, team_code")
       .eq("user_id", userId),
+    supabase
+      .from("profiles")
+      .select("id")
+      .or("department.eq.__LOADTEST__,department.eq.__SCORING_TEST__"),
+    supabase.from("predictions").select("user_id, match_id, home_score, away_score, toto_pick"),
+    supabase.from("bracket_picks").select("user_id, round, slot, team_code"),
+    supabase.from("bonus_picks").select("user_id, top_scorer, nl_top_scorer, nl_progress"),
   ]);
 
   if (!profile) notFound();
@@ -346,6 +359,158 @@ export default async function VoorspellingDetailPage({
       weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
     }).format(new Date(kickoff));
 
+  // ── 'Hoe afwijkend ben je?' aggregatie ─────────────────────────────────
+  // Filter test-users uit voor schone cijfers.
+  const testIds = new Set((testProfiles ?? []).map((p) => p.id));
+  const realPredictions = (allPredictions ?? []).filter((p) => !testIds.has(p.user_id));
+  const realBracket = (allBracketPicks ?? []).filter((p) => !testIds.has(p.user_id));
+  const realBonus = (allBonusPicks ?? []).filter((p) => !testIds.has(p.user_id));
+
+  // Per match: hoe vaak komt elke exacte tuple voor? + hoeveel users voorspelden
+  const matchTupleCounts = new Map<string, number>();         // key: "matchId|h-a-t" -> count
+  const matchUserCounts = new Map<number, number>();          // matchId -> aantal users
+  for (const p of realPredictions) {
+    if (p.home_score == null || p.away_score == null) continue;
+    matchUserCounts.set(p.match_id, (matchUserCounts.get(p.match_id) ?? 0) + 1);
+    const k = `${p.match_id}|${p.home_score}-${p.away_score}-${p.toto_pick ?? "_"}`;
+    matchTupleCounts.set(k, (matchTupleCounts.get(k) ?? 0) + 1);
+  }
+
+  // Per (round,slot): hoe vaak welk land + totaal voorspellers
+  const bracketTupleCounts = new Map<string, number>();      // "round|slot|code" -> count
+  const bracketSlotCounts = new Map<string, number>();       // "round|slot" -> totaal users
+  for (const p of realBracket) {
+    if (!p.team_code) continue;
+    const slot = `${p.round}|${p.slot}`;
+    bracketSlotCounts.set(slot, (bracketSlotCounts.get(slot) ?? 0) + 1);
+    const k = `${slot}|${p.team_code}`;
+    bracketTupleCounts.set(k, (bracketTupleCounts.get(k) ?? 0) + 1);
+  }
+
+  // Bonus per veld: count per waarde + totaal
+  type BonusField = "top_scorer" | "nl_top_scorer" | "nl_progress";
+  const bonusFieldCounts: Record<BonusField, Map<string, number>> = {
+    top_scorer: new Map(),
+    nl_top_scorer: new Map(),
+    nl_progress: new Map(),
+  };
+  const bonusFieldTotals: Record<BonusField, number> = {
+    top_scorer: 0,
+    nl_top_scorer: 0,
+    nl_progress: 0,
+  };
+  for (const b of realBonus) {
+    for (const field of ["top_scorer", "nl_top_scorer", "nl_progress"] as const) {
+      const v = b[field];
+      if (!v) continue;
+      bonusFieldTotals[field]++;
+      const m = bonusFieldCounts[field];
+      m.set(v, (m.get(v) ?? 0) + 1);
+    }
+  }
+
+  // Bouw lijst van ALLE picks van DEZE user, elk met een agreement-percentage
+  type AgreementPick = {
+    category: "groep" | "knockout" | "bonus";
+    label: string;             // bv. "NL-Mex 2-1" of "Wereldkampioen"
+    value: string;             // bv. "2-1 toto:1" of "BRA"
+    valueDisplay: string;      // bv. "Brazilië" of "1-1 (X)"
+    agreementPct: number;      // 0-100, hoeveel ANDERE users hebben dezelfde pick
+    others: number;            // n_anderen met dezelfde pick
+    totalOthers: number;       // n_anderen in deze pool
+  };
+  const userPicks: AgreementPick[] = [];
+
+  // Groepsfase predictions van deze user
+  for (const p of predictionsRaw ?? []) {
+    if (p.home_score == null || p.away_score == null) continue;
+    const tupleKey = `${p.match_id}|${p.home_score}-${p.away_score}-${p.toto_pick ?? "_"}`;
+    const sameCount = matchTupleCounts.get(tupleKey) ?? 0;
+    const others = Math.max(0, sameCount - 1); // exclusief mezelf
+    const totalUsers = matchUserCounts.get(p.match_id) ?? 0;
+    const totalOthers = Math.max(0, totalUsers - 1);
+    if (totalOthers === 0) continue;
+    const match = (matchesRaw ?? []).find((m) => m.id === p.match_id);
+    const homeCode = match?.home_team ?? "?";
+    const awayCode = match?.away_team ?? "?";
+    const homeName = teamName.get(homeCode) ?? homeCode;
+    const awayName = teamName.get(awayCode) ?? awayCode;
+    userPicks.push({
+      category: "groep",
+      label: `${homeName} – ${awayName}`,
+      value: tupleKey,
+      valueDisplay: `${p.home_score}–${p.away_score}${p.toto_pick ? ` (${p.toto_pick})` : ""}`,
+      agreementPct: (others / totalOthers) * 100,
+      others,
+      totalOthers,
+    });
+  }
+
+  // Knock-out: alle slot-picks van deze user
+  const roundLabel: Record<string, string> = {
+    GROUP_TOP_2: "Top 2 poule",
+    BEST_THIRDS: "Beste 3e",
+    LAST_32: "1/16e finale",
+    LAST_16: "1/8e finale",
+    QUARTER_FINALS: "Kwartfinale",
+    SEMI_FINALS: "Halve finale",
+    FINAL: "Finale",
+  };
+  for (const p of bracketPicksRaw ?? []) {
+    if (!p.team_code) continue;
+    const slotKey = `${p.round}|${p.slot}`;
+    const tupleKey = `${slotKey}|${p.team_code}`;
+    const sameCount = bracketTupleCounts.get(tupleKey) ?? 0;
+    const others = Math.max(0, sameCount - 1);
+    const totalUsers = bracketSlotCounts.get(slotKey) ?? 0;
+    const totalOthers = Math.max(0, totalUsers - 1);
+    if (totalOthers === 0) continue;
+    userPicks.push({
+      category: "knockout",
+      label: roundLabel[p.round] ?? p.round,
+      value: tupleKey,
+      valueDisplay: teamName.get(p.team_code) ?? p.team_code,
+      agreementPct: (others / totalOthers) * 100,
+      others,
+      totalOthers,
+    });
+  }
+
+  // Bonus: top_scorer, nl_top_scorer, nl_progress van deze user
+  const bonusLabel: Record<BonusField, string> = {
+    top_scorer: "Topscorer toernooi",
+    nl_top_scorer: "Topscorer NL",
+    nl_progress: "Hoever komt NL",
+  };
+  for (const field of ["top_scorer", "nl_top_scorer", "nl_progress"] as const) {
+    const v = bonusRow?.[field];
+    if (!v) continue;
+    const sameCount = bonusFieldCounts[field].get(v) ?? 0;
+    const others = Math.max(0, sameCount - 1);
+    const totalOthers = Math.max(0, bonusFieldTotals[field] - 1);
+    if (totalOthers === 0) continue;
+    const display = field === "nl_progress" ? (NL_PROGRESS_LABEL[v] ?? v) : v;
+    userPicks.push({
+      category: "bonus",
+      label: bonusLabel[field],
+      value: `${field}|${v}`,
+      valueDisplay: display,
+      agreementPct: (others / totalOthers) * 100,
+      others,
+      totalOthers,
+    });
+  }
+
+  // Overall uniekheid = gemiddelde van (100 - agreement%)
+  const uniqueness = userPicks.length === 0
+    ? 0
+    : userPicks.reduce((s, p) => s + (100 - p.agreementPct), 0) / userPicks.length;
+
+  // Top mainstream (hoogste agreement) en top contrarian (laagste)
+  const sortedByAgreement = [...userPicks].sort((a, b) => b.agreementPct - a.agreementPct);
+  const mostMainstream = sortedByAgreement.slice(0, 3);
+  const mostContrarian = [...sortedByAgreement].reverse().slice(0, 3);
+
   return (
     <div className="mx-auto max-w-5xl px-4 sm:px-6 py-6 sm:py-8 space-y-8 sm:space-y-10">
       <div>
@@ -533,6 +698,77 @@ export default async function VoorspellingDetailPage({
           );
         })}
       </section>
+
+      {/* ── Hoe afwijkend? ── */}
+      {userPicks.length >= 5 && (
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold">🦄 Hoe afwijkend?</h2>
+            <span className="text-sm font-semibold text-trophy tabular-nums">
+              {Math.round(uniqueness)}% uniek
+            </span>
+          </div>
+          <div className="bg-surface border border-border rounded-lg p-5">
+            <p className="text-sm text-muted mb-4">
+              Gemiddeld over {userPicks.length} picks: hoeveel deelnemers kozen
+              {" "}<strong>iets anders</strong> dan {profile.display_name}.{" "}
+              {uniqueness >= 50
+                ? "Echt eigenwijs — meer dan de helft van de Nijhuis-collega's dacht hier anders over."
+                : uniqueness >= 30
+                ? "Een mooie mix: gedeeltelijk consensus, gedeeltelijk eigen koers."
+                : uniqueness >= 15
+                ? "Vooral mainstream, met hier en daar een afwijkende keuze."
+                : "Volledig in lijn met de groep — bijna iedereen dacht hetzelfde."}
+            </p>
+            <div className="grid sm:grid-cols-2 gap-4">
+              {/* Mainstream */}
+              <div>
+                <h3 className="text-sm font-bold uppercase tracking-wider text-pitch mb-2">
+                  Mainstream-picks
+                </h3>
+                <p className="text-xs text-muted mb-3">
+                  Eensgezind met de meerderheid van Nijhuis
+                </p>
+                <ul className="space-y-2 text-sm">
+                  {mostMainstream.map((p, i) => (
+                    <li key={i} className="flex items-start gap-2">
+                      <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-pitch/15 text-pitch text-[10px] font-bold shrink-0 mt-0.5">
+                        {Math.round(p.agreementPct)}%
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs text-muted">{p.label}</div>
+                        <div className="font-medium truncate">{p.valueDisplay}</div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              {/* Contrarian */}
+              <div>
+                <h3 className="text-sm font-bold uppercase tracking-wider text-trophy mb-2">
+                  Tegen de stroom
+                </h3>
+                <p className="text-xs text-muted mb-3">
+                  Eenzaamste keuzes — minste anderen kozen dit
+                </p>
+                <ul className="space-y-2 text-sm">
+                  {mostContrarian.map((p, i) => (
+                    <li key={i} className="flex items-start gap-2">
+                      <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-trophy/15 text-trophy-600 text-[10px] font-bold shrink-0 mt-0.5">
+                        {Math.round(p.agreementPct)}%
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs text-muted">{p.label}</div>
+                        <div className="font-medium truncate">{p.valueDisplay}</div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ── Bonus ── */}
       <section className="space-y-4">
