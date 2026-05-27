@@ -46,6 +46,19 @@ De `/api/cron/fetch-results` route wordt door Vercel elke dag om 06:00 UTC aange
 curl -H "Authorization: Bearer <CRON_SECRET>" http://localhost:3010/api/cron/fetch-results
 ```
 
+## Beat the System
+
+Twee bot-deelnemers (Johan Derksen = Wisdom of the Crowd, Rene van der Gijp =
+Bookmaker-favorieten) die meespelen voor de show. Vlak vóór sluitingstijd
+draaien:
+
+```bash
+npm run beat:rene -- --confirm    # vóór lock (bookmaker-favorieten)
+npm run beat:johan -- --confirm   # direct ná lock (modus van alle deelnemers)
+```
+
+Lock-day draaiboek + alle subcommands: zie [`docs/BEAT-THE-SYSTEM.md`](docs/BEAT-THE-SYSTEM.md).
+
 ## Documentatie
 
 Zie `STATUS.md` voor de volledige handoff-documentatie: wat af is, wat nog moet, database schema, env vars en kritische aandachtspunten.

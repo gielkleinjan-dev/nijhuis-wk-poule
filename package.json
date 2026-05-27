@@ -12,7 +12,12 @@
     "test:e2e:ui": "playwright test --ui",
     "loadtest": "tsx scripts/loadtest.ts",
     "loadtest:cleanup": "tsx scripts/loadtest-cleanup.ts",
-    "test:integration": "vitest run --config vitest.config.integration.ts"
+    "test:integration": "vitest run --config vitest.config.integration.ts",
+    "beat": "tsx scripts/beat-the-system.ts",
+    "beat:johan": "tsx scripts/beat-the-system.ts johan",
+    "beat:rene": "tsx scripts/beat-the-system.ts rene",
+    "beat:both": "tsx scripts/beat-the-system.ts both",
+    "beat:cleanup": "tsx scripts/beat-the-system.ts cleanup"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.3",

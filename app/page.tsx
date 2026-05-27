@@ -38,8 +38,9 @@ export default async function HomePage() {
                 isLocked={isLocked}
                 lockAt={lockAt}
               />
-            ) : null}
-            <ThemeToggle />
+            ) : (
+              <ThemeToggle />
+            )}
           </div>
         </div>
       </header>
