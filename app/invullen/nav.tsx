@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import ThemeToggle from "@/app/components/ThemeToggle";
 
 const BASE_TABS = [
   { href: "/invullen", label: "Invullen" },
@@ -45,8 +44,8 @@ export default function InvullenNav({
     <>
       {/* Hoofdtabs */}
       <nav className="bg-surface border-b border-border">
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 flex items-center gap-2">
-          <div className="flex gap-2 flex-1 min-w-0 overflow-x-auto overflow-y-hidden touch-pan-x overscroll-x-contain no-scrollbar">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6">
+          <div className="flex gap-2 min-w-0 overflow-x-auto overflow-y-hidden touch-pan-x overscroll-x-contain no-scrollbar">
             {mainTabs.map((t) => {
               const active = t.href === activeHref;
               return (
@@ -63,9 +62,6 @@ export default function InvullenNav({
                 </Link>
               );
             })}
-          </div>
-          <div className="shrink-0 py-2">
-            <ThemeToggle />
           </div>
         </div>
       </nav>

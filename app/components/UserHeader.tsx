@@ -1,4 +1,5 @@
 import LockBadge from "./LockBadge";
+import ThemeToggle from "./ThemeToggle";
 
 export default function UserHeader({
   displayName,
@@ -29,6 +30,7 @@ export default function UserHeader({
         )}
       </div>
       <LockBadge isLocked={isLocked} />
+      <ThemeToggle />
       <form action="/api/logout" method="post">
         <button
           type="submit"
