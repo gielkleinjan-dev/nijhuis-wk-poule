@@ -1,32 +1,61 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+
+type TodayInfo = {
+  kind: "today" | "upcoming" | "past" | "none";
+  stage: string | null;
+  href: string | null;
+  kickoff: string | null;
+};
 
 /**
- * Floating knop rechtsonder die scrollt naar de wedstrijd-rij van vandaag.
- * Werkt op pagina's met match-rijen die een data-kickoff attribuut hebben
- * met een ISO-date string (bv. "2026-06-15T15:00:00Z").
+ * Floating knop rechtsonder die naar de wedstrijd van vandaag scrollt of
+ * navigeert. Werkt cross-page: als vandaag's wedstrijd op een andere tab
+ * staat (bv. jij zit op /invullen maar vandaag is een knock-out match),
+ * navigeert hij naar de juiste tab en scrollt daar.
  *
- * Logica:
- *  - Vindt eerste rij met kickoff-datum gelijk aan vandaag (Europe/Amsterdam)
- *  - Geen match vandaag? Scroll naar eerstvolgende toekomstige match.
- *  - Alle matches voorbij? Scroll naar laatste match (eind toernooi).
+ * Mechanisme:
+ *   - Bij mount fetched /api/today-stage → krijgt back { href, kickoff, kind }
+ *   - Klik:
+ *       a) Als href == current path → scroll naar [data-kickoff] op vandaag
+ *       b) Anders → router.push(href) → de target-page heeft een eigen
+ *          TodayButton die op mount ook /api/today-stage fetcht en scrollt
  *
- * Gele highlight: rijen met data-kickoff op vandaag krijgen automatisch
- * een `data-today="true"` attribuut zodat CSS ze kan accentueren.
+ * data-today="true" wordt op rij gezet zodat CSS highlight aanslaat.
  */
 export default function TodayButton({ label = "Vandaag" }: { label?: string }) {
-  const [hint, setHint] = useState<string>("");
+  const router = useRouter();
+  const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
+  const [info, setInfo] = useState<TodayInfo | null>(null);
 
   useEffect(() => {
     setMounted(true);
-    markTodayRows();
-    updateHint();
+    fetch("/api/today-stage")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: TodayInfo | null) => {
+        if (data) setInfo(data);
+        markTodayRows();
+      })
+      .catch(() => {
+        // Stil falen — knop blijft werken voor in-page scroll
+        markTodayRows();
+      });
   }, []);
 
+  // Re-mark today rows after route changes (zodat de andere pagina ook
+  // gehighlight wordt na navigatie naar /invullen of /invullen/knockout)
+  useEffect(() => {
+    if (mounted) {
+      // Kleine timeout zodat de DOM na navigation klaar is
+      const t = setTimeout(markTodayRows, 100);
+      return () => clearTimeout(t);
+    }
+  }, [pathname, mounted]);
+
   function dayKey(d: Date): string {
-    // Datum-key in Europe/Amsterdam tijdzone (yyyy-mm-dd)
     const fmt = new Intl.DateTimeFormat("nl-NL", {
       timeZone: "Europe/Amsterdam",
       year: "numeric",
@@ -49,41 +78,11 @@ export default function TodayButton({ label = "Vandaag" }: { label?: string }) {
     for (const row of findRows()) {
       const k = row.dataset.kickoff;
       if (!k) continue;
-      const matchDay = dayKey(new Date(k));
-      row.dataset.today = matchDay === today ? "true" : "false";
+      row.dataset.today = dayKey(new Date(k)) === today ? "true" : "false";
     }
   }
 
-  function updateHint() {
-    const today = dayKey(new Date());
-    const todayRows = findRows().filter((r) => {
-      const k = r.dataset.kickoff;
-      return k && dayKey(new Date(k)) === today;
-    });
-    if (todayRows.length > 0) {
-      setHint(`${todayRows.length} wedstrijd${todayRows.length === 1 ? "" : "en"} vandaag`);
-    } else {
-      // Vind eerstvolgende
-      const now = Date.now();
-      const upcoming = findRows()
-        .map((r) => ({ row: r, ts: r.dataset.kickoff ? new Date(r.dataset.kickoff).getTime() : 0 }))
-        .filter(({ ts }) => ts > now)
-        .sort((a, b) => a.ts - b.ts);
-      if (upcoming.length > 0) {
-        const ts = upcoming[0].ts;
-        const dateStr = new Date(ts).toLocaleDateString("nl-NL", {
-          weekday: "long",
-          day: "numeric",
-          month: "short",
-        });
-        setHint(`Eerstvolgende: ${dateStr}`);
-      } else {
-        setHint("Toernooi voorbij");
-      }
-    }
-  }
-
-  function scrollToToday() {
+  function scrollToTargetInDOM(): boolean {
     const today = dayKey(new Date());
     const rows = findRows();
 
@@ -93,7 +92,7 @@ export default function TodayButton({ label = "Vandaag" }: { label?: string }) {
       return k && dayKey(new Date(k)) === today;
     });
 
-    // 2. Anders: eerstvolgende toekomstig
+    // 2. Anders: eerstvolgende toekomstig op deze pagina
     if (!target) {
       const now = Date.now();
       target = rows
@@ -106,14 +105,55 @@ export default function TodayButton({ label = "Vandaag" }: { label?: string }) {
         })[0];
     }
 
-    // 3. Anders: laatste match (toernooi voorbij)
+    // 3. Anders: laatste op deze pagina
     if (!target && rows.length > 0) {
       target = rows[rows.length - 1];
     }
 
     if (target) {
       target.scrollIntoView({ behavior: "smooth", block: "center" });
+      return true;
     }
+    return false;
+  }
+
+  function handleClick() {
+    // Eerst proberen op huidige pagina te scrollen — als 'r een match
+    // vandaag staat (data-kickoff matched today), is dat genoeg.
+    const today = dayKey(new Date());
+    const todayRowExists = findRows().some(
+      (r) => r.dataset.kickoff && dayKey(new Date(r.dataset.kickoff)) === today,
+    );
+    if (todayRowExists) {
+      scrollToTargetInDOM();
+      return;
+    }
+
+    // Geen match vandaag op deze pagina. Als API zegt dat 'ie elders staat:
+    // navigeer daarheen. Op de doelpagina mount een eigen TodayButton die
+    // bij arrival opnieuw scrollt naar today's row.
+    if (info?.href && info.href !== pathname) {
+      router.push(info.href);
+      return;
+    }
+
+    // Anders: doe wat we kunnen op deze pagina (eerstvolgende / laatste)
+    scrollToTargetInDOM();
+  }
+
+  // Compose hint-tekst voor tooltip + label-overlay
+  let hint = label;
+  if (info?.kind === "today") {
+    hint = "Wedstrijd van vandaag";
+  } else if (info?.kind === "upcoming" && info.kickoff) {
+    const dateStr = new Date(info.kickoff).toLocaleDateString("nl-NL", {
+      weekday: "long",
+      day: "numeric",
+      month: "short",
+    });
+    hint = `Eerstvolgende: ${dateStr}`;
+  } else if (info?.kind === "past") {
+    hint = "Toernooi voorbij";
   }
 
   if (!mounted) return null;
@@ -121,8 +161,8 @@ export default function TodayButton({ label = "Vandaag" }: { label?: string }) {
   return (
     <button
       type="button"
-      onClick={scrollToToday}
-      title={hint || label}
+      onClick={handleClick}
+      title={hint}
       aria-label="Scroll naar wedstrijd van vandaag"
       className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 inline-flex items-center gap-2 bg-brand text-white rounded-full pl-3 pr-4 py-2.5 shadow-lg hover:opacity-95 transition active:scale-95"
     >

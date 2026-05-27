@@ -9,6 +9,7 @@ import { BracketBuilder } from "./BracketBuilder";
 import { useBracketState, type V2InitialPicks } from "./useBracketState";
 import SaveStatusBadge from "@/app/components/SaveStatusBadge";
 import OnboardingTip from "@/app/components/OnboardingTip";
+import TodayButton from "@/app/components/TodayButton";
 
 type Team = { code: string; name: string; group: GroupCode };
 
@@ -214,6 +215,7 @@ export default function KnockoutFormV2({
           </>
         )}
       </div>
+      <TodayButton />
     </div>
   );
 }

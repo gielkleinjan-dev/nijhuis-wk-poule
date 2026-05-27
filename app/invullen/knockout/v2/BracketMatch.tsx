@@ -98,7 +98,10 @@ export function BracketMatch({
   }
 
   return (
-    <li className="px-3 sm:px-4 py-3 border-b border-border last:border-b-0">
+    <li
+      data-kickoff={kickoff ? kickoff.toISOString() : undefined}
+      className="px-3 sm:px-4 py-3 border-b border-border last:border-b-0"
+    >
       {/* Desktop (sm+): alles op één rij */}
       <div className="hidden sm:flex items-center gap-2">
         <div className="w-28 shrink-0 leading-tight">
