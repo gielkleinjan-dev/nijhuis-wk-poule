@@ -48,7 +48,7 @@ export default async function KnockoutPage() {
     if (m.away_team && m.group_name) teamGroup.set(m.away_team, m.group_name);
   }
 
-  const lockAt = settings?.lock_at ?? "2026-06-11T17:00:00Z";
+  const lockAt = settings?.lock_at ?? "2026-06-10T15:00:00Z";
   const isLocked = new Date(lockAt) <= new Date();
 
   const teamsV2: { code: string; name: string; group: GroupCode }[] = [];

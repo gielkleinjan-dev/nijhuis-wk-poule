@@ -76,7 +76,7 @@ export default async function RanglijstPage({
   const rocketDepMap = new Map(teamTopRiser ? [[teamTopRiser.dep, 3]] : []);
   const chuteDepMap  = new Map(teamTopFaller ? [[teamTopFaller.dep, 3]] : []);
 
-  const lockAt = settings?.lock_at ?? "2026-06-11T17:00:00Z";
+  const lockAt = settings?.lock_at ?? "2026-06-10T15:00:00Z";
   const isLocked = new Date(lockAt) <= new Date();
   const userIsAdmin = isAdmin(user.email);
   const tournamentStarted = new Date() >= new Date("2026-06-11T19:00:00Z");

@@ -479,12 +479,17 @@ async function main() {
     console.log("\n⚠️  Dry-run. Voeg --confirm toe om echt te draaien.\n");
   }
 
+  // Belangrijk: bij dry-run maken we GEEN echte auth-users aan. Anders vervuilt
+  // een dry-run de live-omgeving met lege bots. We geven dan een placeholder-id
+  // mee — seedJohan/seedRene schrijven in dry-run toch niets weg.
+  const DRY_ID = "(dry-run-placeholder)";
+
   if (cmd === "johan" || cmd === "both") {
-    const johanId = await ensureBotUser(JOHAN);
+    const johanId = dryRun ? DRY_ID : await ensureBotUser(JOHAN);
     await seedJohan(johanId, dryRun);
   }
   if (cmd === "rene" || cmd === "both") {
-    const reneId = await ensureBotUser(RENE);
+    const reneId = dryRun ? DRY_ID : await ensureBotUser(RENE);
     await seedRene(reneId, dryRun);
   }
 

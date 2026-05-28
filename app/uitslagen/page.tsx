@@ -54,7 +54,7 @@ export default async function UitslagenPage() {
       .maybeSingle(),
   ]);
 
-  const lockAt = settings?.lock_at ?? "2026-06-11T17:00:00Z";
+  const lockAt = settings?.lock_at ?? "2026-06-10T15:00:00Z";
   const isLocked = new Date(lockAt) <= new Date();
   const userIsAdmin = isAdmin(user.email);
 

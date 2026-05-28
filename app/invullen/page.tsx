@@ -42,7 +42,7 @@ export default async function InvullenPage() {
     predictions[p.match_id] = { home: p.home_score, away: p.away_score, toto: p.toto_pick };
   }
 
-  const lockAt = settings?.lock_at ?? "2026-06-11T17:00:00Z";
+  const lockAt = settings?.lock_at ?? "2026-06-10T15:00:00Z";
   const isLocked = new Date(lockAt) <= new Date();
 
   return (

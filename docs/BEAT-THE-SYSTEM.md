@@ -39,9 +39,10 @@ npm run beat:rene -- --confirm
 
 ## Lock-day draaiboek
 
-Lock = **vrijdag 11 juni 2026 17:00 NL-tijd**.
+Lock = **woensdag 10 juni 2026 17:00 NL-tijd** (de eerste wedstrijd MEX-RSA is
+do 11 juni 21:00 — lock zit dus ~1 dag vóór de aftrap).
 
-**Dag voor lock (10 juni):**
+**Ochtend/middag van lock-day (10 juni, vóór 17:00):**
 1. Open Oddschecker / DraftKings / ESPN futures
 2. Pas `data/rene-knowledge.ts` aan:
    - `RENE_CHAMPION_ODDS` — nieuwe decimal-odds per land
@@ -51,10 +52,7 @@ Lock = **vrijdag 11 juni 2026 17:00 NL-tijd**.
 5. Commit de knowledge-file: `git commit -am "data: refresh Rene odds pre-lock"`
 6. Live zetten: `npm run beat:rene -- --confirm`
 
-**Op de dag van lock (11 juni, vlak vóór 17:00):**
-- Optioneel nog 1× Rene refreshen als odds nog verschoven zijn
-
-**Direct ná lock (11 juni 17:01):**
+**Direct ná lock (10 juni 17:01):**
 ```bash
 npm run beat:johan -- --confirm
 ```

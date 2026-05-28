@@ -1,6 +1,6 @@
 # WK Poule 2026 — Nijhuis Bouw
 
-Interne WK-poule voor ~150 collega's. Deelnemers voorspellen alle 104 wedstrijden (groepsfase + knock-out + bonusvragen) vóór 11 juni 2026 17:00. Punten worden automatisch bijgehouden via de football-data.org API.
+Interne WK-poule voor ~150 collega's. Deelnemers voorspellen alle 104 wedstrijden (groepsfase + knock-out + bonusvragen) vóór 10 juni 2026 17:00. Punten worden automatisch bijgehouden via de football-data.org API.
 
 **Live**: https://nijhuis-wk-poule.vercel.app · **Invite-code**: `WKNIJHUIS2026`
 

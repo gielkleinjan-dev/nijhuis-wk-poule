@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/admin";
 
-// June 11 00:00 Amsterdam CEST = June 10 22:00 UTC
-const SCHEDULED_LOCK_AT = "2026-06-10T22:00:00Z";
+// June 10 17:00 Amsterdam CEST = June 10 15:00 UTC
+const SCHEDULED_LOCK_AT = "2026-06-10T15:00:00Z";
 
 export async function POST(req: NextRequest) {
   const supabase = await createSupabaseServerClient();

@@ -24,7 +24,7 @@ export default async function AdminLayout({
     .eq("id", 1)
     .single();
 
-  const lockAt = settings?.lock_at ?? "2026-06-11T17:00:00Z";
+  const lockAt = settings?.lock_at ?? "2026-06-10T15:00:00Z";
   const isLocked = new Date(lockAt) <= new Date();
   const displayName = user.user_metadata?.display_name || user.email || "";
 

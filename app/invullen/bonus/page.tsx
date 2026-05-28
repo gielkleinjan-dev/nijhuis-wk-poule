@@ -26,7 +26,7 @@ export default async function BonusPage() {
 
   const totalPoints = (pointRows ?? []).reduce((s, r) => s + (r.points ?? 0), 0);
 
-  const lockAt = settings?.lock_at ?? "2026-06-11T17:00:00Z";
+  const lockAt = settings?.lock_at ?? "2026-06-10T15:00:00Z";
   const isLocked = new Date(lockAt) <= new Date();
 
   const actualTotalGoals = (matchTotals ?? []).reduce(

@@ -53,7 +53,7 @@ export default async function InvullenLayout({
       .maybeSingle(),
   ]);
 
-  const lockAt = settings?.lock_at ?? "2026-06-11T17:00:00Z";
+  const lockAt = settings?.lock_at ?? "2026-06-10T15:00:00Z";
   const isLocked = new Date(lockAt) <= new Date();
 
   // Tel knockout-picks per ronde, gecapt op de V2-count.

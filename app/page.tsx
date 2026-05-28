@@ -12,7 +12,7 @@ export default async function HomePage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  let lockAt = "2026-06-11T17:00:00Z";
+  let lockAt = "2026-06-10T15:00:00Z";
   let isLocked = false;
   if (user) {
     const { data: settings } = await supabase

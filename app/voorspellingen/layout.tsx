@@ -17,7 +17,7 @@ export default async function VoorspellingenLayout({ children }: { children: Rea
     .eq("id", 1)
     .single();
 
-  const lockAt = settings?.lock_at ?? "2026-06-11T17:00:00Z";
+  const lockAt = settings?.lock_at ?? "2026-06-10T15:00:00Z";
   const isLocked = new Date(lockAt) <= new Date();
 
   // Niet-admins mogen pas naar deze pagina als de poule gesloten is.
