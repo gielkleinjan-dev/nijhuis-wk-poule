@@ -65,14 +65,14 @@ type Bot = {
 
 const JOHAN: Bot = {
   email: "johan-derksen@beat-the-system.local",
-  displayName: "Johan Derksen",
-  description: "Mr Nijhuis — Wisdom of the Crowd",
+  displayName: "Johan Derksen (de meerderheid)",
+  description: "Wisdom of the Crowd — modus van alle deelnemers",
 };
 
 const RENE: Bot = {
   email: "rene-van-der-gijp@beat-the-system.local",
-  displayName: "Rene van der Gijp",
-  description: "Mr Bookmaker — bookmaker-favorieten",
+  displayName: "Rene van der Gijp (de bookmaker)",
+  description: "Bookmaker-favorieten — odds-driven",
 };
 
 // ── Helpers ────────────────────────────────────────────────────────────────

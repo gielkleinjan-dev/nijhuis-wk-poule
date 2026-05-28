@@ -3,7 +3,7 @@
 Twee bot-deelnemers die meespelen in de poule en collega's iets te verslaan geven.
 Niet bedoeld om te winnen, wel om verhaal en context te geven aan de tussenstand.
 
-## 🟢 Johan Derksen — "Mr Nijhuis"
+## 🟢 Johan Derksen (de meerderheid)
 
 **Strategie: Wisdom of the Crowd.** Voor elke vraag vult Johan de meest gekozen
 optie van alle echte deelnemers in (modus). Voor numerieke tiebreakers (totaal
@@ -17,7 +17,7 @@ echt gesloten is.
 npm run beat:johan -- --confirm
 ```
 
-## 🟠 Rene van der Gijp — "Mr Bookmaker"
+## 🟠 Rene van der Gijp (de bookmaker)
 
 **Strategie: pure bookmaker-favorieten.** Rene gebruikt outright odds (impliciete
 kansen = 1/odds) als sterkte-score per land en vult daarop:

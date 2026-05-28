@@ -48,8 +48,9 @@ curl -H "Authorization: Bearer <CRON_SECRET>" http://localhost:3010/api/cron/fet
 
 ## Beat the System
 
-Twee bot-deelnemers (Johan Derksen = Wisdom of the Crowd, Rene van der Gijp =
-Bookmaker-favorieten) die meespelen voor de show. Vlak vóór sluitingstijd
+Twee bot-deelnemers die meespelen voor de show:
+- **Johan Derksen (de meerderheid)** — vult de modus van alle echte deelnemers
+- **Rene van der Gijp (de bookmaker)** — vult de bookmaker-favorieten Vlak vóór sluitingstijd
 draaien:
 
 ```bash
