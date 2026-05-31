@@ -1,9 +1,27 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { flagEmoji } from "@/lib/flags";
-import { scoreGroupPrediction, deriveSurvivors, KO_POINTS } from "@/lib/scoring";
-import { ROUNDS } from "@/app/invullen/knockout/rounds";
+import { scoreGroupPrediction, deriveSurvivors, KO_POINTS_HALF, type BracketRound } from "@/lib/scoring";
 import { isAdmin } from "@/lib/admin";
+
+// V2-aligned KO-rondes voor de /uitslagen-weergave. We gebruiken bewust de
+// HALF-punten (= "team overleefde de ronde, maar je hebt 'm misschien niet
+// als wedstrijd-winnaar gepickt") als veilige ondergrens. De canonical
+// leaderboard combineert HALF + FULL via de scoring-engine in lib/scoring.ts
+// en de cron — daar zit het echte totaal. Deze pagina toont een
+// conservatieve "wat heb je nu in je picks dat zeker doorgaat"-schatting.
+//
+// Vóór deze fix verwees de pagina naar app/invullen/knockout/rounds.ts dat
+// nog V1-puntenwaarden (4/7/12/18/28/40) en V1-rondes (incl. losse CHAMPION)
+// bevatte. Daardoor zou /uitslagen straks andere totalen tonen dan
+// /ranglijst zodra wedstrijden gespeeld worden.
+const KO_ROUNDS_V2: ReadonlyArray<{ key: BracketRound; label: string; points: number }> = [
+  { key: "LAST_32",         label: "1/16e finale",     points: KO_POINTS_HALF.LAST_32 },
+  { key: "LAST_16",         label: "1/8e finale",      points: KO_POINTS_HALF.LAST_16 },
+  { key: "QUARTER_FINALS",  label: "Kwartfinale",      points: KO_POINTS_HALF.QUARTER_FINALS },
+  { key: "SEMI_FINALS",     label: "Halve finale",     points: KO_POINTS_HALF.SEMI_FINALS },
+  { key: "FINAL",           label: "Finale",           points: KO_POINTS_HALF.FINAL },
+];
 import MainNav from "@/app/components/MainNav";
 import BrandLogo from "@/app/components/BrandLogo";
 import LockCountdown from "@/app/components/LockCountdown";
@@ -104,7 +122,7 @@ export default async function UitslagenPage() {
     picksByRound.get(p.round)!.add(p.team_code);
   }
 
-  const koTotalPts = ROUNDS.reduce((sum, r) => {
+  const koTotalPts = KO_ROUNDS_V2.reduce((sum, r) => {
     const picks = picksByRound.get(r.key) ?? new Set<string>();
     const survs = survivors[r.key];
     if (!survs?.size) return sum;
@@ -261,7 +279,7 @@ export default async function UitslagenPage() {
             <span className="text-sm font-semibold text-pitch tabular-nums">+{koTotalPts} pt</span>
           </div>
 
-          {ROUNDS.map((round) => {
+          {KO_ROUNDS_V2.map((round) => {
             const picks = picksByRound.get(round.key) ?? new Set<string>();
             const survs = survivors[round.key];
             const hasData = !!(survs?.size);
