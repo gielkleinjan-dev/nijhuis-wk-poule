@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { isAdmin } from "@/lib/admin";
 import Link from "next/link";
 import { flagEmoji } from "@/lib/flags";
+import { fetchAllRows } from "@/lib/supabase/fetchAll";
 
 export const dynamic = "force-dynamic";
 
@@ -118,17 +119,23 @@ export default async function StatsPage() {
   if (!isLocked && !isAdmin(user.email)) redirect("/voorspellingen");
 
   // ── Fetch all the data we need ───────────────────────────────────────────
+  // predictions + bracket_picks via fetchAllRows i.v.m. de PostgREST 1000-row
+  // cap — anders missen aggregaties rijen zodra het toernooi op gang komt.
   const [
-    { data: bracketPicks },
+    bracketPicks,
     { data: bonusPicks },
-    { data: predictions },
+    predictions,
     { data: teamsRaw },
     { data: matchesRaw },
     { count: totalUsers },
   ] = await Promise.all([
-    supabase.from("bracket_picks").select("round, slot, team_code, user_id"),
+    fetchAllRows<{ round: string; slot: number; team_code: string | null; user_id: string }>(
+      () => supabase.from("bracket_picks").select("round, slot, team_code, user_id"),
+    ),
     supabase.from("bonus_picks").select("top_scorer, total_goals_tiebreak, nl_top_scorer, nl_total_goals, nl_progress"),
-    supabase.from("predictions").select("match_id, home_score, away_score, toto_pick"),
+    fetchAllRows<{ match_id: number; home_score: number | null; away_score: number | null; toto_pick: string | null }>(
+      () => supabase.from("predictions").select("match_id, home_score, away_score, toto_pick"),
+    ),
     supabase.from("teams").select("code, name"),
     supabase
       .from("matches")

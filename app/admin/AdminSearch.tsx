@@ -181,7 +181,7 @@ export default function AdminSearch({ participants }: { participants: Participan
                         </span>
                       </div>
                       <div className="text-[10px] text-muted mt-1 tabular-nums hidden sm:block">
-                        {p.group_filled}/72 groep · {p.knockout_filled}/31 ko · {p.bonus_filled}/3 bonus
+                        {p.group_filled}/72 groep · {p.knockout_filled}/63 ko · {p.bonus_filled}/6 bonus
                       </div>
                     </td>
                     <td className="px-2 sm:px-3 py-3 text-right tabular-nums font-bold hidden sm:table-cell">

@@ -13,6 +13,7 @@ import {
 import { computeR32Slots } from "@/lib/bracket/cascade";
 import { BRACKET_GRAPH } from "@/lib/bracket/bracket-graph";
 import { isGroupCode, type GroupCode, type MatchId } from "@/lib/bracket/types";
+import { fetchAllRows } from "@/lib/supabase/fetchAll";
 import TodayButton from "@/app/components/TodayButton";
 
 function TeamSpan({ code, name, highlighted }: { code: string | undefined | null; name?: string; highlighted?: boolean }) {
@@ -105,9 +106,9 @@ export default async function VoorspellingDetailPage({
     // Voor 'Hoe afwijkend ben je?' sectie: alle picks van alle deelnemers
     // (exclusief test-users) om per pick te berekenen hoe mainstream/uniek 'ie is.
     { data: testProfiles },
-    { data: allPredictions },
-    { data: allBracketPicks },
-    { data: allBonusPicks },
+    allPredictions,
+    allBracketPicks,
+    allBonusPicks,
   ] = await Promise.all([
     supabase
       .from("profiles")
@@ -145,9 +146,17 @@ export default async function VoorspellingDetailPage({
       .from("profiles")
       .select("id")
       .or("department.eq.__LOADTEST__,department.eq.__SCORING_TEST__"),
-    supabase.from("predictions").select("user_id, match_id, home_score, away_score, toto_pick"),
-    supabase.from("bracket_picks").select("user_id, round, slot, team_code"),
-    supabase.from("bonus_picks").select("user_id, top_scorer, nl_top_scorer, nl_progress"),
+    // PostgREST capt op 1000 rijen/request; gebruik fetchAllRows zodat we
+    // bij ~150 deelnemers alle predictions/brackets binnenkrijgen.
+    fetchAllRows<{ user_id: string; match_id: number; home_score: number | null; away_score: number | null; toto_pick: string | null }>(
+      () => supabase.from("predictions").select("user_id, match_id, home_score, away_score, toto_pick"),
+    ),
+    fetchAllRows<{ user_id: string; round: string; slot: number; team_code: string | null }>(
+      () => supabase.from("bracket_picks").select("user_id, round, slot, team_code"),
+    ),
+    fetchAllRows<{ user_id: string; top_scorer: string | null; nl_top_scorer: string | null; nl_progress: string | null }>(
+      () => supabase.from("bonus_picks").select("user_id, top_scorer, nl_top_scorer, nl_progress"),
+    ),
   ]);
 
   if (!profile) notFound();

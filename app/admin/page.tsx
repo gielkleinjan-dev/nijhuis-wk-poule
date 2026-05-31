@@ -2,6 +2,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { isAdmin } from "@/lib/admin";
+import { fetchAllRows } from "@/lib/supabase/fetchAll";
 import AdminSearch from "./AdminSearch";
 import LockToggle from "@/app/components/LockToggle";
 import TopScorerField from "./TopScorerField";
@@ -89,9 +90,13 @@ async function updateLockAt(formData: FormData) {
   revalidatePath("/", "layout");
 }
 
+// Maxima moeten matchen met de deelnemer-view in app/invullen/layout.tsx
+// (KO_V2_ROUNDS: 24 + 8 + 16 + 8 + 4 + 2 + 1 = 63). Bonus = 6 vragen:
+// topscorer-toernooi, doelpunten-tiebreak, gele-kaarten-tiebreak,
+// NL-topscorer, NL-doelpunten, hoever-komt-NL.
 const MAX_GROUP = 72;
-const MAX_KNOCKOUT = 31;
-const MAX_BONUS = 3;
+const MAX_KNOCKOUT = 63;
+const MAX_BONUS = 6;
 const MAX_TOTAL = MAX_GROUP + MAX_KNOCKOUT + MAX_BONUS;
 
 export default async function AdminPage() {
@@ -102,11 +107,14 @@ export default async function AdminPage() {
   if (!user) redirect("/login");
   if (!isAdmin(user.email)) redirect("/ranglijst");
 
+  // predictions + bracket_picks via fetchAllRows i.v.m. PostgREST 1000-row cap
+  // (zie lib/supabase/fetchAll.ts). Bonus_picks is altijd <= n_users dus past
+  // ruim binnen 1000.
   const [
     { data: leaderboard },
     { data: profiles },
-    { data: predictions },
-    { data: brackets },
+    predictions,
+    brackets,
     { data: bonuses },
     { data: settings },
   ] = await Promise.all([
@@ -115,11 +123,11 @@ export default async function AdminPage() {
       .select("user_id, display_name, department, total_points, rank")
       .order("rank", { ascending: true }),
     supabase.from("profiles").select("id, paid"),
-    supabase.from("predictions").select("user_id"),
-    supabase.from("bracket_picks").select("user_id"),
+    fetchAllRows<{ user_id: string }>(() => supabase.from("predictions").select("user_id")),
+    fetchAllRows<{ user_id: string }>(() => supabase.from("bracket_picks").select("user_id")),
     supabase
       .from("bonus_picks")
-      .select("user_id, top_scorer, total_goals_tiebreak, total_yellow_cards_tiebreak"),
+      .select("user_id, top_scorer, total_goals_tiebreak, total_yellow_cards_tiebreak, nl_top_scorer, nl_total_goals, nl_progress"),
     supabase
       .from("settings")
       .select("lock_at, actual_top_scorer, actual_yellow_cards, actual_nl_top_scorer, actual_nl_total_goals, actual_nl_progress")
@@ -131,12 +139,12 @@ export default async function AdminPage() {
   (profiles ?? []).forEach((p) => paidById.set(p.id, !!p.paid));
 
   const groupCount = new Map<string, number>();
-  (predictions ?? []).forEach((p) =>
+  predictions.forEach((p) =>
     groupCount.set(p.user_id, (groupCount.get(p.user_id) ?? 0) + 1)
   );
 
   const knockoutCount = new Map<string, number>();
-  (brackets ?? []).forEach((b) =>
+  brackets.forEach((b) =>
     knockoutCount.set(b.user_id, (knockoutCount.get(b.user_id) ?? 0) + 1)
   );
 
@@ -146,6 +154,9 @@ export default async function AdminPage() {
     if (b.top_scorer && b.top_scorer.trim() !== "") n++;
     if (b.total_goals_tiebreak !== null && b.total_goals_tiebreak !== undefined) n++;
     if (b.total_yellow_cards_tiebreak !== null && b.total_yellow_cards_tiebreak !== undefined) n++;
+    if (b.nl_top_scorer && b.nl_top_scorer.trim() !== "") n++;
+    if (b.nl_total_goals !== null && b.nl_total_goals !== undefined) n++;
+    if (b.nl_progress && b.nl_progress !== "") n++;
     bonusCount.set(b.user_id, n);
   });
 
