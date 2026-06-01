@@ -6,6 +6,7 @@ export const DEPARTMENTS = [
   "Team Klant en Markt",
   "Team Maatwerk",
   "Team Materieeldienst",
+  "Team MT Nijhuis Rijssen",
   "Team Service en Garantie",
   "Team Trento",
   "Team Zwolle",
