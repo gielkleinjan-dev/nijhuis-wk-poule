@@ -22,7 +22,9 @@ type Sort = "rank" | "name" | "progress_asc" | "unpaid_first";
 export default function AdminSearch({ participants }: { participants: Participant[] }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
-  const [sort, setSort] = useState<Sort>("rank");
+  // Default = naam alfabetisch op voornaam. Pre-toernooi heeft niemand punten
+  // dus iedereen krijgt rank=1 — dan is "ranglijst" geen zinvolle default.
+  const [sort, setSort] = useState<Sort>("name");
   const [paidState, setPaidState] = useState<Record<string, boolean>>(() => {
     const m: Record<string, boolean> = {};
     participants.forEach((p) => (m[p.user_id] = p.paid));
@@ -83,16 +85,23 @@ export default function AdminSearch({ participants }: { participants: Participan
       )
     : participants;
 
+  // Voornaam = eerste woord van display_name. localeCompare met "nl" voor
+  // diacritics-aware sortering (André, Anne, etc. juist plaatsen).
+  const firstName = (p: Participant) =>
+    (p.display_name ?? "").trim().split(/\s+/)[0] ?? "";
+  const byFirstName = (a: Participant, b: Participant) =>
+    firstName(a).localeCompare(firstName(b), "nl", { sensitivity: "base" });
+
   const sorted = [...filtered].sort((a, b) => {
-    if (sort === "name") return a.display_name.localeCompare(b.display_name, "nl");
-    if (sort === "progress_asc") return a.progress_pct - b.progress_pct;
+    if (sort === "name") return byFirstName(a, b);
+    if (sort === "progress_asc") return a.progress_pct - b.progress_pct || byFirstName(a, b);
     if (sort === "unpaid_first") {
       const ap = paidState[a.user_id] ? 1 : 0;
       const bp = paidState[b.user_id] ? 1 : 0;
       if (ap !== bp) return ap - bp;
-      return a.rank - b.rank;
+      return byFirstName(a, b);
     }
-    return a.rank - b.rank;
+    return a.rank - b.rank || byFirstName(a, b);
   });
 
   return (
@@ -143,7 +152,7 @@ export default function AdminSearch({ participants }: { participants: Participan
                       i % 2 === 0 ? "bg-surface" : "bg-bg/30"
                     }`}
                   >
-                    <td className="px-2 sm:px-3 py-3 tabular-nums text-muted">{p.rank}</td>
+                    <td className="px-2 sm:px-3 py-3 tabular-nums text-muted">{i + 1}</td>
                     <td className="px-2 sm:px-3 py-3 font-medium">
                       {p.display_name}
                       <span className="md:hidden block text-xs text-muted">
