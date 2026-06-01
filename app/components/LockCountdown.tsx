@@ -22,7 +22,11 @@ function diff(ms: number): { d: number; h: number; m: number } {
 }
 
 function formatRemaining(d: number, h: number, m: number): string {
-  if (d > 0) return `${d} ${d === 1 ? "dag" : "dagen"} ${h} uur`;
+  // Als er dagen over zijn, alleen dagen tonen — "9 dagen 0 uur" leest
+  // misleidend (lijkt op "exact 9 dagen") terwijl er meestal nog losse
+  // minuten bij zitten t.o.v. de lock-tijd. Zodra d == 0 (laatste 24u)
+  // springt de display naar uren+min voor precisie.
+  if (d > 0) return `${d} ${d === 1 ? "dag" : "dagen"}`;
   if (h > 0) return `${h} uur ${m} min`;
   return `${m} min`;
 }
