@@ -158,13 +158,16 @@ export const PLAYERS: Player[] = [
   { name: "Sofiane Boufal", tla: "MAR" },
   { name: "Achraf Hakimi", tla: "MAR" },
 
-  // Nederland
+  // Nederland — officiële WK 2026 selectie (aanvallend middenveld, buitenspelers, spitsen)
   { name: "Memphis Depay", tla: "NED" },
   { name: "Cody Gakpo", tla: "NED" },
   { name: "Donyell Malen", tla: "NED" },
   { name: "Wout Weghorst", tla: "NED" },
   { name: "Brian Brobbey", tla: "NED" },
-  { name: "Steven Bergwijn", tla: "NED" },
+  { name: "Noa Lang", tla: "NED" },
+  { name: "Crysencio Summerville", tla: "NED" },
+  { name: "Justin Kluivert", tla: "NED" },
+  { name: "Guus Til", tla: "NED" },
 
   // Nieuw-Zeeland
   { name: "Chris Wood", tla: "NZL" },
