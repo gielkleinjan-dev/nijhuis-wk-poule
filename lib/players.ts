@@ -168,6 +168,7 @@ export const PLAYERS: Player[] = [
   { name: "Crysencio Summerville", tla: "NED" },
   { name: "Justin Kluivert", tla: "NED" },
   { name: "Guus Til", tla: "NED" },
+  { name: "Xavi Simons", tla: "NED" },
 
   // Nieuw-Zeeland
   { name: "Chris Wood", tla: "NZL" },

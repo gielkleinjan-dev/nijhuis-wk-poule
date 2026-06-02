@@ -15,19 +15,9 @@ export default function UserHeader({
     <div className="flex items-center gap-2 sm:gap-3 shrink-0">
       <div className="text-right text-xs hidden sm:block">
         <div className="font-medium">{displayName}</div>
-        {isLocked ? (
-          <div className="text-brand font-semibold">Gesloten</div>
-        ) : (
-          <div className="text-muted">
-            Sluit{" "}
-            {new Intl.DateTimeFormat("nl-NL", {
-              day: "numeric",
-              month: "short",
-              hour: "2-digit",
-              minute: "2-digit",
-            }).format(new Date(lockAt))}
-          </div>
-        )}
+        {/* Sluittijd staat al in de LockCountdown-balk bovenaan — hier weggelaten
+            om dubbele info te voorkomen (en SSR-timezone-issues: server rendered
+            in UTC waardoor hier ooit "15:00" stond i.p.v. de NL 17:00). */}
       </div>
       <LockBadge isLocked={isLocked} />
       <ThemeToggle />
