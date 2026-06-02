@@ -4,35 +4,37 @@
 export type Player = { name: string; tla: string };
 
 export const PLAYERS: Player[] = [
-  // Argentinië
+  // Argentinië — WK 2026 selectie
   { name: "Lionel Messi", tla: "ARG" },
   { name: "Julián Álvarez", tla: "ARG" },
   { name: "Lautaro Martínez", tla: "ARG" },
-  { name: "Ángel Di María", tla: "ARG" },
+  { name: "Nicolás González", tla: "ARG" },
+  { name: "Thiago Almada", tla: "ARG" },
 
   // Australië
   { name: "Mathew Leckie", tla: "AUS" },
   { name: "Martin Boyle", tla: "AUS" },
   { name: "Mitchell Duke", tla: "AUS" },
 
-  // België
+  // België — WK 2026 selectie
   { name: "Romelu Lukaku", tla: "BEL" },
-  { name: "Lois Openda", tla: "BEL" },
   { name: "Jeremy Doku", tla: "BEL" },
   { name: "Kevin De Bruyne", tla: "BEL" },
+  { name: "Leandro Trossard", tla: "BEL" },
+  { name: "Charles De Ketelaere", tla: "BEL" },
 
   // Bosnië-Herzegovina
   { name: "Edin Džeko", tla: "BIH" },
   { name: "Ermedin Demirović", tla: "BIH" },
   { name: "Sead Kolašinac", tla: "BIH" },
 
-  // Brazilië
+  // Brazilië — WK 2026 selectie (Rodrygo & G. Jesus niet in selectie)
   { name: "Vinícius Jr.", tla: "BRA" },
-  { name: "Rodrygo", tla: "BRA" },
   { name: "Raphinha", tla: "BRA" },
   { name: "Gabriel Martinelli", tla: "BRA" },
   { name: "Endrick", tla: "BRA" },
-  { name: "Gabriel Jesus", tla: "BRA" },
+  { name: "Neymar", tla: "BRA" },
+  { name: "Matheus Cunha", tla: "BRA" },
 
   // Canada
   { name: "Jonathan David", tla: "CAN" },
@@ -40,29 +42,32 @@ export const PLAYERS: Player[] = [
   { name: "Cyle Larin", tla: "CAN" },
   { name: "Tajon Buchanan", tla: "CAN" },
 
-  // Ivoorkust
-  { name: "Sébastien Haller", tla: "CIV" },
-  { name: "Wilfried Zaha", tla: "CIV" },
+  // Ivoorkust — WK 2026 selectie (Haller standby, Zaha gedropt)
   { name: "Nicolas Pépé", tla: "CIV" },
+  { name: "Ange-Yoan Bonny", tla: "CIV" },
+  { name: "Amad Diallo", tla: "CIV" },
+  { name: "Simon Adingra", tla: "CIV" },
 
   // Democratische Republiek Congo
   { name: "Cédric Bakambu", tla: "COD" },
   { name: "Yannick Carrasco", tla: "COD" },
 
-  // Colombia
+  // Colombia — WK 2026 selectie
   { name: "Luis Díaz", tla: "COL" },
   { name: "James Rodríguez", tla: "COL" },
-  { name: "Jhon Duran", tla: "COL" },
-  { name: "Rafael Santos Borré", tla: "COL" },
+  { name: "Luis Suárez", tla: "COL" },
+  { name: "Jhon Córdoba", tla: "COL" },
+  { name: "Juan Camilo Hernández", tla: "COL" },
 
   // Kaapverdië
   { name: "Gilson Tavares", tla: "CPV" },
 
-  // Kroatië
+  // Kroatië — WK 2026 selectie (Petković niet in)
   { name: "Andrej Kramarić", tla: "CRO" },
-  { name: "Bruno Petković", tla: "CRO" },
   { name: "Luka Modrić", tla: "CRO" },
   { name: "Ivan Perišić", tla: "CRO" },
+  { name: "Ante Budimir", tla: "CRO" },
+  { name: "Petar Musa", tla: "CRO" },
 
   // Curaçao
   { name: "Leandro Bacuna", tla: "CUR" },
@@ -83,27 +88,31 @@ export const PLAYERS: Player[] = [
   { name: "Omar Marmoush", tla: "EGY" },
   { name: "Mostafa Mohamed", tla: "EGY" },
 
-  // Engeland
+  // Engeland — WK 2026 selectie (Foden & Palmer gedropt door Tuchel)
   { name: "Harry Kane", tla: "ENG" },
   { name: "Jude Bellingham", tla: "ENG" },
-  { name: "Phil Foden", tla: "ENG" },
   { name: "Bukayo Saka", tla: "ENG" },
   { name: "Marcus Rashford", tla: "ENG" },
-  { name: "Cole Palmer", tla: "ENG" },
+  { name: "Ivan Toney", tla: "ENG" },
+  { name: "Ollie Watkins", tla: "ENG" },
+  { name: "Anthony Gordon", tla: "ENG" },
 
-  // Frankrijk
+  // Frankrijk — WK 2026 selectie (Griezmann niet meer in)
   { name: "Kylian Mbappé", tla: "FRA" },
-  { name: "Antoine Griezmann", tla: "FRA" },
   { name: "Ousmane Dembélé", tla: "FRA" },
   { name: "Marcus Thuram", tla: "FRA" },
   { name: "Bradley Barcola", tla: "FRA" },
+  { name: "Michael Olise", tla: "FRA" },
+  { name: "Rayan Cherki", tla: "FRA" },
+  { name: "Désiré Doué", tla: "FRA" },
 
-  // Duitsland
+  // Duitsland — WK 2026 selectie (Füllkrug niet meer in)
   { name: "Florian Wirtz", tla: "GER" },
   { name: "Jamal Musiala", tla: "GER" },
   { name: "Leroy Sané", tla: "GER" },
   { name: "Kai Havertz", tla: "GER" },
-  { name: "Niclas Füllkrug", tla: "GER" },
+  { name: "Nick Woltemade", tla: "GER" },
+  { name: "Deniz Undav", tla: "GER" },
 
   // Ghana
   { name: "Jordan Ayew", tla: "GHA" },
@@ -124,12 +133,12 @@ export const PLAYERS: Player[] = [
   { name: "Amjed Attwan", tla: "IRQ" },
   { name: "Aymen Hussein", tla: "IRQ" },
 
-  // Japan
-  { name: "Kaoru Mitoma", tla: "JPN" },
-  { name: "Takumi Minamino", tla: "JPN" },
+  // Japan — WK 2026 selectie (Mitoma & Minamino geblesseerd, vallen af)
   { name: "Ritsu Doan", tla: "JPN" },
   { name: "Keito Nakamura", tla: "JPN" },
   { name: "Ayase Ueda", tla: "JPN" },
+  { name: "Takefusa Kubo", tla: "JPN" },
+  { name: "Daizen Maeda", tla: "JPN" },
 
   // Jordanië
   { name: "Yazan Al-Naimat", tla: "JOR" },
@@ -146,17 +155,18 @@ export const PLAYERS: Player[] = [
   { name: "Firas Al-Buraikan", tla: "KSA" },
   { name: "Saleh Al-Shehri", tla: "KSA" },
 
-  // Mexico
-  { name: "Hirving Lozano", tla: "MEX" },
+  // Mexico — WK 2026 selectie (Lozano & Henry Martín niet in)
   { name: "Raúl Jiménez", tla: "MEX" },
   { name: "Santiago Giménez", tla: "MEX" },
-  { name: "Henry Martín", tla: "MEX" },
+  { name: "Alexis Vega", tla: "MEX" },
+  { name: "Julián Quiñones", tla: "MEX" },
 
-  // Marokko
-  { name: "Youssef En-Nesyri", tla: "MAR" },
-  { name: "Hakim Ziyech", tla: "MAR" },
-  { name: "Sofiane Boufal", tla: "MAR" },
+  // Marokko — WK 2026 selectie (En-Nesyri & Ziyech gedropt door Ouahbi)
   { name: "Achraf Hakimi", tla: "MAR" },
+  { name: "Brahim Díaz", tla: "MAR" },
+  { name: "Ayoub El Kaabi", tla: "MAR" },
+  { name: "Soufiane Rahimi", tla: "MAR" },
+  { name: "Abdessamad Ezzalzouli", tla: "MAR" },
 
   // Nederland — officiële WK 2026 selectie (aanvallend middenveld, buitenspelers, spitsen)
   { name: "Memphis Depay", tla: "NED" },
@@ -180,10 +190,12 @@ export const PLAYERS: Player[] = [
   { name: "Michael Gregoritsch", tla: "AUT" },
   { name: "Christoph Baumgartner", tla: "AUT" },
 
-  // Noorwegen
+  // Noorwegen — WK 2026 selectie
   { name: "Erling Haaland", tla: "NOR" },
   { name: "Martin Ødegaard", tla: "NOR" },
   { name: "Alexander Sørloth", tla: "NOR" },
+  { name: "Antonio Nusa", tla: "NOR" },
+  { name: "Jørgen Strand Larsen", tla: "NOR" },
 
   // Panama
   { name: "Rolando Blackburn", tla: "PAN" },
@@ -194,13 +206,15 @@ export const PLAYERS: Player[] = [
   { name: "Julio Enciso", tla: "PAR" },
   { name: "Antonio Sanabria", tla: "PAR" },
 
-  // Portugal
+  // Portugal — WK 2026 selectie
   { name: "Cristiano Ronaldo", tla: "POR" },
   { name: "Bruno Fernandes", tla: "POR" },
   { name: "Rafael Leão", tla: "POR" },
   { name: "João Félix", tla: "POR" },
   { name: "Bernardo Silva", tla: "POR" },
   { name: "Gonçalo Ramos", tla: "POR" },
+  { name: "Pedro Neto", tla: "POR" },
+  { name: "Francisco Conceição", tla: "POR" },
 
   // Qatar
   { name: "Akram Afif", tla: "QAT" },
@@ -212,36 +226,37 @@ export const PLAYERS: Player[] = [
   { name: "Lawrence Shankland", tla: "SCO" },
   { name: "Che Adams", tla: "SCO" },
 
-  // Senegal
+  // Senegal — WK 2026 selectie (Habib Diallo niet in)
   { name: "Sadio Mané", tla: "SEN" },
   { name: "Ismaïla Sarr", tla: "SEN" },
   { name: "Nicolas Jackson", tla: "SEN" },
-  { name: "Habib Diallo", tla: "SEN" },
+  { name: "Iliman Ndiaye", tla: "SEN" },
 
-  // Zweden
+  // Zweden — WK 2026 selectie (Kulusevski geblesseerd, Forsberg niet in)
   { name: "Viktor Gyökeres", tla: "SWE" },
   { name: "Alexander Isak", tla: "SWE" },
-  { name: "Dejan Kulusevski", tla: "SWE" },
-  { name: "Emil Forsberg", tla: "SWE" },
+  { name: "Anthony Elanga", tla: "SWE" },
 
-  // Zwitserland
+  // Zwitserland — WK 2026 selectie
   { name: "Breel Embolo", tla: "SUI" },
   { name: "Xherdan Shaqiri", tla: "SUI" },
   { name: "Ruben Vargas", tla: "SUI" },
   { name: "Dan Ndoye", tla: "SUI" },
   { name: "Zeki Amdouni", tla: "SUI" },
+  { name: "Noah Okafor", tla: "SUI" },
 
   // Zuid-Afrika
   { name: "Percy Tau", tla: "RSA" },
   { name: "Lyle Foster", tla: "RSA" },
   { name: "Evidence Makgopa", tla: "RSA" },
 
-  // Spanje
-  { name: "Álvaro Morata", tla: "ESP" },
+  // Spanje — WK 2026 selectie (Morata gedropt, geen Real-spelers)
   { name: "Lamine Yamal", tla: "ESP" },
   { name: "Nico Williams", tla: "ESP" },
   { name: "Ferran Torres", tla: "ESP" },
   { name: "Mikel Oyarzabal", tla: "ESP" },
+  { name: "Dani Olmo", tla: "ESP" },
+  { name: "Yéremy Pino", tla: "ESP" },
 
   // Tunesië
   { name: "Wahbi Khazri", tla: "TUN" },
@@ -255,17 +270,19 @@ export const PLAYERS: Player[] = [
   { name: "Baris Alper Yilmaz", tla: "TUR" },
   { name: "Burak Yılmaz", tla: "TUR" },
 
-  // Uruguay
+  // Uruguay — WK 2026 selectie (Suárez niet meer in, slechts 3 forwards)
   { name: "Darwin Núñez", tla: "URY" },
   { name: "Federico Valverde", tla: "URY" },
-  { name: "Luis Suárez", tla: "URY" },
   { name: "Rodrigo Bentancur", tla: "URY" },
+  { name: "Rodrigo Aguirre", tla: "URY" },
+  { name: "Federico Viñas", tla: "URY" },
 
-  // VS
+  // VS — WK 2026 selectie
   { name: "Christian Pulisic", tla: "USA" },
   { name: "Ricardo Pepi", tla: "USA" },
   { name: "Folarin Balogun", tla: "USA" },
   { name: "Timothy Weah", tla: "USA" },
+  { name: "Haji Wright", tla: "USA" },
 
   // Oezbekistan
   { name: "Eldor Shomurodov", tla: "UZB" },
