@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
+import { fetchAllRows } from "@/lib/supabase/fetchAll";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -16,29 +17,6 @@ const BACKUP_TABLES = [
 ] as const;
 
 const STORAGE_BUCKET = "pick-backups";
-
-// PostgREST geeft standaard max. 1000 rijen terug. predictions/bracket_picks
-// zitten daar ruim boven (duizenden rijen), dus zonder paginatie zou de backup
-// stilletjes afkappen. Haal daarom in vensters van PAGE rijen tot een venster
-// niet meer vol is.
-const PAGE = 1000;
-
-type Db = ReturnType<typeof createClient>;
-
-async function fetchAllRows(supabase: Db, table: string): Promise<unknown[]> {
-  const all: unknown[] = [];
-  for (let from = 0; ; from += PAGE) {
-    const { data, error } = await supabase
-      .from(table)
-      .select("*")
-      .range(from, from + PAGE - 1);
-    if (error) throw new Error(error.message);
-    const rows = data ?? [];
-    all.push(...rows);
-    if (rows.length < PAGE) break;
-  }
-  return all;
-}
 
 export async function GET(req: Request) {
   const cronSecret = process.env.CRON_SECRET;
@@ -82,7 +60,9 @@ export async function GET(req: Request) {
   for (const table of BACKUP_TABLES) {
     let rows: unknown[];
     try {
-      rows = await fetchAllRows(supabase, table);
+      // Paginatie via de gedeelde helper: PostgREST capt op 1000 rijen/request,
+      // en predictions/bracket_picks zitten daar ruim boven.
+      rows = await fetchAllRows<unknown>(() => supabase.from(table).select("*"));
     } catch (e) {
       errors.push({ table, error: e instanceof Error ? e.message : String(e) });
       continue;
