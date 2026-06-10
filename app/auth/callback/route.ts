@@ -1,14 +1,36 @@
-import { NextResponse } from "next/server";
-import { createSupabaseServerClient, createSupabaseServiceRoleClient } from "@/lib/supabase/server";
+import { createServerClient } from "@supabase/ssr";
+import { NextRequest, NextResponse } from "next/server";
+import { createSupabaseServiceRoleClient } from "@/lib/supabase/server";
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   const url = new URL(req.url);
   const code = url.searchParams.get("code");
   const tokenHash = url.searchParams.get("token_hash");
   const type = url.searchParams.get("type");
   const next = url.searchParams.get("next") || "/invullen";
 
-  const supabase = await createSupabaseServerClient();
+  // Bouw de success-redirect NU al — sessie-cookies worden direct op dit
+  // response-object gezet (via setAll hieronder). Een later aangemaakte
+  // NextResponse.redirect() zou die cookies NIET meekrijgen.
+  const successRedirect = NextResponse.redirect(`${url.origin}${next}`);
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    {
+      cookies: {
+        getAll: () => req.cookies.getAll(),
+        setAll: (cookiesToSet) => {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            // Schrijf naar req.cookies zodat getAll() de verse waarden teruggeeft
+            // én naar successRedirect zodat de browser ze ontvangt via Set-Cookie.
+            req.cookies.set(name, value);
+            successRedirect.cookies.set(name, value, options);
+          });
+        },
+      },
+    }
+  );
 
   if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
@@ -18,7 +40,10 @@ export async function GET(req: Request) {
       );
   } else if (tokenHash && type) {
     const { error } = await supabase.auth.verifyOtp({
-      type: type as "magiclink" | "email",
+      // type kan "recovery" zijn bij wachtwoord-reset; cast naar any om TS-smalle
+      // union te omzeilen — runtime-waarde klopt en wordt door Supabase geaccepteerd.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      type: type as any,
       token_hash: tokenHash,
     });
     if (error)
@@ -48,5 +73,5 @@ export async function GET(req: Request) {
     );
   }
 
-  return NextResponse.redirect(`${url.origin}${next}`);
+  return successRedirect;
 }
