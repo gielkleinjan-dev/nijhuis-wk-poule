@@ -2,7 +2,7 @@ export const DEPARTMENTS = [
   "Team Administratie & Secretariaat",
   "Team Centraal",
   "Team Enschede",
-  "Team Familie leden",
+  "Team Familieleden",
   "Team Klant en Markt",
   "Team Maatwerk",
   "Team Materieeldienst",

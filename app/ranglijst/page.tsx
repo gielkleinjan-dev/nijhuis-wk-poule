@@ -24,7 +24,7 @@ export default async function RanglijstPage({
   const [{ data: leaderboard }, { data: settings }, { data: teamSnapshots }] = await Promise.all([
     supabase
       .from("leaderboard")
-      .select("user_id, display_name, department, total_points, rank, rank_prev")
+      .select("user_id, display_name, department, secondary_department, total_points, rank, rank_prev")
       .order("rank", { ascending: true }),
     supabase.from("settings").select("lock_at").eq("id", 1).single(),
     supabase
@@ -35,13 +35,18 @@ export default async function RanglijstPage({
 
   const rows = leaderboard ?? [];
 
+  // Teamleiders kunnen in 2 teams meetellen (department + secondary_department).
+  // inTeam() checkt of een rij bij een team hoort, ongeacht welke van de twee.
+  const inTeam = (r: { department: string | null; secondary_department: string | null }, dep: string) =>
+    r.department === dep || r.secondary_department === dep;
+
   const filtered = afdeling
-    ? rows.filter((r) => r.department === afdeling)
+    ? rows.filter((r) => inTeam(r, afdeling))
     : rows;
 
-  // Team standings: average points per member who signed up with a department
+  // Team standings: average points per member. Dual-team leden tellen in beide teams mee.
   const teamStandings = DEPARTMENTS.map((dep) => {
-    const members = rows.filter((r) => r.department === dep);
+    const members = rows.filter((r) => inTeam(r, dep));
     const totalPoints = members.reduce((s, r) => s + (r.total_points ?? 0), 0);
     const avg = members.length > 0 ? totalPoints / members.length : 0;
     return { dep, count: members.length, totalPoints, avg };
@@ -49,7 +54,8 @@ export default async function RanglijstPage({
     .filter((t) => t.count > 0)
     .sort((a, b) => b.avg - a.avg || b.totalPoints - a.totalPoints);
 
-  const myDep = rows.find((r) => r.user_id === user.id)?.department;
+  const me = rows.find((r) => r.user_id === user.id);
+  const myDeps = [me?.department, me?.secondary_department].filter(Boolean) as string[];
 
   // Individual movement: delta = rank_prev - rank (positive = climbed)
   const withDelta = rows.map((r) => ({
@@ -169,7 +175,7 @@ export default async function RanglijstPage({
           {/* ── Individueel table ── row 2 col 1 */}
           <div className="order-2 lg:order-3 space-y-4">
             <div className="bg-surface border border-border rounded-lg overflow-hidden">
-              {withDelta.filter((r) => !afdeling || r.department === afdeling).length === 0 ? (
+              {withDelta.filter((r) => !afdeling || inTeam(r, afdeling)).length === 0 ? (
                 <p className="p-6 text-muted text-sm text-center">
                   Geen deelnemers gevonden.
                 </p>
@@ -185,7 +191,7 @@ export default async function RanglijstPage({
                     </tr>
                   </thead>
                   <tbody>
-                    {withDelta.filter((r) => !afdeling || r.department === afdeling).map((row, i) => {
+                    {withDelta.filter((r) => !afdeling || inTeam(r, afdeling)).map((row, i) => {
                       const isMe = row.user_id === user.id;
                       const d = row.delta;
                       return (
@@ -217,7 +223,7 @@ export default async function RanglijstPage({
                             </span>
                           </td>
                           <td className="px-4 py-3 text-muted hidden sm:table-cell text-xs">
-                            {row.department ?? "—"}
+                            {[row.department, row.secondary_department].filter(Boolean).join(" · ") || "—"}
                           </td>
                           {hasMovement && (
                             <td className="px-3 py-3 text-center tabular-nums text-xs font-semibold">
@@ -272,7 +278,7 @@ export default async function RanglijstPage({
                   </thead>
                   <tbody>
                     {teamStandingsWithDelta.map((t, i) => {
-                      const isMyTeam = t.dep === myDep;
+                      const isMyTeam = myDeps.includes(t.dep);
                       const d = t.delta;
                       return (
                         <tr
