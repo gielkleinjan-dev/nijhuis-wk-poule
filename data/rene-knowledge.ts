@@ -4,10 +4,11 @@
 // Dit is de "kennis" die Rene gebruikt om de poule in te vullen. Eén plek voor
 // alle bookmaker-input zodat hij snel ge-update kan worden als de odds wijzigen.
 //
-// Bron (mei 2026):
-//   • Outright kampioens-odds: ESPN futures-tabel (synced van DraftKings)
-//     https://www.espn.com/espn/betting/story/_/id/48386952
-//   • Topscorer-markt: FOX Sports / RotoWire (Mbappé +600 favoriet)
+// Bron (mei 2026, ververst 10 juni 2026 — lock-dag):
+//   • Outright kampioens-odds: ESPN / FOX Sports futures, stand 10 juni 2026
+//     ESP +450 · FRA +475 · ENG +700 · BRA/ARG +900 · POR +850 (opgeschoven)
+//     https://www.foxsports.com/stories/soccer/world-cup-2026-champion-odds
+//   • Topscorer-markt: FOX Sports (Mbappé +600 favoriet, Kane +700)
 //   • Groepsindeling: officiële FIFA-loting van 5 dec 2025 (Wikipedia)
 //
 // Update-procedure (als de odds bewegen):
@@ -21,7 +22,7 @@
 
 /**
  * Decimal odds om kampioen te worden (lager = grotere favoriet).
- * Bron: ESPN futures-tabel mei 2026.
+ * Bron: ESPN / FOX Sports futures, ververst 10 juni 2026 (lock-dag).
  *
  * Conversie American → decimal:
  *   +500 → 6.0       +650 → 7.5       +800 → 9.0       +850 → 9.5
@@ -31,9 +32,9 @@
  */
 export const RENE_CHAMPION_ODDS: Record<string, number> = {
   // Top-favorieten
-  ESP: 6.0, FRA: 6.0, ENG: 7.5, BRA: 9.0, ARG: 9.5,
+  ESP: 5.5, FRA: 5.75, ENG: 8.0, BRA: 10.0, ARG: 10.0,
   // Tweede tier
-  POR: 12.0, GER: 15.0, NED: 21.0, NOR: 31.0, BEL: 36.0,
+  POR: 9.5, GER: 15.0, NED: 21.0, NOR: 31.0, BEL: 36.0,
   // Derde tier (outsiders)
   COL: 41.0, MAR: 51.0, JPN: 51.0, USA: 61.0, URY: 66.0,
   MEX: 76.0, SUI: 81.0, CRO: 81.0, ECU: 91.0, TUR: 101.0, SWE: 101.0,
