@@ -17,7 +17,8 @@
     "beat:johan": "tsx scripts/beat-the-system.ts johan",
     "beat:rene": "tsx scripts/beat-the-system.ts rene",
     "beat:both": "tsx scripts/beat-the-system.ts both",
-    "beat:cleanup": "tsx scripts/beat-the-system.ts cleanup"
+    "beat:cleanup": "tsx scripts/beat-the-system.ts cleanup",
+    "fill-giel": "tsx scripts/fill-giel.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.3",
