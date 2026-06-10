@@ -39,6 +39,7 @@ import {
 } from "../lib/bracket/bracket-graph";
 import type { GroupCode, MatchId } from "../lib/bracket/types";
 import { GROUP_CODES, isGroupCode } from "../lib/bracket/types";
+import { fetchAllRows } from "../lib/supabase/fetchAll";
 
 for (const file of [".env.local", ".env"]) {
   if (existsSync(file)) {
@@ -160,10 +161,21 @@ async function seedJohan(userId: string, dryRun: boolean) {
   }
 
   // ── Predictions (groepsfase): per match, modal home_score + away_score + toto
-  const { data: allPred } = await supabase
-    .from("predictions")
-    .select("user_id, match_id, home_score, away_score, toto_pick")
-    .in("user_id", realIds);
+  // Paginatie via fetchAllRows: PostgREST capt op 1000 rijen/request, en
+  // predictions zit met 72×deelnemers ruim daarboven (~6800 rijen). Zonder dit
+  // aggregeert Johan maar ~13 deelnemers i.p.v. het hele veld → verkeerde modus.
+  const allPred = await fetchAllRows<{
+    user_id: string;
+    match_id: number;
+    home_score: number | null;
+    away_score: number | null;
+    toto_pick: string | null;
+  }>(() =>
+    supabase
+      .from("predictions")
+      .select("user_id, match_id, home_score, away_score, toto_pick")
+      .in("user_id", realIds),
+  );
   const byMatch = new Map<number, Array<{ home: number; away: number; toto: string | null }>>();
   for (const p of allPred ?? []) {
     if (p.home_score == null || p.away_score == null) continue;
@@ -184,10 +196,18 @@ async function seedJohan(userId: string, dryRun: boolean) {
   console.log(`  Groepsfase: ${predRows.length} modale predictions`);
 
   // ── Bracket-picks: per (round, slot), modale team_code
-  const { data: allBracket } = await supabase
-    .from("bracket_picks")
-    .select("user_id, round, slot, team_code")
-    .in("user_id", realIds);
+  // Idem: bracket_picks = 63×deelnemers (~5700 rijen) → ook pagineren.
+  const allBracket = await fetchAllRows<{
+    user_id: string;
+    round: string;
+    slot: number;
+    team_code: string | null;
+  }>(() =>
+    supabase
+      .from("bracket_picks")
+      .select("user_id, round, slot, team_code")
+      .in("user_id", realIds),
+  );
   const byBracketSlot = new Map<string, string[]>();
   for (const b of allBracket ?? []) {
     if (!b.team_code) continue;
@@ -196,13 +216,28 @@ async function seedJohan(userId: string, dryRun: boolean) {
     byBracketSlot.get(key)!.push(b.team_code);
   }
   const bracketRows: Array<{ user_id: string; round: string; slot: number; team_code: string }> = [];
+  // BEST_THIRDS apart verzamelen: het WK26-format laat precies 8 van de 12
+  // derde plekken door. Als we hier per slot blind de modus pakken, krijgt
+  // Johan alle ~11 groepen mét genoeg stemmen → te veel. We kappen af op de 8
+  // group-slots met de meeste stemmen (count), net als elke echte deelnemer
+  // (die er allemaal exact 8 invult).
+  const thirdsCandidates: Array<{ slot: number; team_code: string; count: number }> = [];
   for (const [key, codes] of byBracketSlot) {
     const modalCode = mode(codes);
     if (!modalCode) continue;
     const [round, slotStr] = key.split("|");
+    if (round === "BEST_THIRDS") {
+      thirdsCandidates.push({ slot: Number(slotStr), team_code: modalCode, count: codes.length });
+      continue;
+    }
     bracketRows.push({ user_id: userId, round, slot: Number(slotStr), team_code: modalCode });
   }
-  console.log(`  Knock-out: ${bracketRows.length} modale bracket-picks`);
+  // Top-8 best-derden op consensus (count desc, dan slot asc voor determinisme)
+  thirdsCandidates.sort((a, b) => b.count - a.count || a.slot - b.slot);
+  for (const t of thirdsCandidates.slice(0, 8)) {
+    bracketRows.push({ user_id: userId, round: "BEST_THIRDS", slot: t.slot, team_code: t.team_code });
+  }
+  console.log(`  Knock-out: ${bracketRows.length} modale bracket-picks (waarvan ${Math.min(thirdsCandidates.length, 8)} best-derden, ${thirdsCandidates.length} kandidaten)`);
 
   // ── Bonus
   const { data: allBonus } = await supabase
