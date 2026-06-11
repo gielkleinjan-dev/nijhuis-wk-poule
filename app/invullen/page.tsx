@@ -100,38 +100,49 @@ export default async function InvullenPage() {
     <div className="space-y-6">
       {/* ── Collega-voorspellingen actieve wedstrijd ── */}
       {isLocked && activeMatch && colleagueRows.length > 0 && (
-        <div className="bg-surface border border-border rounded-lg p-5 space-y-3">
-          <div className="flex items-start justify-between gap-3 flex-wrap">
-            <div>
-              <div className="flex items-center gap-1.5 font-semibold flex-wrap">
-                {activeMatch.status === "LIVE" && (
-                  <span className="inline-flex items-center gap-1 text-xs bg-red-100 text-red-600 border border-red-200 rounded-full px-2 py-0.5 font-semibold">
-                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                    Live
+        <div className="bg-surface border border-border rounded-lg p-4 sm:p-5 space-y-3">
+          {/* Wedstrijd-header — zelfde layout als match-rijen eronder */}
+          <div>
+            <div className="text-[10px] text-muted uppercase tracking-wide mb-2 flex items-center gap-1.5">
+              {activeMatch.status === "LIVE" && (
+                <span className="inline-flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                  <span className="text-red-600 font-semibold">Live</span>
+                  <span className="text-muted">·</span>
+                </span>
+              )}
+              <span>{fmt(activeMatch.kickoff_at)}</span>
+            </div>
+            {/* Thuis | score/vs | Uit — gelijk aan match-rijen */}
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="flex items-center justify-end gap-1 flex-1 min-w-0">
+                <span className="font-semibold text-sm truncate text-right leading-tight">
+                  {teams.get(activeMatch.home_team ?? "") ?? activeMatch.home_team ?? "?"}
+                </span>
+                <span className="flag-emoji text-lg leading-none shrink-0" aria-hidden>
+                  {flagEmoji(activeMatch.home_team ?? "")}
+                </span>
+              </div>
+              <div className="shrink-0 text-center w-10 sm:w-14">
+                {activeMatch.status === "FINISHED" &&
+                activeMatch.home_score != null &&
+                activeMatch.away_score != null ? (
+                  <span className="font-bold tabular-nums text-pitch text-base">
+                    {activeMatch.home_score}–{activeMatch.away_score}
                   </span>
-                )}
-                {activeMatch.home_team && (
-                  <span className="flag-emoji" aria-hidden>{flagEmoji(activeMatch.home_team)}</span>
-                )}
-                <span>{teams.get(activeMatch.home_team ?? "") ?? activeMatch.home_team ?? "?"}</span>
-                <span className="text-muted font-normal">vs</span>
-                <span>{teams.get(activeMatch.away_team ?? "") ?? activeMatch.away_team ?? "?"}</span>
-                {activeMatch.away_team && (
-                  <span className="flag-emoji" aria-hidden>{flagEmoji(activeMatch.away_team)}</span>
+                ) : (
+                  <span className="text-muted text-sm font-normal">vs</span>
                 )}
               </div>
-              <div className="text-xs text-muted mt-0.5">{fmt(activeMatch.kickoff_at)}</div>
+              <div className="flex items-center gap-1 flex-1 min-w-0">
+                <span className="flag-emoji text-lg leading-none shrink-0" aria-hidden>
+                  {flagEmoji(activeMatch.away_team ?? "")}
+                </span>
+                <span className="font-semibold text-sm truncate leading-tight">
+                  {teams.get(activeMatch.away_team ?? "") ?? activeMatch.away_team ?? "?"}
+                </span>
+              </div>
             </div>
-            {activeMatch.status === "FINISHED" &&
-              activeMatch.home_score != null &&
-              activeMatch.away_score != null && (
-                <div className="text-right shrink-0">
-                  <div className="text-xl font-bold tabular-nums text-pitch">
-                    {activeMatch.home_score}–{activeMatch.away_score}
-                  </div>
-                  <div className="text-[10px] text-muted">eindstand</div>
-                </div>
-              )}
           </div>
           <ActiveMatchWidget
             rows={colleagueRows}
