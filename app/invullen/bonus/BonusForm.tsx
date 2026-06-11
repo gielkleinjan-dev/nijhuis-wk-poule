@@ -286,11 +286,6 @@ export default function BonusForm({
         </p>
       </div>
 
-      {isLocked && (
-        <div className="bg-brand-soft border border-brand/20 rounded-lg p-4 text-sm">
-          De poule is gesloten — je voorspellingen zijn vastgezet.
-        </div>
-      )}
 
       <TopScorerSection
         label="Topscorer van het toernooi"

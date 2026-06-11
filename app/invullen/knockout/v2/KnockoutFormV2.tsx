@@ -106,11 +106,6 @@ export default function KnockoutFormV2({
         </div>
       </div>
 
-      {isLocked && (
-        <div className="bg-brand-soft border border-brand/20 rounded-lg p-4 text-sm">
-          De poule is gesloten — je voorspellingen zijn vastgezet.
-        </div>
-      )}
 
       <div className="text-xs h-5 flex justify-end px-1">
         <SaveStatusBadge saveStates={s.saveStates} />

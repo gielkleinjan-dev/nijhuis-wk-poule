@@ -189,11 +189,6 @@ export default function GroupStageForm({
         </p>
       </div>
 
-      {isLocked && (
-        <div className="bg-brand-soft border border-brand/20 rounded-lg p-4 text-sm">
-          De poule is gesloten — je voorspellingen zijn vastgezet.
-        </div>
-      )}
 
       {grouped.map(([group, ms]) => {
         const groupFilled = ms.filter((m) => isFilled(predictions[m.id])).length;
