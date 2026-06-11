@@ -242,45 +242,17 @@ export default async function UitslagenPage() {
 
         {/* ── Actieve wedstrijd — collega-voorspellingen ── */}
         {isLocked && activeMatch && colleagueRows.length > 0 && (
-          <div className="bg-surface border border-border rounded-lg p-5 space-y-3">
-            <div className="flex items-start justify-between gap-3 flex-wrap">
-              <div>
-                <div className="flex items-center gap-1.5 font-semibold flex-wrap">
-                  {activeMatch.status === "LIVE" && (
-                    <span className="inline-flex items-center gap-1 text-xs bg-red-100 text-red-600 border border-red-200 rounded-full px-2 py-0.5 font-semibold">
-                      <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                      Live
-                    </span>
-                  )}
-                  {activeMatch.home_team && (
-                    <span className="flag-emoji" aria-hidden>{flagEmoji(activeMatch.home_team)}</span>
-                  )}
-                  <span>{teamName.get(activeMatch.home_team ?? "") ?? activeMatch.home_team ?? "?"}</span>
-                  <span className="text-muted font-normal">vs</span>
-                  <span>{teamName.get(activeMatch.away_team ?? "") ?? activeMatch.away_team ?? "?"}</span>
-                  {activeMatch.away_team && (
-                    <span className="flag-emoji" aria-hidden>{flagEmoji(activeMatch.away_team)}</span>
-                  )}
-                </div>
-                <div className="text-xs text-muted mt-0.5 capitalize">
-                  {fmt(activeMatch.kickoff_at)}
-                </div>
-              </div>
-              {activeMatch.status === "FINISHED" &&
-                activeMatch.home_score != null &&
-                activeMatch.away_score != null && (
-                  <div className="text-right shrink-0">
-                    <div className="text-xl font-bold tabular-nums text-pitch">
-                      {activeMatch.home_score}–{activeMatch.away_score}
-                    </div>
-                    <div className="text-[10px] text-muted">eindstand</div>
-                  </div>
-                )}
-            </div>
+          <div className="bg-surface border border-border rounded-lg px-4 py-3">
             <ActiveMatchWidget
               rows={colleagueRows}
               actualHomeScore={activeMatch.home_score ?? null}
               actualAwayScore={activeMatch.away_score ?? null}
+              homeName={teamName.get(activeMatch.home_team ?? "") ?? activeMatch.home_team ?? "?"}
+              homeCode={activeMatch.home_team ?? ""}
+              awayName={teamName.get(activeMatch.away_team ?? "") ?? activeMatch.away_team ?? "?"}
+              awayCode={activeMatch.away_team ?? ""}
+              kickoffAt={activeMatch.kickoff_at}
+              isLive={activeMatch.status === "LIVE"}
             />
           </div>
         )}

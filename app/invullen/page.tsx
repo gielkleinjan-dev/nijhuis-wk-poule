@@ -1,7 +1,6 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import GroupStageForm, { type Match, type Prediction } from "./GroupStageForm";
 import ActiveMatchWidget from "@/app/components/ActiveMatchWidget";
-import { flagEmoji } from "@/lib/flags";
 
 export default async function InvullenPage() {
   const supabase = await createSupabaseServerClient();
@@ -91,63 +90,21 @@ export default async function InvullenPage() {
     })
     .filter((r) => r.homePred !== null || r.awayPred !== null);
 
-  const fmt = (kickoff: string) =>
-    new Intl.DateTimeFormat("nl-NL", {
-      weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
-    }).format(new Date(kickoff));
-
   return (
     <div className="space-y-6">
       {/* ── Collega-voorspellingen actieve wedstrijd ── */}
       {isLocked && activeMatch && colleagueRows.length > 0 && (
-        <div className="bg-surface border border-border rounded-lg p-4 sm:p-5 space-y-3">
-          {/* Wedstrijd-header — zelfde layout als match-rijen eronder */}
-          <div>
-            <div className="text-[10px] text-muted uppercase tracking-wide mb-2 flex items-center gap-1.5">
-              {activeMatch.status === "LIVE" && (
-                <span className="inline-flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                  <span className="text-red-600 font-semibold">Live</span>
-                  <span className="text-muted">·</span>
-                </span>
-              )}
-              <span>{fmt(activeMatch.kickoff_at)}</span>
-            </div>
-            {/* Thuis | score/vs | Uit — gelijk aan match-rijen */}
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="flex items-center justify-end gap-1 flex-1 min-w-0">
-                <span className="font-semibold text-sm truncate text-right leading-tight">
-                  {teams.get(activeMatch.home_team ?? "") ?? activeMatch.home_team ?? "?"}
-                </span>
-                <span className="flag-emoji text-lg leading-none shrink-0" aria-hidden>
-                  {flagEmoji(activeMatch.home_team ?? "")}
-                </span>
-              </div>
-              <div className="shrink-0 text-center w-10 sm:w-14">
-                {activeMatch.status === "FINISHED" &&
-                activeMatch.home_score != null &&
-                activeMatch.away_score != null ? (
-                  <span className="font-bold tabular-nums text-pitch text-base">
-                    {activeMatch.home_score}–{activeMatch.away_score}
-                  </span>
-                ) : (
-                  <span className="text-muted text-sm font-normal">vs</span>
-                )}
-              </div>
-              <div className="flex items-center gap-1 flex-1 min-w-0">
-                <span className="flag-emoji text-lg leading-none shrink-0" aria-hidden>
-                  {flagEmoji(activeMatch.away_team ?? "")}
-                </span>
-                <span className="font-semibold text-sm truncate leading-tight">
-                  {teams.get(activeMatch.away_team ?? "") ?? activeMatch.away_team ?? "?"}
-                </span>
-              </div>
-            </div>
-          </div>
+        <div className="bg-surface border border-border rounded-lg px-4 py-3">
           <ActiveMatchWidget
             rows={colleagueRows}
             actualHomeScore={activeMatch.home_score ?? null}
             actualAwayScore={activeMatch.away_score ?? null}
+            homeName={teams.get(activeMatch.home_team ?? "") ?? activeMatch.home_team ?? "?"}
+            homeCode={activeMatch.home_team ?? ""}
+            awayName={teams.get(activeMatch.away_team ?? "") ?? activeMatch.away_team ?? "?"}
+            awayCode={activeMatch.away_team ?? ""}
+            kickoffAt={activeMatch.kickoff_at}
+            isLive={activeMatch.status === "LIVE"}
           />
         </div>
       )}
