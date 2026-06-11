@@ -97,7 +97,7 @@ export default async function InvullenLayout({
           />
         </div>
       </header>
-      <ProgressBar sections={sections} />
+      <ProgressBar sections={sections} isLocked={isLocked} />
       <InvullenNav isAdmin={userIsAdmin} isLocked={isLocked} lockAt={lockAt} />
       <div className="mx-auto max-w-4xl px-4 sm:px-6 py-6 sm:py-8">{children}</div>
     </main>

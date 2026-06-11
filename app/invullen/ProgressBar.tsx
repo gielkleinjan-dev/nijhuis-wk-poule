@@ -2,7 +2,13 @@
 
 type Section = { label: string; filled: number; total: number };
 
-export default function ProgressBar({ sections }: { sections: Section[] }) {
+export default function ProgressBar({
+  sections,
+  isLocked,
+}: {
+  sections: Section[];
+  isLocked?: boolean;
+}) {
   const allDone = sections.every((s) => s.filled >= s.total);
 
   return (
@@ -30,7 +36,7 @@ export default function ProgressBar({ sections }: { sections: Section[] }) {
             </div>
           );
         })}
-        {allDone && (
+        {allDone && !isLocked && (
           <span className="text-xs font-semibold text-pitch shrink-0 self-center">
             Alles ingevuld 🎉
           </span>

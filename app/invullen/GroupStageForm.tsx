@@ -169,7 +169,7 @@ export default function GroupStageForm({
               <div className="text-xl font-bold tabular-nums">
                 {filledCount}<span className="text-sm text-muted font-normal">/{matches.length}</span>
               </div>
-              <div className="text-[10px] text-muted">ingevuld</div>
+              <div className="text-[10px] text-muted">{isLocked ? "voorspeld" : "ingevuld"}</div>
             </div>
           </div>
         </div>
@@ -184,9 +184,11 @@ export default function GroupStageForm({
           <span className="bg-pitch-soft text-pitch px-1.5 py-0.5 rounded font-semibold">1 pt</span>
           <span className="text-muted self-center">toto goed · max 5 pt</span>
         </div>
-        <p className="mt-1.5 text-xs text-muted">
-          De toto volgt automatisch uit je uitslag, maar je kunt 'm ook handmatig kiezen — bijvoorbeeld als je een gelijkspel verwacht maar voor de zekerheid op winst gokt.
-        </p>
+        {!isLocked && (
+          <p className="mt-1.5 text-xs text-muted">
+            De toto volgt automatisch uit je uitslag, maar je kunt 'm ook handmatig kiezen — bijvoorbeeld als je een gelijkspel verwacht maar voor de zekerheid op winst gokt.
+          </p>
+        )}
       </div>
 
 
