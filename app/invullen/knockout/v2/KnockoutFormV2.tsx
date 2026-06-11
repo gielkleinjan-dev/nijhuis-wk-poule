@@ -107,9 +107,11 @@ export default function KnockoutFormV2({
       </div>
 
 
-      <div className="text-xs h-5 flex justify-end px-1">
-        <SaveStatusBadge saveStates={s.saveStates} />
-      </div>
+      {!isLocked && (
+        <div className="text-xs h-5 flex justify-end px-1">
+          <SaveStatusBadge saveStates={s.saveStates} />
+        </div>
+      )}
 
       {s.toast && (
         <div className="fixed top-4 right-4 z-40 max-w-sm bg-yellow-50 border border-yellow-300 text-yellow-800 rounded-md px-3 py-2 text-xs shadow-lg flex items-start gap-2">

@@ -357,9 +357,11 @@ export default function BonusForm({
         onChange={(v) => patch("nl_progress", v)}
       />
 
-      <div className="text-sm h-5 flex justify-end">
-        <SaveStatusBadge saveStates={{ bonus: saveState }} />
-      </div>
+      {!isLocked && (
+        <div className="text-sm h-5 flex justify-end">
+          <SaveStatusBadge saveStates={{ bonus: saveState }} />
+        </div>
+      )}
     </div>
   );
 }
