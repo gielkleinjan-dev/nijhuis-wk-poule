@@ -26,6 +26,7 @@ import MainNav from "@/app/components/MainNav";
 import BrandLogo from "@/app/components/BrandLogo";
 import LockCountdown from "@/app/components/LockCountdown";
 import TodayButton from "@/app/components/TodayButton";
+import Link from "next/link";
 
 function PtsChip({ pts, label }: { pts: number; label?: string }) {
   const color =
@@ -229,6 +230,14 @@ export default async function UitslagenPage() {
                             <span className="flag-emoji" aria-hidden>{flagEmoji(m.away_team ?? "")}</span>
                           </div>
                           <div className="text-xs text-muted mt-0.5">{fmt(m.kickoff_at)}</div>
+                          {isLocked && (
+                            <Link
+                              href={`/voorspellingen/wedstrijd/${m.id}`}
+                              className="inline-flex items-center gap-1 text-xs text-brand hover:underline mt-1"
+                            >
+                              👥 Bekijk collega&apos;s
+                            </Link>
+                          )}
                         </td>
                         <td className="px-4 py-3 text-center tabular-nums font-bold">
                           {finished ? (
