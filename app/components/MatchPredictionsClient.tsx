@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { DEPARTMENTS } from "@/lib/departments";
 import Link from "next/link";
 
@@ -36,6 +36,16 @@ export default function MatchPredictionsClient({
   const [search, setSearch] = useState("");
   const [teamFilter, setTeamFilter] = useState<string | null>(null);
   const [sortMode, setSortMode] = useState<SortMode>("score");
+  const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
+
+  const toggleGroup = useCallback((key: string) => {
+    setOpenGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }, []);
 
   const filtered = useMemo(() => {
     let result = rows;
@@ -162,67 +172,69 @@ export default function MatchPredictionsClient({
 
       {/* Gesorteerd op uitslag → gegroepeerde weergave */}
       {sortMode === "score" && grouped ? (
-        <div className="space-y-3">
+        <div className="bg-surface border border-border rounded-lg overflow-hidden divide-y divide-border">
           {grouped.map(([scoreLabel, members]) => {
             const isCorrect = hasActual && scoreLabel === actualLabel;
+            const isOpen = openGroups.has(scoreLabel);
             return (
-              <div
-                key={scoreLabel}
-                className="bg-surface border border-border rounded-lg overflow-hidden"
-              >
-                <div
-                  className={`px-4 py-2.5 border-b border-border flex items-center justify-between ${
-                    isCorrect
-                      ? "bg-pitch/10 border-pitch/30"
-                      : "bg-bg/50"
+              <div key={scoreLabel}>
+                {/* Klikbare header — altijd zichtbaar */}
+                <button
+                  type="button"
+                  onClick={() => toggleGroup(scoreLabel)}
+                  className={`w-full px-4 py-3 flex items-center justify-between gap-3 text-left transition hover:bg-bg/60 ${
+                    isCorrect ? "bg-pitch/10" : "bg-bg/30"
                   }`}
                 >
-                  <span
-                    className={`font-bold tabular-nums text-lg ${
-                      isCorrect ? "text-pitch" : ""
-                    }`}
-                  >
-                    {scoreLabel}
+                  <span className="flex items-center gap-2">
+                    <span className={`font-bold tabular-nums text-base ${isCorrect ? "text-pitch" : ""}`}>
+                      {scoreLabel}
+                    </span>
                     {isCorrect && (
-                      <span className="ml-2 text-[11px] font-normal text-pitch align-middle">
-                        ✓ juiste uitslag
-                      </span>
+                      <span className="text-[11px] font-normal text-pitch">✓</span>
                     )}
                   </span>
-                  <span className="text-sm font-semibold text-muted">
-                    {members.length}×
+                  <span className="flex items-center gap-2 shrink-0">
+                    <span className="text-sm font-semibold text-muted tabular-nums">
+                      {members.length}×
+                    </span>
+                    <span className="text-muted text-xs">{isOpen ? "▲" : "▼"}</span>
                   </span>
-                </div>
-                <ul className="divide-y divide-border">
-                  {members.map((r) => {
-                    const toto = deriveToto(r);
-                    return (
-                      <li
-                        key={r.userId}
-                        className="px-4 py-2.5 flex items-center justify-between gap-3"
-                      >
-                        <div className="min-w-0">
-                          <Link
-                            href={`/voorspellingen/${r.userId}`}
-                            className="font-medium text-sm hover:text-brand transition"
-                          >
-                            {r.displayName}
-                          </Link>
-                          <div className="text-xs text-muted truncate">
-                            {[r.department, r.secondaryDepartment]
-                              .filter(Boolean)
-                              .join(" · ") || "—"}
+                </button>
+
+                {/* Ingeklapte namen */}
+                {isOpen && (
+                  <ul className="divide-y divide-border border-t border-border">
+                    {members.map((r) => {
+                      const toto = deriveToto(r);
+                      return (
+                        <li
+                          key={r.userId}
+                          className="px-4 py-2.5 flex items-center justify-between gap-3 bg-surface"
+                        >
+                          <div className="min-w-0">
+                            <Link
+                              href={`/voorspellingen/${r.userId}`}
+                              className="font-medium text-sm hover:text-brand transition"
+                            >
+                              {r.displayName}
+                            </Link>
+                            <div className="text-xs text-muted truncate">
+                              {[r.department, r.secondaryDepartment]
+                                .filter(Boolean)
+                                .join(" · ") || "—"}
+                            </div>
                           </div>
-                        </div>
-                        {toto && (
-                          <span className="shrink-0 inline-block bg-brand text-white rounded px-1.5 py-0.5 text-xs font-bold">
-                            {toto}
-                          </span>
-                        )}
-                      </li>
-                    );
-                  })}
-                </ul>
+                          {toto && (
+                            <span className="shrink-0 inline-block bg-brand text-white rounded px-1.5 py-0.5 text-xs font-bold">
+                              {toto}
+                            </span>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
               </div>
             );
           })}
