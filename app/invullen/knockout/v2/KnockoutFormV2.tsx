@@ -80,20 +80,29 @@ export default function KnockoutFormV2({
             </div>
           </div>
         </div>
-        <div className="text-sm text-muted space-y-2">
-          <p>
-            In drie stappen voorspel je het knock-out schema. Elke volgende stap opent zodra
-            de vorige klaar is.
-          </p>
-          <p>
-            <span className="font-medium text-fg">Stap 1 en 2</span> bepalen welke 32 landen
-            aan jouw knock-out beginnen — de nummer 1 en 2 per poule en jouw 8 beste nummers 3.
-            Daarop bouwen we automatisch jouw persoonlijke schema. Daarvoor krijg je nog geen punten.
-          </p>
-          <p>
-            <span className="font-medium text-fg">Stap 3</span> is waar je punten verdient:
-            kies per wedstrijd wie wint. Goed gegokt op de juiste plek levert de volle punten op.
-          </p>
+        <div className="text-sm text-muted">
+          {isLocked ? (
+            <p>
+              Jouw vastgezette knock-out picks. Gebruik de tabs hieronder om te bladeren —{" "}
+              <span className="font-medium text-fg">Winnaars per wedstrijd</span> is waar je punten voor verdient.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              <p>
+                In drie stappen voorspel je het knock-out schema. Elke volgende stap opent zodra
+                de vorige klaar is.
+              </p>
+              <p>
+                <span className="font-medium text-fg">Stap 1 en 2</span> bepalen welke 32 landen
+                aan jouw knock-out beginnen — de nummer 1 en 2 per poule en jouw 8 beste nummers 3.
+                Daarop bouwen we automatisch jouw persoonlijke schema. Daarvoor krijg je nog geen punten.
+              </p>
+              <p>
+                <span className="font-medium text-fg">Stap 3</span> is waar je punten verdient:
+                kies per wedstrijd wie wint. Goed gegokt op de juiste plek levert de volle punten op.
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -115,6 +124,7 @@ export default function KnockoutFormV2({
 
       {/* Visuele stappen-indicator met cijfers, voortgangsverbinder en status */}
       <StepProgress
+        isLocked={isLocked}
         steps={[
           { num: 1, label: "Top 2 per poule",         shortLabel: "Top 2",    count: s.phaseACount,   total: 24, complete: s.phaseAComplete, active: activePhase === "A" },
           { num: 2, label: "Beste nummers 3",         shortLabel: "Beste 3e", count: s.phaseB.size,   total: 8,  complete: s.phaseBComplete, active: activePhase === "B", locked: !s.phaseAComplete },
@@ -136,14 +146,16 @@ export default function KnockoutFormV2({
               title="Top 2 per poule"
               subtitle="Wijs per poule de nummer 1 en de nummer 2 aan. Samen 24 landen."
             />
-            <div className="px-3 pt-3">
-              <OnboardingTip id="ko-step-a">
-                <strong>Tip:</strong> tik op een land — eerste tik wordt jouw
-                <strong> nummer 1</strong> (donkergroen), tweede tik wordt
-                <strong> nummer 2</strong> (lichter groen). Nogmaals tikken
-                op een gemarkeerd land wist de keuze.
-              </OnboardingTip>
-            </div>
+            {!isLocked && (
+              <div className="px-3 pt-3">
+                <OnboardingTip id="ko-step-a">
+                  <strong>Tip:</strong> tik op een land — eerste tik wordt jouw
+                  <strong> nummer 1</strong> (donkergroen), tweede tik wordt
+                  <strong> nummer 2</strong> (lichter groen). Nogmaals tikken
+                  op een gemarkeerd land wist de keuze.
+                </OnboardingTip>
+              </div>
+            )}
             <PhaseAPicker
               teamsByGroup={teamsByGroup}
               phaseA={s.phaseA}
@@ -160,15 +172,17 @@ export default function KnockoutFormV2({
               title="Beste nummers 3"
               subtitle="Niet elke nummer 3 plaatst zich — alleen de 8 beste. Markeer in welke 8 poules dat lukt."
             />
-            <div className="px-3 pt-3">
-              <OnboardingTip id="ko-step-b">
-                <strong>Tip:</strong> tik op een land om 'm te markeren als
-                jouw nummer 3 — hij krijgt een oranje <strong>3e</strong>-badge.
-                Nogmaals tikken wist de markering. In elke poule staan twee
-                kandidaten klikbaar; de andere twee zijn jouw 1 en 2 uit
-                stap 1.
-              </OnboardingTip>
-            </div>
+            {!isLocked && (
+              <div className="px-3 pt-3">
+                <OnboardingTip id="ko-step-b">
+                  <strong>Tip:</strong> tik op een land om 'm te markeren als
+                  jouw nummer 3 — hij krijgt een oranje <strong>3e</strong>-badge.
+                  Nogmaals tikken wist de markering. In elke poule staan twee
+                  kandidaten klikbaar; de andere twee zijn jouw 1 en 2 uit
+                  stap 1.
+                </OnboardingTip>
+              </div>
+            )}
             <PhaseBPicker
               teamsByGroup={teamsByGroup}
               phaseA={s.phaseA}
@@ -183,21 +197,27 @@ export default function KnockoutFormV2({
             <StepHeader
               num={3}
               title="Winnaars per wedstrijd"
-              subtitle="Hieronder staat jouw persoonlijke knock-out schema, opgebouwd uit stap 1 en 2. Kies per wedstrijd wie wint — dit is waar je punten voor verdient. Eigenwijs? Extra spreiding? Je kunt je automatische schema op alle plaatsen aanpassen door een ander land te selecteren."
+              subtitle={isLocked
+                ? "Jouw persoonlijke knock-out schema — vastgezet. Hier verdien je punten."
+                : "Hieronder staat jouw persoonlijke knock-out schema, opgebouwd uit stap 1 en 2. Kies per wedstrijd wie wint — dit is waar je punten voor verdient. Eigenwijs? Extra spreiding? Je kunt je automatische schema op alle plaatsen aanpassen door een ander land te selecteren."}
               legend={[
                 { sw: "bg-pitch", text: "winnaar van de wedstrijd" },
                 { sw: "bg-pitch-soft border border-pitch/40", text: "ander land op deze plek gezet" },
-                { ico: "▾", text: "kies een ander land voor deze plek" },
-                { ico: "↺", text: "wis deze keuze" },
+                ...(!isLocked ? [
+                  { ico: "▾", text: "kies een ander land voor deze plek" } as LegendItem,
+                  { ico: "↺", text: "wis deze keuze" } as LegendItem,
+                ] : []),
               ]}
             />
             <div className="p-3 space-y-3">
-              <OnboardingTip id="ko-step-c">
-                <strong>Tip:</strong> tik op een land om 'm als winnaar te
-                kiezen — wordt donkergroen. Wil je een ander land op die
-                plek? Klik op het <strong>pijltje ▾</strong> en kies. De
-                <strong> ↺</strong> wist je keuze.
-              </OnboardingTip>
+              {!isLocked && (
+                <OnboardingTip id="ko-step-c">
+                  <strong>Tip:</strong> tik op een land om 'm als winnaar te
+                  kiezen — wordt donkergroen. Wil je een ander land op die
+                  plek? Klik op het <strong>pijltje ▾</strong> en kies. De
+                  <strong> ↺</strong> wist je keuze.
+                </OnboardingTip>
+              )}
               <BracketBuilder
                 phaseA={s.phaseA}
                 phaseB={s.phaseB}
@@ -267,7 +287,46 @@ type Step = {
   locked?: boolean;
 };
 
-function StepProgress({ steps, onSelect }: { steps: Step[]; onSelect: (num: 1 | 2 | 3) => void }) {
+function StepProgress({
+  steps,
+  onSelect,
+  isLocked,
+}: {
+  steps: Step[];
+  onSelect: (num: 1 | 2 | 3) => void;
+  isLocked?: boolean;
+}) {
+  if (isLocked) {
+    // Locked: toon als simpele navigatie-tabs zonder stap-framing
+    return (
+      <div className="bg-surface border border-border rounded-lg p-3 sm:p-4">
+        <div className="flex items-center gap-2">
+          {steps.map((step) => (
+            <button
+              key={step.num}
+              type="button"
+              onClick={() => onSelect(step.num)}
+              className={`flex-1 min-w-0 px-3 py-2 rounded-md border transition text-center ${
+                step.active
+                  ? "border-brand bg-brand-soft text-brand"
+                  : "border-border bg-bg hover:border-brand/50 text-muted hover:text-fg"
+              }`}
+            >
+              <div className={`text-xs font-semibold truncate`}>
+                <span className="sm:hidden">{step.shortLabel}</span>
+                <span className="hidden sm:inline">{step.label}</span>
+              </div>
+              <div className="text-[10px] tabular-nums mt-0.5 opacity-70">
+                {step.count}/{step.total} ✓
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Niet-locked: originele stappen-weergave
   return (
     <div className="bg-surface border border-border rounded-lg p-3 sm:p-4">
       <div className="flex items-center gap-1 sm:gap-2">
