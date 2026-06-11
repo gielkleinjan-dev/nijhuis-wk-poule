@@ -9,6 +9,8 @@ export default function ProgressBar({
   sections: Section[];
   isLocked?: boolean;
 }) {
+  if (isLocked) return null;
+
   const allDone = sections.every((s) => s.filled >= s.total);
 
   return (
