@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const BASE_TABS = [
-  { href: "/invullen", label: "Invullen" },
+  { href: "/invullen", label: "Mijn poule" },
   { href: "/ranglijst", label: "Ranglijst" },
 ];
 

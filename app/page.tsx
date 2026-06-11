@@ -58,8 +58,9 @@ export default async function HomePage() {
               <span className="text-trophy">WK Poule</span>
             </h1>
             <p className="text-base sm:text-lg text-white/90 max-w-xl mb-8">
-              104 wedstrijden, 48 landen, één toernooi. Voorspel alles vooraf
-              en volg live wie er bij Nijhuis bovenaan klimt.
+              {isLocked
+                ? "Het toernooi is begonnen. Bekijk jouw ingevulde poule, volg de stand en zie hoe collega's het doen."
+                : "104 wedstrijden, 48 landen, één toernooi. Voorspel alles vooraf en volg live wie er bij Nijhuis bovenaan klimt."}
             </p>
             {user ? (
               <div className="flex flex-wrap gap-3">
@@ -67,7 +68,7 @@ export default async function HomePage() {
                   href="/invullen"
                   className="px-7 py-4 bg-white text-brand rounded-xl font-bold text-base shadow-lg hover:bg-trophy-soft transition"
                 >
-                  Vul je voorspelling in →
+                  {isLocked ? "Mijn poule →" : "Vul je voorspelling in →"}
                 </Link>
                 <Link
                   href="/ranglijst"
@@ -81,7 +82,7 @@ export default async function HomePage() {
                 href="/login"
                 className="inline-block px-7 py-4 bg-white text-brand rounded-xl font-bold text-base shadow-lg hover:bg-trophy-soft transition"
               >
-                Doe mee →
+                Inloggen →
               </Link>
             )}
           </div>
@@ -109,9 +110,19 @@ export default async function HomePage() {
         </div>
 
         <div className="bg-surface border border-border rounded-2xl p-6 sm:p-8 grid sm:grid-cols-3 gap-6">
-          <Feature emoji="📝" title="Ineens invullen" text="Groepsfase, knock-out én bonusvragen. Met dynamisch knock-out schema op basis van jouw beste nummers 3." />
-          <Feature emoji="⚡" title="Automatische puntentelling" text="Elke ochtend worden de uitslagen en punten bijgewerkt." />
-          <Feature emoji="📈" title="Stijgers & dalers" text="Pijltjes per deelnemer en team — zie wie het hardst klimt of daalt." />
+          {isLocked ? (
+            <>
+              <Feature emoji="📋" title="Jouw poule" text="Bekijk jouw ingevulde uitslagen, knock-out picks en bonusvragen — en hoeveel punten je al hebt." />
+              <Feature emoji="⚡" title="Automatische puntentelling" text="Elke ochtend worden de uitslagen en punten bijgewerkt." />
+              <Feature emoji="📈" title="Stijgers & dalers" text="Pijltjes per deelnemer en team — zie wie het hardst klimt of daalt." />
+            </>
+          ) : (
+            <>
+              <Feature emoji="📝" title="Ineens invullen" text="Groepsfase, knock-out én bonusvragen. Met dynamisch knock-out schema op basis van jouw beste nummers 3." />
+              <Feature emoji="⚡" title="Automatische puntentelling" text="Elke ochtend worden de uitslagen en punten bijgewerkt." />
+              <Feature emoji="📈" title="Stijgers & dalers" text="Pijltjes per deelnemer en team — zie wie het hardst klimt of daalt." />
+            </>
+          )}
         </div>
       </section>
 
@@ -128,8 +139,9 @@ export default async function HomePage() {
               <span className="text-[#11c38b]">Verover</span> de bouwplaats.
             </h1>
             <p className="text-base sm:text-lg text-white/80 max-w-xl mb-8">
-              104 wedstrijden. 16 stadions. 1 winnaar in jouw kantoor. Voorspel
-              alles vooraf, volg je stand live tijdens het toernooi.
+              {isLocked
+                ? "Het toernooi is begonnen. Bekijk jouw poule, volg de stand en zie hoe collega's het doen."
+                : "104 wedstrijden. 16 stadions. 1 winnaar in jouw kantoor. Voorspel alles vooraf, volg je stand live tijdens het toernooi."}
             </p>
             {user ? (
               <div className="flex flex-wrap gap-3">
@@ -137,7 +149,7 @@ export default async function HomePage() {
                   href="/invullen"
                   className="px-7 py-4 bg-brand text-white rounded-xl font-bold text-base shadow-lg hover:bg-brand-dark transition"
                 >
-                  Vul je voorspelling in →
+                  {isLocked ? "Mijn poule →" : "Vul je voorspelling in →"}
                 </Link>
                 <Link
                   href="/ranglijst"
@@ -151,7 +163,7 @@ export default async function HomePage() {
                 href="/login"
                 className="inline-block px-7 py-4 bg-brand text-white rounded-xl font-bold text-base shadow-lg hover:bg-brand-dark transition"
               >
-                Doe mee →
+                Inloggen →
               </Link>
             )}
           </div>
@@ -179,9 +191,19 @@ export default async function HomePage() {
         </div>
 
         <div className="bg-surface border border-border rounded-2xl p-6 sm:p-8 grid sm:grid-cols-3 gap-6">
-          <ScoritoStat icon="📝" title="Ineens invullen" text="Groepsfase, knock-out én bonusvragen. Met dynamisch knock-out schema op basis van jouw beste nummers 3." />
-          <ScoritoStat icon="⚡" title="Automatische puntentelling" text="Elke ochtend worden de uitslagen en punten bijgewerkt." />
-          <ScoritoStat icon="📈" title="Stijgers & dalers" text="Pijltjes per deelnemer en team — zie wie het hardst klimt of daalt." />
+          {isLocked ? (
+            <>
+              <ScoritoStat icon="📋" title="Jouw poule" text="Bekijk jouw ingevulde uitslagen, knock-out picks en bonusvragen — en hoeveel punten je al hebt." />
+              <ScoritoStat icon="⚡" title="Automatische puntentelling" text="Elke ochtend worden de uitslagen en punten bijgewerkt." />
+              <ScoritoStat icon="📈" title="Stijgers & dalers" text="Pijltjes per deelnemer en team — zie wie het hardst klimt of daalt." />
+            </>
+          ) : (
+            <>
+              <ScoritoStat icon="📝" title="Ineens invullen" text="Groepsfase, knock-out én bonusvragen. Met dynamisch knock-out schema op basis van jouw beste nummers 3." />
+              <ScoritoStat icon="⚡" title="Automatische puntentelling" text="Elke ochtend worden de uitslagen en punten bijgewerkt." />
+              <ScoritoStat icon="📈" title="Stijgers & dalers" text="Pijltjes per deelnemer en team — zie wie het hardst klimt of daalt." />
+            </>
+          )}
         </div>
       </section>
     </main>
