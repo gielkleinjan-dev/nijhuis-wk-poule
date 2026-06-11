@@ -26,7 +26,7 @@ import MainNav from "@/app/components/MainNav";
 import BrandLogo from "@/app/components/BrandLogo";
 import LockCountdown from "@/app/components/LockCountdown";
 import TodayButton from "@/app/components/TodayButton";
-import Link from "next/link";
+import ActiveMatchWidget from "@/app/components/ActiveMatchWidget";
 
 function PtsChip({ pts, label }: { pts: number; label?: string }) {
   const color =
@@ -76,6 +76,62 @@ export default async function UitslagenPage() {
   const lockAt = settings?.lock_at ?? "2026-06-10T15:00:00Z";
   const isLocked = new Date(lockAt) <= new Date();
   const userIsAdmin = isAdmin(user.email);
+
+  // ── Actieve wedstrijd: eerste LIVE, anders eerste SCHEDULED op datum ───────
+  const allMatches = matchesRaw ?? [];
+  const activeMatch =
+    allMatches.find((m) => m.status === "LIVE") ??
+    allMatches
+      .filter((m) => m.status !== "FINISHED")
+      .sort(
+        (a, b) =>
+          new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime()
+      )[0] ??
+    null;
+
+  // Haal alle voorspellingen voor de actieve wedstrijd op (+ profielen),
+  // maar alleen als de poule gesloten is (anders mag je andermans voorspelling
+  // nog niet zien).
+  const [{ data: activePredsRaw }, { data: profilesRaw }] =
+    isLocked && activeMatch
+      ? await Promise.all([
+          supabase
+            .from("predictions")
+            .select("user_id, home_score, away_score, toto_pick")
+            .eq("match_id", activeMatch.id),
+          supabase
+            .from("profiles")
+            .select("id, display_name, department, secondary_department"),
+        ])
+      : [{ data: null }, { data: null }];
+
+  // Bouw rijen: alleen deelnemers met een ingevulde voorspelling voor dit duel
+  const profileMap = new Map(
+    (profilesRaw ?? [])
+      .filter(
+        (p) =>
+          p.department !== "__LOADTEST__" &&
+          p.department !== "__SCORING_TEST__"
+      )
+      .map((p) => [p.id, p])
+  );
+  const activePredMap = new Map(
+    (activePredsRaw ?? []).map((p) => [p.user_id, p])
+  );
+  const colleagueRows = Array.from(profileMap.values())
+    .map((p) => {
+      const pred = activePredMap.get(p.id);
+      return {
+        userId: p.id,
+        displayName: p.display_name ?? "Onbekend",
+        department: p.department ?? null,
+        secondaryDepartment: p.secondary_department ?? null,
+        homePred: pred?.home_score ?? null,
+        awayPred: pred?.away_score ?? null,
+        totoPick: pred?.toto_pick ?? null,
+      };
+    })
+    .filter((r) => r.homePred !== null || r.awayPred !== null);
 
   // ── Teams map for display
   const { data: teamsRaw } = await supabase.from("teams").select("code, name");
@@ -184,6 +240,51 @@ export default async function UitslagenPage() {
           </div>
         </div>
 
+        {/* ── Actieve wedstrijd — collega-voorspellingen ── */}
+        {isLocked && activeMatch && colleagueRows.length > 0 && (
+          <div className="bg-surface border border-border rounded-lg p-5 space-y-3">
+            <div className="flex items-start justify-between gap-3 flex-wrap">
+              <div>
+                <div className="flex items-center gap-1.5 font-semibold flex-wrap">
+                  {activeMatch.status === "LIVE" && (
+                    <span className="inline-flex items-center gap-1 text-xs bg-red-100 text-red-600 border border-red-200 rounded-full px-2 py-0.5 font-semibold">
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                      Live
+                    </span>
+                  )}
+                  {activeMatch.home_team && (
+                    <span className="flag-emoji" aria-hidden>{flagEmoji(activeMatch.home_team)}</span>
+                  )}
+                  <span>{teamName.get(activeMatch.home_team ?? "") ?? activeMatch.home_team ?? "?"}</span>
+                  <span className="text-muted font-normal">vs</span>
+                  <span>{teamName.get(activeMatch.away_team ?? "") ?? activeMatch.away_team ?? "?"}</span>
+                  {activeMatch.away_team && (
+                    <span className="flag-emoji" aria-hidden>{flagEmoji(activeMatch.away_team)}</span>
+                  )}
+                </div>
+                <div className="text-xs text-muted mt-0.5 capitalize">
+                  {fmt(activeMatch.kickoff_at)}
+                </div>
+              </div>
+              {activeMatch.status === "FINISHED" &&
+                activeMatch.home_score != null &&
+                activeMatch.away_score != null && (
+                  <div className="text-right shrink-0">
+                    <div className="text-xl font-bold tabular-nums text-pitch">
+                      {activeMatch.home_score}–{activeMatch.away_score}
+                    </div>
+                    <div className="text-[10px] text-muted">eindstand</div>
+                  </div>
+                )}
+            </div>
+            <ActiveMatchWidget
+              rows={colleagueRows}
+              actualHomeScore={activeMatch.home_score ?? null}
+              actualAwayScore={activeMatch.away_score ?? null}
+            />
+          </div>
+        )}
+
         {/* ── Groepsfase ── */}
         <section className="space-y-4">
           <div className="flex items-center justify-between">
@@ -230,14 +331,6 @@ export default async function UitslagenPage() {
                             <span className="flag-emoji" aria-hidden>{flagEmoji(m.away_team ?? "")}</span>
                           </div>
                           <div className="text-xs text-muted mt-0.5">{fmt(m.kickoff_at)}</div>
-                          {isLocked && (
-                            <Link
-                              href={`/voorspellingen/wedstrijd/${m.id}`}
-                              className="inline-flex items-center gap-1 text-xs text-brand hover:underline mt-1"
-                            >
-                              👥 Bekijk collega&apos;s
-                            </Link>
-                          )}
                         </td>
                         <td className="px-4 py-3 text-center tabular-nums font-bold">
                           {finished ? (

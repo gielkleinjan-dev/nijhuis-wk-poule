@@ -2,7 +2,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { flagEmoji } from "@/lib/flags";
 import Link from "next/link";
-import MatchPredictionsClient from "./MatchPredictionsClient";
+import MatchPredictionsClient from "@/app/components/MatchPredictionsClient";
 
 export default async function WedstrijdVoorspellingenPage({
   params,
