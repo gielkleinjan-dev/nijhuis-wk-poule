@@ -39,6 +39,21 @@ export type MatchUpdate = {
   away_team: string | null;
 };
 
+// football-data.org gebruikt soms een andere 3-letter code dan onze teams.code.
+// Onze teams.code is de bron van waarheid (gebruikers-picks, matches, bracket
+// verwijzen ernaar). Normaliseer de API-TLA bij ingest, anders faalt de
+// foreign-key op matches.home_team/away_team en wordt de héle update-batch
+// afgewezen (één onbekende code blokkeert alle uitslagen).
+//   Curaçao: API = CUW, onze DB = CUR.
+const TLA_ALIASES: Record<string, string> = {
+  CUW: "CUR",
+};
+
+function normalizeTla(tla: string | null): string | null {
+  if (!tla) return null;
+  return TLA_ALIASES[tla] ?? tla;
+}
+
 export async function fetchWcMatches(apiKey: string): Promise<FootballDataMatch[]> {
   const res = await fetch(API_URL, {
     headers: { "X-Auth-Token": apiKey },
@@ -58,8 +73,8 @@ export function toMatchUpdates(matches: FootballDataMatch[]): MatchUpdate[] {
     home_score: m.score.fullTime.home,
     away_score: m.score.fullTime.away,
     status: m.status,
-    home_team: m.homeTeam.tla,
-    away_team: m.awayTeam.tla,
+    home_team: normalizeTla(m.homeTeam.tla),
+    away_team: normalizeTla(m.awayTeam.tla),
   }));
 }
 
@@ -76,8 +91,8 @@ export function buildWinnerMap(
     const internalId = externalIdToInternal.get(m.id);
     if (!internalId) continue;
     const w = m.score.winner;
-    if (w === "HOME_TEAM" && m.homeTeam.tla) winners.set(internalId, m.homeTeam.tla);
-    else if (w === "AWAY_TEAM" && m.awayTeam.tla) winners.set(internalId, m.awayTeam.tla);
+    if (w === "HOME_TEAM" && m.homeTeam.tla) winners.set(internalId, normalizeTla(m.homeTeam.tla)!);
+    else if (w === "AWAY_TEAM" && m.awayTeam.tla) winners.set(internalId, normalizeTla(m.awayTeam.tla)!);
     // DRAW or null → no winner recorded (group stage or data missing).
   }
   return winners;
