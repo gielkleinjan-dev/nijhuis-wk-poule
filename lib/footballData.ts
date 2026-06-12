@@ -68,14 +68,23 @@ export async function fetchWcMatches(apiKey: string): Promise<FootballDataMatch[
 }
 
 export function toMatchUpdates(matches: FootballDataMatch[]): MatchUpdate[] {
-  return matches.map((m) => ({
-    external_id: m.id,
-    home_score: m.score.fullTime.home,
-    away_score: m.score.fullTime.away,
-    status: m.status,
-    home_team: normalizeTla(m.homeTeam.tla),
-    away_team: normalizeTla(m.awayTeam.tla),
-  }));
+  return matches.map((m) => {
+    // Alleen een DEFINITIEVE uitslag wegschrijven. Tijdens de wedstrijd geeft
+    // football-data de live-tussenstand in score.fullTime — die willen we niet
+    // tonen en er niet op scoren. Pas bij FINISHED slaan we de score op. Punten
+    // worden sowieso alleen voor FINISHED-wedstrijden berekend (zie lib/scoring),
+    // dus zo lopen weergave en puntentelling gelijk. De cron-RPC gebruikt
+    // coalesce, dus null laat een eventuele bestaande waarde ongemoeid.
+    const isFinal = m.status === "FINISHED";
+    return {
+      external_id: m.id,
+      home_score: isFinal ? m.score.fullTime.home : null,
+      away_score: isFinal ? m.score.fullTime.away : null,
+      status: m.status,
+      home_team: normalizeTla(m.homeTeam.tla),
+      away_team: normalizeTla(m.awayTeam.tla),
+    };
+  });
 }
 
 // Build a winner map for knockout scoring. Uses score.winner (which respects

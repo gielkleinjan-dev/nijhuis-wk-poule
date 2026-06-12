@@ -130,8 +130,8 @@ export default async function InvullenPage() {
             <div key={m.id} className="bg-surface border border-border rounded-lg px-4 py-3">
               <ActiveMatchWidget
                 rows={rows}
-                actualHomeScore={m.home_score ?? null}
-                actualAwayScore={m.away_score ?? null}
+                actualHomeScore={m.status === "FINISHED" ? (m.home_score ?? null) : null}
+                actualAwayScore={m.status === "FINISHED" ? (m.away_score ?? null) : null}
                 homeName={teams.get(m.home_team ?? "") ?? m.home_team ?? "?"}
                 homeCode={m.home_team ?? ""}
                 awayName={teams.get(m.away_team ?? "") ?? m.away_team ?? "?"}
