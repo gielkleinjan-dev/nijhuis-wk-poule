@@ -149,7 +149,7 @@ export default async function RanglijstPage({
             <h1 className="text-2xl font-bold mb-1">Individueel klassement</h1>
             <p className="text-sm text-muted">
               {tournamentStarted
-                ? `${rows.length} deelnemers · punten worden elke 10 minuten bijgewerkt`
+                ? `${rows.length} deelnemers · punten worden automatisch bijgewerkt`
                 : `${rows.length} deelnemers · punten worden bijgewerkt zodra het toernooi begint`}
             </p>
             {hasMovement && (
