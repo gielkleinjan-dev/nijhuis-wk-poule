@@ -7,6 +7,7 @@ import MainNav from "@/app/components/MainNav";
 import BrandLogo from "@/app/components/BrandLogo";
 import UserHeader from "@/app/components/UserHeader";
 import LockCountdown from "@/app/components/LockCountdown";
+import IndividualLeaderboard from "./IndividualLeaderboard";
 
 export default async function RanglijstPage({
   searchParams,
@@ -174,85 +175,23 @@ export default async function RanglijstPage({
 
           {/* ── Individueel table ── row 2 col 1 */}
           <div className="order-2 lg:order-3 space-y-4">
-            <div className="bg-surface border border-border rounded-lg overflow-hidden">
-              {withDelta.filter((r) => !afdeling || inTeam(r, afdeling)).length === 0 ? (
-                <p className="p-6 text-muted text-sm text-center">
-                  Geen deelnemers gevonden.
-                </p>
-              ) : (
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-border bg-bg/50 text-left text-xs font-semibold text-muted uppercase tracking-wide">
-                      <th className="px-2 sm:px-4 py-3 w-10 sm:w-12">#</th>
-                      <th className="px-2 sm:px-4 py-3">Naam</th>
-                      <th className="px-4 py-3 hidden md:table-cell">Team</th>
-                      {hasMovement && <th className="px-2 sm:px-3 py-3 text-center w-10 sm:w-14">+/−</th>}
-                      <th className="px-2 sm:px-4 py-3 text-right">Punten</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {withDelta.filter((r) => !afdeling || inTeam(r, afdeling)).map((row, i) => {
-                      const isMe = row.user_id === user.id;
-                      const d = row.delta;
-                      return (
-                        <tr
-                          key={row.user_id}
-                          className={`border-b border-border last:border-0 transition ${
-                            isMe ? "bg-brand-soft" : i % 2 === 0 ? "bg-surface" : "bg-bg/30"
-                          }`}
-                        >
-                          <td className="px-4 py-3 tabular-nums font-medium">
-                            {row.rank === 1 && !afdeling ? (
-                              <span className="text-lg">🥇</span>
-                            ) : row.rank === 2 && !afdeling ? (
-                              <span className="text-lg">🥈</span>
-                            ) : row.rank === 3 && !afdeling ? (
-                              <span className="text-lg">🥉</span>
-                            ) : (
-                              <span className={isMe ? "text-brand font-bold" : "text-muted"}>
-                                {row.rank}
-                              </span>
-                            )}
-                          </td>
-                          <td className="px-4 py-3 font-medium">
-                            <span className="inline-flex items-center gap-1.5 flex-wrap">
-                              <Link
-                                href={`/voorspellingen/${row.user_id}`}
-                                className="hover:text-brand hover:underline underline-offset-2 transition"
-                              >
-                                {row.display_name}
-                              </Link>
-                              {isMe && <span className="text-xs text-brand font-normal">(jij)</span>}
-                              {rocketMap.has(row.user_id) && <span title="Stijger">{"🚀".repeat(rocketMap.get(row.user_id)!)}</span>}
-                              {chuteMap.has(row.user_id)  && <span title="Daler">{"🪂".repeat(chuteMap.get(row.user_id)!)}</span>}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-muted hidden sm:table-cell text-xs">
-                            {[row.department, row.secondary_department].filter(Boolean).join(" · ") || "—"}
-                          </td>
-                          {hasMovement && (
-                            <td className="px-3 py-3 text-center tabular-nums text-xs font-semibold">
-                              {d == null ? (
-                                <span className="text-muted">—</span>
-                              ) : d > 0 ? (
-                                <span className="text-green-600">▲{d}</span>
-                              ) : d < 0 ? (
-                                <span className="text-brand">▼{Math.abs(d)}</span>
-                              ) : (
-                                <span className="text-blue-400">=</span>
-                              )}
-                            </td>
-                          )}
-                          <td className="px-4 py-3 text-right tabular-nums font-bold">
-                            {row.total_points}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              )}
-            </div>
+            <IndividualLeaderboard
+              showMedals={!afdeling}
+              hasMovement={hasMovement}
+              rows={withDelta
+                .filter((r) => !afdeling || inTeam(r, afdeling))
+                .map((row) => ({
+                  userId: row.user_id,
+                  rank: row.rank,
+                  displayName: row.display_name,
+                  depLabel: [row.department, row.secondary_department].filter(Boolean).join(" · ") || "—",
+                  totalPoints: row.total_points ?? 0,
+                  delta: row.delta,
+                  isMe: row.user_id === user.id,
+                  rockets: rocketMap.get(row.user_id) ?? 0,
+                  chutes: chuteMap.get(row.user_id) ?? 0,
+                }))}
+            />
 
             {afdeling && (
               <p className="text-sm text-muted text-center">
