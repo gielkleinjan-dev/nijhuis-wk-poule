@@ -1,6 +1,5 @@
 {
   "crons": [
-    { "path": "/api/cron/fetch-results", "schedule": "30 4 * * *" },
     { "path": "/api/cron/backup", "schedule": "0 3 * * *" }
   ]
 }
