@@ -216,7 +216,12 @@ export default async function RanglijstPage({
                           </td>
                           <td className="px-4 py-3 font-medium">
                             <span className="inline-flex items-center gap-1.5 flex-wrap">
-                              {row.display_name}
+                              <Link
+                                href={`/voorspellingen/${row.user_id}`}
+                                className="hover:text-brand hover:underline underline-offset-2 transition"
+                              >
+                                {row.display_name}
+                              </Link>
                               {isMe && <span className="text-xs text-brand font-normal">(jij)</span>}
                               {rocketMap.has(row.user_id) && <span title="Stijger">{"🚀".repeat(rocketMap.get(row.user_id)!)}</span>}
                               {chuteMap.has(row.user_id)  && <span title="Daler">{"🪂".repeat(chuteMap.get(row.user_id)!)}</span>}
