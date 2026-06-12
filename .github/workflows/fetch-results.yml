@@ -1,0 +1,44 @@
+name: Fetch results
+
+# Roept het bestaande Vercel-endpoint /api/cron/fetch-results aan zodat
+# uitslagen + punten meerdere keren per dag worden bijgewerkt (elke 10 min),
+# i.p.v. de Vercel Hobby-limiet van 1x per dag. Draait gratis omdat de repo
+# publiek is. Het endpoint is goedkoop als er niets veranderd is (het
+# herberekent alleen punten wanneer een wedstrijduitslag wijzigt).
+
+on:
+  schedule:
+    # Elke 10 minuten, dag en nacht. GitHub-cron is in UTC en kan onder
+    # drukte een paar minuten vertraagd worden — prima voor dit doel.
+    - cron: "*/10 * * * *"
+  # Handmatig draaien vanuit het Actions-tabblad (handige testknop).
+  workflow_dispatch:
+
+# Voorkom dat trage/overlappende runs zich opstapelen.
+concurrency:
+  group: fetch-results
+  cancel-in-progress: false
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call fetch-results endpoint
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "::error::CRON_SECRET secret ontbreekt — voeg 'm toe in Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+          response=$(curl -s -w "\n%{http_code}" -m 90 \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            "https://nijhuis-wk-poule.vercel.app/api/cron/fetch-results")
+          body=$(echo "$response" | sed '$d')
+          status=$(echo "$response" | tail -n1)
+          echo "HTTP $status"
+          echo "Response: $body"
+          if [ "$status" != "200" ]; then
+            echo "::error::fetch-results gaf HTTP $status terug"
+            exit 1
+          fi
