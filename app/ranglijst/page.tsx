@@ -141,7 +141,7 @@ export default async function RanglijstPage({
           tables in row 2 — so the tables always start at the same Y.
           On mobile (flex-col) we use order-* to keep each column together.
         */}
-        <div className="flex flex-col lg:grid lg:grid-cols-[1fr_16rem] gap-6">
+        <div className="flex flex-col lg:grid lg:grid-cols-[1fr_17rem] gap-6">
 
           {/* ── Individueel header ── row 1 col 1 */}
           <div className="order-1 tab-hero bg-surface border border-border rounded-lg p-5">
@@ -270,10 +270,10 @@ export default async function RanglijstPage({
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border bg-bg/50 text-left text-xs font-semibold text-muted uppercase tracking-wide">
-                      <th className="px-4 py-3 w-8">#</th>
-                      <th className="px-4 py-3">Team</th>
-                      {hasTeamMovement && <th className="px-2 py-3 text-center w-10">+/−</th>}
-                      <th className="px-4 py-3 text-right">Gem.</th>
+                      <th className="px-3 py-3 w-8">#</th>
+                      <th className="px-3 py-3">Team</th>
+                      {hasTeamMovement && <th className="px-2 py-3 text-center w-10 whitespace-nowrap">+/−</th>}
+                      <th className="px-3 py-3 text-right whitespace-nowrap">Gem.</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -287,7 +287,7 @@ export default async function RanglijstPage({
                             isMyTeam ? "bg-brand-soft" : i % 2 === 0 ? "bg-surface" : "bg-bg/30"
                           }`}
                         >
-                          <td className="px-4 py-3 tabular-nums font-medium">
+                          <td className="px-3 py-3 tabular-nums font-medium">
                             {i === 0 ? (
                               <span className="text-lg">🥇</span>
                             ) : i === 1 ? (
@@ -298,7 +298,7 @@ export default async function RanglijstPage({
                               <span className="text-muted">{i + 1}</span>
                             )}
                           </td>
-                          <td className="px-4 py-3 font-medium text-sm leading-tight">
+                          <td className="px-3 py-3 font-medium text-sm leading-tight">
                             <span className="inline-flex items-center gap-1 flex-wrap">
                               {t.dep.replace("Team ", "")}
                               {isMyTeam && <span className="text-xs text-brand font-normal">(jij)</span>}
@@ -320,7 +320,7 @@ export default async function RanglijstPage({
                               )}
                             </td>
                           )}
-                          <td className="px-4 py-3 text-right tabular-nums font-bold">
+                          <td className="px-3 py-3 text-right tabular-nums font-bold whitespace-nowrap">
                             {t.avg.toFixed(1)}
                           </td>
                         </tr>
