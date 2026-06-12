@@ -48,8 +48,8 @@ export default function ActiveMatchWidget({
     <div>
       {/* Regel 1: thuis | score/vs | uit — altijd eigen rij, volledige breedte */}
       <div className="flex items-center gap-1">
-        <div className="flex items-center justify-end gap-1.5 flex-1 min-w-0">
-          <span className="font-semibold text-sm truncate text-right">{homeName}</span>
+        <div className="flex items-center justify-start gap-1.5 flex-1 min-w-0">
+          <span className="font-semibold text-sm truncate text-left">{homeName}</span>
           <span className="flag-emoji text-lg leading-none shrink-0" aria-hidden>{flagEmoji(homeCode)}</span>
         </div>
         <div className="shrink-0 text-center w-10 sm:w-14">
@@ -59,9 +59,9 @@ export default function ActiveMatchWidget({
             <span className="text-muted text-sm">vs</span>
           )}
         </div>
-        <div className="flex items-center gap-1.5 flex-1 min-w-0">
+        <div className="flex items-center justify-end gap-1.5 flex-1 min-w-0">
           <span className="flag-emoji text-lg leading-none shrink-0" aria-hidden>{flagEmoji(awayCode)}</span>
-          <span className="font-semibold text-sm truncate">{awayName}</span>
+          <span className="font-semibold text-sm truncate text-right">{awayName}</span>
         </div>
       </div>
 

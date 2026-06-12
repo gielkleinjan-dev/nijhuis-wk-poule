@@ -77,35 +77,51 @@ export default async function UitslagenPage() {
   const isLocked = new Date(lockAt) <= new Date();
   const userIsAdmin = isAdmin(user.email);
 
-  // ── Actieve wedstrijd: eerste LIVE, anders eerste SCHEDULED op datum ───────
+  // ── Wedstrijden bovenin: alle duels van VANDAAG (NL-tijd) — ook al gespeeld.
+  // Geen wedstrijd vandaag? Val terug op de eerstvolgende (live/komende) wedstrijd.
   const allMatches = matchesRaw ?? [];
-  const activeMatch =
+  const nlDayKey = (d: Date) =>
+    new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Europe/Amsterdam",
+      year: "numeric", month: "2-digit", day: "2-digit",
+    }).format(d);
+  const todayKey = nlDayKey(new Date());
+  // Sorteer: live eerst, dan komende, dan al gespeelde — elk op tijdstip.
+  const matchRank = (m: { status: string }) =>
+    m.status === "LIVE" ? 0 : m.status !== "FINISHED" ? 1 : 2;
+  const byRankThenTime = (a: typeof allMatches[number], b: typeof allMatches[number]) =>
+    matchRank(a) - matchRank(b) ||
+    new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime();
+
+  const todaysMatches = allMatches
+    .filter((m) => nlDayKey(new Date(m.kickoff_at)) === todayKey)
+    .sort(byRankThenTime);
+  const nextUpcoming =
     allMatches.find((m) => m.status === "LIVE") ??
     allMatches
       .filter((m) => m.status !== "FINISHED")
-      .sort(
-        (a, b) =>
-          new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime()
-      )[0] ??
-    null;
+      .sort((a, b) => new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime())[0];
+  const featuredMatches =
+    todaysMatches.length > 0 ? todaysMatches : nextUpcoming ? [nextUpcoming] : [];
 
-  // Haal alle voorspellingen voor de actieve wedstrijd op (+ profielen),
+  // Haal voorspellingen op voor alle uitgelichte wedstrijden (+ profielen),
   // maar alleen als de poule gesloten is (anders mag je andermans voorspelling
   // nog niet zien).
+  const featuredIds = featuredMatches.map((m) => m.id);
   const [{ data: activePredsRaw }, { data: profilesRaw }] =
-    isLocked && activeMatch
+    isLocked && featuredIds.length > 0
       ? await Promise.all([
           supabase
             .from("predictions")
-            .select("user_id, home_score, away_score, toto_pick")
-            .eq("match_id", activeMatch.id),
+            .select("match_id, user_id, home_score, away_score, toto_pick")
+            .in("match_id", featuredIds),
           supabase
             .from("profiles")
             .select("id, display_name, department, secondary_department"),
         ])
       : [{ data: null }, { data: null }];
 
-  // Bouw rijen: alleen deelnemers met een ingevulde voorspelling voor dit duel
+  // Bouw rijen per wedstrijd: alleen deelnemers met een ingevulde voorspelling
   const profileMap = new Map(
     (profilesRaw ?? [])
       .filter(
@@ -115,23 +131,32 @@ export default async function UitslagenPage() {
       )
       .map((p) => [p.id, p])
   );
-  const activePredMap = new Map(
-    (activePredsRaw ?? []).map((p) => [p.user_id, p])
-  );
-  const colleagueRows = Array.from(profileMap.values())
-    .map((p) => {
-      const pred = activePredMap.get(p.id);
-      return {
-        userId: p.id,
-        displayName: p.display_name ?? "Onbekend",
-        department: p.department ?? null,
-        secondaryDepartment: p.secondary_department ?? null,
-        homePred: pred?.home_score ?? null,
-        awayPred: pred?.away_score ?? null,
-        totoPick: pred?.toto_pick ?? null,
-      };
-    })
-    .filter((r) => r.homePred !== null || r.awayPred !== null);
+  type ActivePred = { match_id: number; user_id: string; home_score: number | null; away_score: number | null; toto_pick: string | null };
+  const predsByMatch = new Map<number, Map<string, ActivePred>>();
+  for (const p of (activePredsRaw ?? []) as ActivePred[]) {
+    if (!predsByMatch.has(p.match_id)) predsByMatch.set(p.match_id, new Map());
+    predsByMatch.get(p.match_id)!.set(p.user_id, p);
+  }
+  const buildRows = (matchId: number) => {
+    const pm = predsByMatch.get(matchId) ?? new Map();
+    return Array.from(profileMap.values())
+      .map((p) => {
+        const pred = pm.get(p.id);
+        return {
+          userId: p.id,
+          displayName: p.display_name ?? "Onbekend",
+          department: p.department ?? null,
+          secondaryDepartment: p.secondary_department ?? null,
+          homePred: pred?.home_score ?? null,
+          awayPred: pred?.away_score ?? null,
+          totoPick: pred?.toto_pick ?? null,
+        };
+      })
+      .filter((r) => r.homePred !== null || r.awayPred !== null);
+  };
+  const featuredWidgets = featuredMatches
+    .map((m) => ({ m, rows: buildRows(m.id) }))
+    .filter((w) => w.rows.length > 0);
 
   // ── Teams map for display
   const { data: teamsRaw } = await supabase.from("teams").select("code, name");
@@ -240,20 +265,24 @@ export default async function UitslagenPage() {
           </div>
         </div>
 
-        {/* ── Actieve wedstrijd — collega-voorspellingen ── */}
-        {isLocked && activeMatch && colleagueRows.length > 0 && (
-          <div className="bg-surface border border-border rounded-lg px-4 py-3">
-            <ActiveMatchWidget
-              rows={colleagueRows}
-              actualHomeScore={activeMatch.home_score ?? null}
-              actualAwayScore={activeMatch.away_score ?? null}
-              homeName={teamName.get(activeMatch.home_team ?? "") ?? activeMatch.home_team ?? "?"}
-              homeCode={activeMatch.home_team ?? ""}
-              awayName={teamName.get(activeMatch.away_team ?? "") ?? activeMatch.away_team ?? "?"}
-              awayCode={activeMatch.away_team ?? ""}
-              kickoffAt={activeMatch.kickoff_at}
-              isLive={activeMatch.status === "LIVE"}
-            />
+        {/* ── Wedstrijden van vandaag — collega-voorspellingen ── */}
+        {isLocked && featuredWidgets.length > 0 && (
+          <div className="space-y-3">
+            {featuredWidgets.map(({ m, rows }) => (
+              <div key={m.id} className="bg-surface border border-border rounded-lg px-4 py-3">
+                <ActiveMatchWidget
+                  rows={rows}
+                  actualHomeScore={m.home_score ?? null}
+                  actualAwayScore={m.away_score ?? null}
+                  homeName={teamName.get(m.home_team ?? "") ?? m.home_team ?? "?"}
+                  homeCode={m.home_team ?? ""}
+                  awayName={teamName.get(m.away_team ?? "") ?? m.away_team ?? "?"}
+                  awayCode={m.away_team ?? ""}
+                  kickoffAt={m.kickoff_at}
+                  isLive={m.status === "LIVE"}
+                />
+              </div>
+            ))}
           </div>
         )}
 
