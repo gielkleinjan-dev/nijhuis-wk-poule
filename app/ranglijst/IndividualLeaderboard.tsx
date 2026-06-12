@@ -23,10 +23,12 @@ export default function IndividualLeaderboard({
   rows,
   showMedals,
   hasMovement,
+  afdeling,
 }: {
   rows: LeaderboardEntry[];
   showMedals: boolean;
   hasMovement: boolean;
+  afdeling?: string | null;
 }) {
   const [q, setQ] = useState("");
   const filtered = useMemo(() => {
@@ -36,8 +38,10 @@ export default function IndividualLeaderboard({
   }, [q, rows]);
 
   return (
-    <div className="space-y-3">
-      <div className="relative">
+    <>
+      {/* Zoekbalk — eigen grid-rij (rij 2, kolom 1) zodat de teamtabel hieronder
+          even ver opschuift en beide tabellen op dezelfde hoogte beginnen. */}
+      <div className="order-2 lg:col-start-1 lg:row-start-2 relative">
         <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted" aria-hidden>🔍</span>
         <input
           type="text"
@@ -58,6 +62,8 @@ export default function IndividualLeaderboard({
         )}
       </div>
 
+      {/* Individuele tabel — rij 3, kolom 1 */}
+      <div className="order-3 lg:col-start-1 lg:row-start-3 space-y-4">
       <div className="bg-surface border border-border rounded-lg overflow-hidden">
         {rows.length === 0 ? (
           <p className="p-6 text-muted text-sm text-center">Geen deelnemers gevonden.</p>
@@ -138,6 +144,16 @@ export default function IndividualLeaderboard({
           </table>
         )}
       </div>
-    </div>
+
+      {afdeling && (
+        <p className="text-sm text-muted text-center">
+          Gefilterd op team <strong>{afdeling}</strong> ·{" "}
+          <Link href="/ranglijst" className="text-brand underline">
+            toon iedereen
+          </Link>
+        </p>
+      )}
+      </div>
+    </>
   );
 }

@@ -145,7 +145,7 @@ export default async function RanglijstPage({
         <div className="flex flex-col lg:grid lg:grid-cols-[1fr_17rem] gap-6">
 
           {/* ── Individueel header ── row 1 col 1 */}
-          <div className="order-1 tab-hero bg-surface border border-border rounded-lg p-5">
+          <div className="order-1 lg:col-start-1 lg:row-start-1 tab-hero bg-surface border border-border rounded-lg p-5">
             <h1 className="text-2xl font-bold mb-1">Individueel klassement</h1>
             <p className="text-sm text-muted">
               {tournamentStarted
@@ -161,7 +161,7 @@ export default async function RanglijstPage({
           </div>
 
           {/* ── Team header ── row 1 col 2 (desktop) / after ind-table on mobile */}
-          <div className="order-3 lg:order-2 tab-hero bg-surface border border-border rounded-lg p-5">
+          <div className="order-4 lg:col-start-2 lg:row-start-1 tab-hero bg-surface border border-border rounded-lg p-5">
             <h2 className="text-2xl font-bold mb-1">Team klassement</h2>
             <p className="text-sm text-muted">
               Gemiddeld aantal punten per teamlid.
@@ -173,38 +173,30 @@ export default async function RanglijstPage({
             )}
           </div>
 
-          {/* ── Individueel table ── row 2 col 1 */}
-          <div className="order-2 lg:order-3 space-y-4">
-            <IndividualLeaderboard
-              showMedals={!afdeling}
-              hasMovement={hasMovement}
-              rows={withDelta
-                .filter((r) => !afdeling || inTeam(r, afdeling))
-                .map((row) => ({
-                  userId: row.user_id,
-                  rank: row.rank,
-                  displayName: row.display_name,
-                  depLabel: [row.department, row.secondary_department].filter(Boolean).join(" · ") || "—",
-                  totalPoints: row.total_points ?? 0,
-                  delta: row.delta,
-                  isMe: row.user_id === user.id,
-                  rockets: rocketMap.get(row.user_id) ?? 0,
-                  chutes: chuteMap.get(row.user_id) ?? 0,
-                }))}
-            />
+          {/* ── Individueel: zoekbalk (rij 2) + tabel (rij 3) ── kolom 1.
+              De component levert twee grid-cellen aan zodat de teamtabel
+              hieronder gelijk meeschuift en op dezelfde hoogte uitlijnt. */}
+          <IndividualLeaderboard
+            showMedals={!afdeling}
+            hasMovement={hasMovement}
+            afdeling={afdeling}
+            rows={withDelta
+              .filter((r) => !afdeling || inTeam(r, afdeling))
+              .map((row) => ({
+                userId: row.user_id,
+                rank: row.rank,
+                displayName: row.display_name,
+                depLabel: [row.department, row.secondary_department].filter(Boolean).join(" · ") || "—",
+                totalPoints: row.total_points ?? 0,
+                delta: row.delta,
+                isMe: row.user_id === user.id,
+                rockets: rocketMap.get(row.user_id) ?? 0,
+                chutes: chuteMap.get(row.user_id) ?? 0,
+              }))}
+          />
 
-            {afdeling && (
-              <p className="text-sm text-muted text-center">
-                Gefilterd op team <strong>{afdeling}</strong> ·{" "}
-                <Link href="/ranglijst" className="text-brand underline">
-                  toon iedereen
-                </Link>
-              </p>
-            )}
-          </div>
-
-          {/* ── Team table ── row 2 col 2 */}
-          <div className="order-4 lg:sticky lg:top-6 lg:self-start space-y-4">
+          {/* ── Team table ── rij 3 col 2 (lijnt uit met de individuele tabel) */}
+          <div className="order-5 lg:col-start-2 lg:row-start-3 lg:sticky lg:top-6 lg:self-start space-y-4">
             <div className="bg-surface border border-border rounded-lg overflow-hidden">
               {teamStandingsWithDelta.length === 0 ? (
                 <p className="p-6 text-muted text-sm text-center">
