@@ -88,7 +88,14 @@ export default function MatchPredictionsClient({
 
   const hasActual =
     actualHomeScore != null && actualAwayScore != null;
-  const actualLabel = hasActual ? `${actualHomeScore}–${actualAwayScore}` : null;
+  // Werkelijke toto (1/X/2) voor de +1-arcering bij een goede toto zonder exacte score.
+  const actualToto = hasActual
+    ? actualHomeScore! > actualAwayScore!
+      ? "1"
+      : actualHomeScore! < actualAwayScore!
+        ? "2"
+        : "X"
+    : null;
 
   return (
     <div className="space-y-4">
@@ -129,7 +136,14 @@ export default function MatchPredictionsClient({
       {sortMode === "score" && grouped ? (
         <div className="bg-surface border border-border rounded-lg overflow-hidden divide-y divide-border">
           {grouped.map(([scoreLabel, members]) => {
-            const isCorrect = hasActual && scoreLabel === actualLabel;
+            const gh = members[0].homePred;
+            const ga = members[0].awayPred;
+            const hasScore = gh != null && ga != null;
+            const homeOk = hasActual && gh != null && gh === actualHomeScore;
+            const awayOk = hasActual && ga != null && ga === actualAwayScore;
+            const isCorrect = homeOk && awayOk;
+            const groupToto = hasScore ? (gh! > ga! ? "1" : gh! < ga! ? "2" : "X") : null;
+            const totoOk = hasActual && !isCorrect && groupToto != null && groupToto === actualToto;
             const isOpen = openGroups.has(scoreLabel);
             return (
               <div key={scoreLabel}>
@@ -142,11 +156,22 @@ export default function MatchPredictionsClient({
                   }`}
                 >
                   <span className="flex items-center gap-2">
-                    <span className={`font-bold tabular-nums text-base ${isCorrect ? "text-pitch" : ""}`}>
-                      {scoreLabel}
+                    <span className="font-bold tabular-nums text-base">
+                      {hasScore ? (
+                        <>
+                          <span className={homeOk ? "text-pitch" : ""} title={homeOk ? "thuisscore goed (+2)" : undefined}>{gh}</span>
+                          <span className="text-muted font-normal mx-0.5">–</span>
+                          <span className={awayOk ? "text-pitch" : ""} title={awayOk ? "uitscore goed (+2)" : undefined}>{ga}</span>
+                        </>
+                      ) : (
+                        <span className="text-muted">—</span>
+                      )}
                     </span>
                     {isCorrect && (
                       <span className="text-[11px] font-normal text-pitch">✓</span>
+                    )}
+                    {totoOk && (
+                      <span className="text-[11px] font-medium text-pitch/70" title="toto goed (+1)">+1</span>
                     )}
                   </span>
                   <span className="flex items-center gap-2 shrink-0">
@@ -213,10 +238,9 @@ export default function MatchPredictionsClient({
               <tbody className="divide-y divide-border">
                 {filtered.map((r) => {
                   const toto = deriveToto(r);
-                  const isCorrect =
-                    hasActual &&
-                    r.homePred === actualHomeScore &&
-                    r.awayPred === actualAwayScore;
+                  const homeOk = hasActual && r.homePred != null && r.homePred === actualHomeScore;
+                  const awayOk = hasActual && r.awayPred != null && r.awayPred === actualAwayScore;
+                  const isCorrect = homeOk && awayOk;
                   return (
                     <tr key={r.userId} className="hover:bg-bg/40">
                       <td className="px-4 py-2.5">
@@ -238,14 +262,16 @@ export default function MatchPredictionsClient({
                           .join(" · ") || "—"}
                       </td>
                       <td className="px-4 py-2.5 text-center">
-                        <span
-                          className={`font-semibold tabular-nums ${
-                            isCorrect ? "text-pitch" : ""
-                          }`}
-                        >
-                          {r.homePred != null && r.awayPred != null
-                            ? `${r.homePred}–${r.awayPred}`
-                            : "—"}
+                        <span className="font-semibold tabular-nums">
+                          {r.homePred != null && r.awayPred != null ? (
+                            <>
+                              <span className={homeOk ? "text-pitch" : ""} title={homeOk ? "thuisscore goed (+2)" : undefined}>{r.homePred}</span>
+                              <span className="text-muted font-normal mx-0.5">–</span>
+                              <span className={awayOk ? "text-pitch" : ""} title={awayOk ? "uitscore goed (+2)" : undefined}>{r.awayPred}</span>
+                            </>
+                          ) : (
+                            "—"
+                          )}
                         </span>
                         {toto && (
                           <span className="ml-1.5 inline-block bg-brand text-white rounded px-1.5 py-0.5 text-xs font-bold">
