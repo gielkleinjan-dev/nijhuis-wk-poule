@@ -55,16 +55,11 @@ export default async function InvullenPage() {
       year: "numeric", month: "2-digit", day: "2-digit",
     }).format(d);
   const todayKey = nlDayKey(new Date());
-  // Sorteer: live eerst, dan komende, dan al gespeelde — elk op tijdstip.
-  const matchRank = (m: { status: string }) =>
-    m.status === "LIVE" ? 0 : m.status !== "FINISHED" ? 1 : 2;
-  const byRankThenTime = (a: typeof allMatches[number], b: typeof allMatches[number]) =>
-    matchRank(a) - matchRank(b) ||
-    new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime();
-
+  // Chronologisch: vroegste aftrap eerst (ook al gespeelde wedstrijden staan
+  // dan op hun eigen tijdstip, niet achteraan).
   const todaysMatches = allMatches
     .filter((m) => nlDayKey(new Date(m.kickoff_at)) === todayKey)
-    .sort(byRankThenTime);
+    .sort((a, b) => new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime());
   const nextUpcoming =
     allMatches.find((m) => m.status === "LIVE") ??
     allMatches
