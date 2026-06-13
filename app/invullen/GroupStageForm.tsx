@@ -202,7 +202,8 @@ export default function GroupStageForm({
 
 
       {/* Sorteer-toggle: poule of datum/tijd */}
-      <div className="flex items-center justify-end -mb-4">
+      <div className="flex items-center justify-end gap-2">
+        <span className="text-xs text-muted font-medium">Sorteren op</span>
         <div className="inline-flex rounded-lg border border-border overflow-hidden text-xs shrink-0">
           {(["datum", "poule"] as const).map((s) => (
             <button
