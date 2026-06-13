@@ -115,3 +115,21 @@ img.emoji {
     rgba(232, 183, 48, 0.04) 100%);
   box-shadow: inset 3px 0 0 var(--color-trophy);
 }
+
+/* Laad-skeleton: grijs blok met zachte glinster terwijl een pagina laadt.
+   Geeft directe feedback bij tab-navigatie i.p.v. een bevroren scherm. */
+@keyframes skeleton-shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.skeleton {
+  border-radius: 6px;
+  background-color: var(--color-border);
+  background-image: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+  background-size: 400px 100%;
+  background-repeat: no-repeat;
+  animation: skeleton-shimmer 1.3s infinite linear;
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton { animation: none; }
+}
