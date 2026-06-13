@@ -28,6 +28,7 @@ import LockCountdown from "@/app/components/LockCountdown";
 import TodayButton from "@/app/components/TodayButton";
 import ActiveMatchWidget from "@/app/components/ActiveMatchWidget";
 import GroupSortToggle, { type GroupSort } from "@/app/components/GroupSortToggle";
+import { isTodayNL } from "@/lib/today";
 
 function PtsChip({ pts, label }: { pts: number; label?: string }) {
   const color =
@@ -265,7 +266,7 @@ export default async function UitslagenPage({
       ? pred.home_score > pred.away_score ? "1" : pred.home_score < pred.away_score ? "2" : "X"
       : pred?.toto_pick ?? null;
     return (
-      <tr key={m.id} data-kickoff={m.kickoff_at} className="border-b border-border last:border-0">
+      <tr key={m.id} data-kickoff={m.kickoff_at} data-today={isTodayNL(m.kickoff_at) ? "true" : "false"} className="border-b border-border last:border-0">
         <td className="px-4 py-3">
           <div className="flex items-center gap-1.5 font-medium">
             {showGroup && (

@@ -16,6 +16,7 @@ import { isGroupCode, type GroupCode, type MatchId } from "@/lib/bracket/types";
 import { fetchAllRows } from "@/lib/supabase/fetchAll";
 import TodayButton from "@/app/components/TodayButton";
 import GroupSortToggle, { type GroupSort } from "@/app/components/GroupSortToggle";
+import { isTodayNL } from "@/lib/today";
 
 function TeamSpan({ code, name, highlighted }: { code: string | undefined | null; name?: string; highlighted?: boolean }) {
   if (!code) return <span className="text-muted italic">—</span>;
@@ -402,7 +403,7 @@ export default async function VoorspellingDetailPage({
         : "X"
       : null)) : null;
     return (
-      <li key={m.id} data-kickoff={m.kickoff_at} className="px-3 sm:px-4 py-2.5 sm:grid sm:grid-cols-[1fr_5rem_8rem_3rem] sm:gap-2 sm:items-center">
+      <li key={m.id} data-kickoff={m.kickoff_at} data-today={isTodayNL(m.kickoff_at) ? "true" : "false"} className="px-3 sm:px-4 py-2.5 sm:grid sm:grid-cols-[1fr_5rem_8rem_3rem] sm:gap-2 sm:items-center">
         <div>
           <div className="flex items-center gap-1.5 font-medium text-xs flex-wrap">
             {showGroup && (

@@ -5,6 +5,7 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { flagEmoji } from "@/lib/flags";
 import { useProgressRefresh } from "@/lib/hooks/useProgressRefresh";
 import TodayButton from "@/app/components/TodayButton";
+import { isTodayNL } from "@/lib/today";
 
 export type Team = { code: string; name: string };
 export type Match = {
@@ -337,7 +338,7 @@ function MatchRow({
   );
 
   return (
-    <li data-kickoff={match.kickoff} className="px-3 sm:px-4 py-3">
+    <li data-kickoff={match.kickoff} data-today={isTodayNL(match.kickoff) ? "true" : "false"} className="px-3 sm:px-4 py-3">
       {/* Desktop layout (sm+): alles op één rij */}
       <div className="hidden sm:flex items-center gap-3">
         <div className={`text-xs text-muted shrink-0 leading-tight flex items-center gap-1 ${groupBadge ? "w-28" : "w-24"}`}>
