@@ -27,6 +27,7 @@ import BrandLogo from "@/app/components/BrandLogo";
 import LockCountdown from "@/app/components/LockCountdown";
 import TodayButton from "@/app/components/TodayButton";
 import ActiveMatchWidget from "@/app/components/ActiveMatchWidget";
+import GroupSortToggle, { type GroupSort } from "@/app/components/GroupSortToggle";
 
 function PtsChip({ pts, label }: { pts: number; label?: string }) {
   const color =
@@ -39,12 +40,21 @@ function PtsChip({ pts, label }: { pts: number; label?: string }) {
   );
 }
 
-export default async function UitslagenPage() {
+export default async function UitslagenPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ sort?: string }>;
+}) {
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
+
+  // Groepsfase-sortering: standaard op datum/tijd (fijner om terug te kijken),
+  // optioneel op poule via ?sort=poule.
+  const { sort: sortParam } = await searchParams;
+  const sort: GroupSort = sortParam === "poule" ? "poule" : "datum";
 
   const [
     { data: settings },
@@ -177,6 +187,10 @@ export default async function UitslagenPage() {
   const sortedGroups = Array.from(grouped.entries()).sort(([a], [b]) =>
     a.localeCompare(b)
   );
+  // Chronologische volgorde voor de datum-sortering.
+  const groupMatchesByDate = [...groupMatches].sort(
+    (a, b) => new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime()
+  );
 
   const groupTotalPts = groupMatches.reduce((sum, m) => {
     if (m.status !== "FINISHED" || m.home_score == null || m.away_score == null) return sum;
@@ -222,6 +236,90 @@ export default async function UitslagenPage() {
       weekday: "short", day: "numeric", month: "short",
       hour: "2-digit", minute: "2-digit",
     }).format(new Date(kickoff));
+
+  // Gedeelde tabelkop voor beide sorteringen.
+  const groupThead = (
+    <thead>
+      <tr className="border-b border-border text-xs text-muted uppercase tracking-wide bg-bg/30">
+        <th className="px-4 py-2 text-left">Wedstrijd</th>
+        <th className="px-4 py-2 text-center">Uitslag</th>
+        <th className="px-4 py-2 text-center">Toto</th>
+        <th className="px-4 py-2 text-center">Jouw voorspelling</th>
+        <th className="px-4 py-2 text-right">Punten</th>
+      </tr>
+    </thead>
+  );
+
+  // Eén wedstrijdrij. `showGroup` toont subtiel de poule-letter (handig in de
+  // datum-sortering waar de groep-context anders wegvalt).
+  const renderGroupRow = (m: (typeof groupMatches)[number], showGroup: boolean) => {
+    const pred = predByMatch.get(m.id);
+    const finished = m.status === "FINISHED" && m.home_score != null && m.away_score != null;
+    const pts = finished && pred
+      ? scoreGroupPrediction(pred, { id: m.id, home_score: m.home_score!, away_score: m.away_score! })
+      : null;
+    const actualToto = finished
+      ? m.home_score! > m.away_score! ? "1" : m.home_score! < m.away_score! ? "2" : "X"
+      : null;
+    const predToto = pred?.home_score != null && pred?.away_score != null
+      ? pred.home_score > pred.away_score ? "1" : pred.home_score < pred.away_score ? "2" : "X"
+      : pred?.toto_pick ?? null;
+    return (
+      <tr key={m.id} data-kickoff={m.kickoff_at} className="border-b border-border last:border-0">
+        <td className="px-4 py-3">
+          <div className="flex items-center gap-1.5 font-medium">
+            {showGroup && (
+              <span
+                className="inline-flex items-center justify-center w-5 h-5 rounded bg-bg border border-border text-[10px] font-bold text-muted shrink-0"
+                title={`Poule ${(m.group_name ?? "?").replace("GROUP_", "")}`}
+              >
+                {(m.group_name ?? "?").replace("GROUP_", "")}
+              </span>
+            )}
+            <span className="flag-emoji" aria-hidden>{flagEmoji(m.home_team ?? "")}</span>
+            <span className="text-xs text-muted">{teamName.get(m.home_team ?? "") ?? m.home_team}</span>
+            <span className="text-muted mx-0.5">vs</span>
+            <span className="text-xs text-muted">{teamName.get(m.away_team ?? "") ?? m.away_team}</span>
+            <span className="flag-emoji" aria-hidden>{flagEmoji(m.away_team ?? "")}</span>
+          </div>
+          <div className="text-xs text-muted mt-0.5">{fmt(m.kickoff_at)}</div>
+        </td>
+        <td className="px-4 py-3 text-center tabular-nums font-bold">
+          {finished ? (
+            <span>{m.home_score}–{m.away_score}</span>
+          ) : (
+            <span className="text-muted font-normal">—</span>
+          )}
+        </td>
+        <td className="px-4 py-3 text-center">
+          {actualToto ? (
+            <span className="inline-block bg-bg border border-border rounded px-1.5 py-0.5 text-xs font-bold tabular-nums">{actualToto}</span>
+          ) : (
+            <span className="text-muted">—</span>
+          )}
+        </td>
+        <td className="px-4 py-3 text-center tabular-nums">
+          {pred?.home_score != null && pred?.away_score != null ? (
+            <span className="font-semibold">
+              {pred.home_score}–{pred.away_score}
+              <span className="ml-1 text-[10px] text-muted font-normal">({predToto})</span>
+            </span>
+          ) : pred?.toto_pick ? (
+            <span className="inline-block bg-brand text-white rounded px-1.5 py-0.5 text-xs font-bold">{pred.toto_pick}</span>
+          ) : (
+            <span className="text-muted italic text-xs">niet ingevuld</span>
+          )}
+        </td>
+        <td className="px-4 py-3 text-right">
+          {pts == null ? (
+            <span className="text-muted">—</span>
+          ) : (
+            <PtsChip pts={pts} />
+          )}
+        </td>
+      </tr>
+    );
+  };
 
   return (
     <main className="min-h-screen">
@@ -288,91 +386,34 @@ export default async function UitslagenPage() {
 
         {/* ── Groepsfase ── */}
         <section className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
             <h2 className="text-xl font-bold">Groepsfase</h2>
-            <span className="text-sm font-semibold text-pitch tabular-nums">+{groupTotalPts} pt</span>
+            <div className="flex items-center gap-3">
+              <GroupSortToggle basePath="/uitslagen" current={sort} />
+              <span className="text-sm font-semibold text-pitch tabular-nums">+{groupTotalPts} pt</span>
+            </div>
           </div>
 
-          {sortedGroups.map(([group, ms]) => (
-            <div key={group} className="bg-surface border border-border rounded-lg overflow-hidden">
-              <div className="px-5 py-3 border-b border-border bg-bg/50 text-sm font-bold">
-                Groep {group.replace("GROUP_", "")}
-              </div>
+          {sort === "datum" ? (
+            <div className="bg-surface border border-border rounded-lg overflow-hidden">
               <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border text-xs text-muted uppercase tracking-wide bg-bg/30">
-                    <th className="px-4 py-2 text-left">Wedstrijd</th>
-                    <th className="px-4 py-2 text-center">Uitslag</th>
-                    <th className="px-4 py-2 text-center">Toto</th>
-                    <th className="px-4 py-2 text-center">Jouw voorspelling</th>
-                    <th className="px-4 py-2 text-right">Punten</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {ms.map((m) => {
-                    const pred = predByMatch.get(m.id);
-                    const finished = m.status === "FINISHED" && m.home_score != null && m.away_score != null;
-                    const pts = finished && pred
-                      ? scoreGroupPrediction(pred, { id: m.id, home_score: m.home_score!, away_score: m.away_score! })
-                      : null;
-                    const actualToto = finished
-                      ? m.home_score! > m.away_score! ? "1" : m.home_score! < m.away_score! ? "2" : "X"
-                      : null;
-                    const predToto = pred?.home_score != null && pred?.away_score != null
-                      ? pred.home_score > pred.away_score ? "1" : pred.home_score < pred.away_score ? "2" : "X"
-                      : pred?.toto_pick ?? null;
-                    return (
-                      <tr key={m.id} data-kickoff={m.kickoff_at} className="border-b border-border last:border-0">
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-1.5 font-medium">
-                            <span className="flag-emoji" aria-hidden>{flagEmoji(m.home_team ?? "")}</span>
-                            <span className="text-xs text-muted">{teamName.get(m.home_team ?? "") ?? m.home_team}</span>
-                            <span className="text-muted mx-0.5">vs</span>
-                            <span className="text-xs text-muted">{teamName.get(m.away_team ?? "") ?? m.away_team}</span>
-                            <span className="flag-emoji" aria-hidden>{flagEmoji(m.away_team ?? "")}</span>
-                          </div>
-                          <div className="text-xs text-muted mt-0.5">{fmt(m.kickoff_at)}</div>
-                        </td>
-                        <td className="px-4 py-3 text-center tabular-nums font-bold">
-                          {finished ? (
-                            <span>{m.home_score}–{m.away_score}</span>
-                          ) : (
-                            <span className="text-muted font-normal">—</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          {actualToto ? (
-                            <span className="inline-block bg-bg border border-border rounded px-1.5 py-0.5 text-xs font-bold tabular-nums">{actualToto}</span>
-                          ) : (
-                            <span className="text-muted">—</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-center tabular-nums">
-                          {pred?.home_score != null && pred?.away_score != null ? (
-                            <span className="font-semibold">
-                              {pred.home_score}–{pred.away_score}
-                              <span className="ml-1 text-[10px] text-muted font-normal">({predToto})</span>
-                            </span>
-                          ) : pred?.toto_pick ? (
-                            <span className="inline-block bg-brand text-white rounded px-1.5 py-0.5 text-xs font-bold">{pred.toto_pick}</span>
-                          ) : (
-                            <span className="text-muted italic text-xs">niet ingevuld</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          {pts == null ? (
-                            <span className="text-muted">—</span>
-                          ) : (
-                            <PtsChip pts={pts} />
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
+                {groupThead}
+                <tbody>{groupMatchesByDate.map((m) => renderGroupRow(m, true))}</tbody>
               </table>
             </div>
-          ))}
+          ) : (
+            sortedGroups.map(([group, ms]) => (
+              <div key={group} className="bg-surface border border-border rounded-lg overflow-hidden">
+                <div className="px-5 py-3 border-b border-border bg-bg/50 text-sm font-bold">
+                  Groep {group.replace("GROUP_", "")}
+                </div>
+                <table className="w-full text-sm">
+                  {groupThead}
+                  <tbody>{ms.map((m) => renderGroupRow(m, false))}</tbody>
+                </table>
+              </div>
+            ))
+          )}
         </section>
 
         {/* ── Knock-out ── */}
