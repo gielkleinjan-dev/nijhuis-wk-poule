@@ -95,6 +95,15 @@ export default function GroupStageForm({
     return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b));
   }, [matches]);
 
+  // Sortering: tijdens invullen is poule fijn (je vult een groep in één keer in),
+  // maar zodra de poule dicht is, wil je bij terugkijken chronologie. Default
+  // volgt die logica; de toggle laat altijd wisselen.
+  const [sort, setSort] = useState<"poule" | "datum">(isLocked ? "datum" : "poule");
+  const byDate = useMemo(
+    () => [...matches].sort((a, b) => new Date(a.kickoff).getTime() - new Date(b.kickoff).getTime()),
+    [matches],
+  );
+
   const filledCount = matches.filter((m) => isFilled(predictions[m.id])).length;
 
   function updateScore(matchId: number, side: "home" | "away", raw: string) {
@@ -192,30 +201,68 @@ export default function GroupStageForm({
       </div>
 
 
-      {grouped.map(([group, ms]) => {
-        const groupFilled = ms.filter((m) => isFilled(predictions[m.id])).length;
-        return (
-          <section key={group} className="bg-surface border border-border rounded-lg overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-3 border-b border-border bg-bg/50">
-              <h2 className="text-lg font-bold">Groep {group.replace("GROUP_", "")}</h2>
-              <span className="text-xs text-muted tabular-nums">{groupFilled}/{ms.length}</span>
-            </div>
-            <ul className="divide-y divide-border">
-              {ms.map((m) => (
-                <MatchRow
-                  key={m.id}
-                  match={m}
-                  prediction={predictions[m.id]}
-                  saveState={saveStates[m.id] || "idle"}
-                  disabled={isLocked}
-                  onScoreChange={updateScore}
-                  onTotoChange={updateToto}
-                />
-              ))}
-            </ul>
-          </section>
-        );
-      })}
+      {/* Sorteer-toggle: poule of datum/tijd */}
+      <div className="flex items-center justify-end -mb-4">
+        <div className="inline-flex rounded-lg border border-border overflow-hidden text-xs shrink-0">
+          {(["datum", "poule"] as const).map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => setSort(s)}
+              aria-pressed={sort === s}
+              className={`px-3 py-1.5 font-medium transition ${
+                sort === s ? "bg-brand text-white" : "bg-surface text-muted hover:text-brand"
+              }`}
+            >
+              {s === "datum" ? "Datum" : "Poule"}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {sort === "datum" ? (
+        <section className="bg-surface border border-border rounded-lg overflow-hidden">
+          <ul className="divide-y divide-border">
+            {byDate.map((m) => (
+              <MatchRow
+                key={m.id}
+                match={m}
+                prediction={predictions[m.id]}
+                saveState={saveStates[m.id] || "idle"}
+                disabled={isLocked}
+                onScoreChange={updateScore}
+                onTotoChange={updateToto}
+                groupLabel={m.group.replace("GROUP_", "")}
+              />
+            ))}
+          </ul>
+        </section>
+      ) : (
+        grouped.map(([group, ms]) => {
+          const groupFilled = ms.filter((m) => isFilled(predictions[m.id])).length;
+          return (
+            <section key={group} className="bg-surface border border-border rounded-lg overflow-hidden">
+              <div className="flex items-center justify-between px-5 py-3 border-b border-border bg-bg/50">
+                <h2 className="text-lg font-bold">Groep {group.replace("GROUP_", "")}</h2>
+                <span className="text-xs text-muted tabular-nums">{groupFilled}/{ms.length}</span>
+              </div>
+              <ul className="divide-y divide-border">
+                {ms.map((m) => (
+                  <MatchRow
+                    key={m.id}
+                    match={m}
+                    prediction={predictions[m.id]}
+                    saveState={saveStates[m.id] || "idle"}
+                    disabled={isLocked}
+                    onScoreChange={updateScore}
+                    onTotoChange={updateToto}
+                  />
+                ))}
+              </ul>
+            </section>
+          );
+        })
+      )}
       <TodayButton />
     </div>
   );
@@ -228,6 +275,7 @@ function MatchRow({
   disabled,
   onScoreChange,
   onTotoChange,
+  groupLabel,
 }: {
   match: Match;
   prediction: Prediction | undefined;
@@ -235,11 +283,23 @@ function MatchRow({
   disabled: boolean;
   onScoreChange: (id: number, side: "home" | "away", value: string) => void;
   onTotoChange: (id: number, toto: Toto) => void;
+  // Bij datum-sortering tonen we subtiel de poule-letter (groep-context valt
+  // dan weg); in poule-sortering staat de groep al in de sectiekop → undefined.
+  groupLabel?: string | null;
 }) {
   const fmt = new Intl.DateTimeFormat("nl-NL", {
     weekday: "short", day: "numeric", month: "short",
     hour: "2-digit", minute: "2-digit",
   }).format(new Date(match.kickoff));
+
+  const groupBadge = groupLabel ? (
+    <span
+      className="inline-flex items-center justify-center rounded bg-bg border border-border px-1 text-[9px] font-bold text-muted shrink-0 leading-[1.5]"
+      title={`Poule ${groupLabel}`}
+    >
+      {groupLabel}
+    </span>
+  ) : null;
 
   const hasScore = prediction?.home != null && prediction?.away != null;
   // Explicit toto_pick takes priority; fall back to score-derived indicator
@@ -279,7 +339,10 @@ function MatchRow({
     <li data-kickoff={match.kickoff} className="px-3 sm:px-4 py-3">
       {/* Desktop layout (sm+): alles op één rij */}
       <div className="hidden sm:flex items-center gap-3">
-        <div className="text-xs text-muted w-24 shrink-0 leading-tight">{fmt}</div>
+        <div className={`text-xs text-muted shrink-0 leading-tight flex items-center gap-1 ${groupBadge ? "w-28" : "w-24"}`}>
+          {groupBadge}
+          <span className="truncate">{fmt}</span>
+        </div>
 
         <div className="flex items-center justify-end gap-1.5 flex-1 min-w-0">
           <span className="font-medium text-sm truncate leading-tight text-right">{match.home.name}</span>
@@ -333,7 +396,7 @@ function MatchRow({
           </div>
         </div>
         <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-          <span className="text-[11px] text-muted truncate">{fmt}</span>
+          <span className="text-[11px] text-muted truncate flex items-center gap-1">{groupBadge}{fmt}</span>
           <div className="flex flex-col items-center gap-0.5">
             <TotoButtons value={activeToto} derived={hasScore} disabled={disabled}
               onClick={(t) => onTotoChange(match.id, t)} />
