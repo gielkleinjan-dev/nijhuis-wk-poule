@@ -78,6 +78,7 @@ export default async function WedstrijdVoorspellingenPage({
     match.away_score != null;
 
   const fmt = new Intl.DateTimeFormat("nl-NL", {
+    timeZone: "Europe/Amsterdam",
     weekday: "long",
     day: "numeric",
     month: "long",

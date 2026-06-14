@@ -375,6 +375,7 @@ export default async function VoorspellingDetailPage({
 
   const fmt = (kickoff: string) =>
     new Intl.DateTimeFormat("nl-NL", {
+      timeZone: "Europe/Amsterdam",
       weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
     }).format(new Date(kickoff));
 

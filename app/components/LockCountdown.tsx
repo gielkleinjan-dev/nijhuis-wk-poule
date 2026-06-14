@@ -52,6 +52,7 @@ export default function LockCountdown({ lockAt }: { lockAt: string }) {
   const { d, h, m } = diff(ms);
 
   const closeDate = new Intl.DateTimeFormat("nl-NL", {
+    timeZone: "Europe/Amsterdam",
     day: "numeric",
     month: "long",
     hour: "2-digit",

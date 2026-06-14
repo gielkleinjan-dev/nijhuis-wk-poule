@@ -290,6 +290,7 @@ function MatchRow({
   groupLabel?: string | null;
 }) {
   const fmt = new Intl.DateTimeFormat("nl-NL", {
+    timeZone: "Europe/Amsterdam",
     weekday: "short", day: "numeric", month: "short",
     hour: "2-digit", minute: "2-digit",
   }).format(new Date(match.kickoff));

@@ -229,6 +229,7 @@ export default async function UitslagenPage({
 
   const fmt = (kickoff: string) =>
     new Intl.DateTimeFormat("nl-NL", {
+      timeZone: "Europe/Amsterdam",
       weekday: "short", day: "numeric", month: "short",
       hour: "2-digit", minute: "2-digit",
     }).format(new Date(kickoff));
@@ -335,6 +336,7 @@ export default async function UitslagenPage({
               <div className="text-muted">
                 Sluit{" "}
                 {new Intl.DateTimeFormat("nl-NL", {
+                  timeZone: "Europe/Amsterdam",
                   day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
                 }).format(new Date(lockAt))}
               </div>

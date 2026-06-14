@@ -11,6 +11,7 @@ type TeamLite = { code: string; name: string };
 function formatKickoff(d: Date | undefined): string {
   if (!d) return "datum onbekend";
   const fmt = new Intl.DateTimeFormat("nl-NL", {
+    timeZone: "Europe/Amsterdam",
     weekday: "short", day: "numeric", month: "short",
     hour: "2-digit", minute: "2-digit",
   });
