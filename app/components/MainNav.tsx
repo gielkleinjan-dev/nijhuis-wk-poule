@@ -48,6 +48,7 @@ export default function MainNav({
               <Link
                 key={t.href}
                 href={t.href}
+                prefetch={false}
                 className={`px-3 sm:px-4 py-3 text-sm font-medium border-b-2 transition -mb-px whitespace-nowrap ${
                   active
                     ? "border-brand text-brand"

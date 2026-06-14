@@ -52,6 +52,7 @@ export default function InvullenNav({
                 <Link
                   key={t.href}
                   href={t.href}
+                  prefetch={false}
                   className={`px-3 sm:px-4 py-3 text-sm font-medium border-b-2 transition -mb-px whitespace-nowrap ${
                     active
                       ? "border-brand text-brand"
@@ -77,6 +78,7 @@ export default function InvullenNav({
               <Link
                 key={t.href}
                 href={t.href}
+                prefetch={false}
                 className={`px-3 py-1.5 text-xs font-semibold rounded-full transition ${
                   active
                     ? "bg-brand text-white"

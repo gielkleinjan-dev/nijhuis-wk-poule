@@ -46,6 +46,7 @@ export default async function VoorspellingenPage({
         <div className="flex flex-wrap gap-2">
           <Link
             href="/voorspellingen"
+            prefetch={false}
             className={`px-3 py-1 rounded-full text-sm border transition ${
               !afdeling
                 ? "bg-brand text-white border-brand"
@@ -58,6 +59,7 @@ export default async function VoorspellingenPage({
             <Link
               key={dep}
               href={`/voorspellingen?afdeling=${encodeURIComponent(dep)}`}
+              prefetch={false}
               className={`px-3 py-1 rounded-full text-sm border transition ${
                 afdeling === dep
                   ? "bg-brand text-white border-brand"

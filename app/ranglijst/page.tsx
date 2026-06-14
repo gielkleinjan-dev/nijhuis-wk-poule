@@ -113,6 +113,7 @@ export default async function RanglijstPage({
           <div className="flex flex-wrap gap-2">
             <Link
               href="/ranglijst"
+              prefetch={false}
               className={`px-3 py-1 rounded-full text-sm border transition ${
                 !afdeling
                   ? "bg-brand text-white border-brand"
@@ -125,6 +126,7 @@ export default async function RanglijstPage({
               <Link
                 key={dep}
                 href={`/ranglijst?afdeling=${encodeURIComponent(dep)}`}
+                prefetch={false}
                 className={`px-3 py-1 rounded-full text-sm border transition ${
                   afdeling === dep
                     ? "bg-brand text-white border-brand"

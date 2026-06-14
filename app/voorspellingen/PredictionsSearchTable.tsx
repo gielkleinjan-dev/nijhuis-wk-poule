@@ -72,6 +72,7 @@ export default function PredictionsSearchTable({ rows }: { rows: Row[] }) {
                   <td className="px-4 py-2.5">
                     <Link
                       href={`/voorspellingen/${p.userId}`}
+                      prefetch={false}
                       className="font-medium text-fg hover:text-brand"
                     >
                       {p.displayName}
