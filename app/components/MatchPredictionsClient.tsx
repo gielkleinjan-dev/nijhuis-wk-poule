@@ -195,6 +195,7 @@ export default function MatchPredictionsClient({
                           <div className="min-w-0">
                             <Link
                               href={`/voorspellingen/${r.userId}`}
+                              prefetch={false}
                               className="font-medium text-sm hover:text-brand transition"
                             >
                               {r.displayName}
@@ -246,6 +247,7 @@ export default function MatchPredictionsClient({
                       <td className="px-4 py-2.5">
                         <Link
                           href={`/voorspellingen/${r.userId}`}
+                          prefetch={false}
                           className="font-medium hover:text-brand transition"
                         >
                           {r.displayName}

@@ -109,6 +109,7 @@ export default function IndividualLeaderboard({
                       <span className="inline-flex items-center gap-1.5 flex-wrap">
                         <Link
                           href={`/voorspellingen/${row.userId}`}
+                          prefetch={false}
                           className="hover:text-brand hover:underline underline-offset-2 transition"
                         >
                           {row.displayName}
