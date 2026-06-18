@@ -66,7 +66,7 @@ export default async function VoorspellingenPage({
                   : "bg-surface border-border text-muted hover:border-brand"
               }`}
             >
-              {dep}
+              {dep.replace("Team ", "")}
             </Link>
           ))}
         </div>
@@ -77,7 +77,7 @@ export default async function VoorspellingenPage({
           userId: p.user_id,
           rank: p.rank,
           displayName: p.display_name,
-          department: p.department,
+          department: p.department?.replace("Team ", "") ?? null,
           totalPoints: p.total_points ?? 0,
         }))}
       />
