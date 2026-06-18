@@ -133,7 +133,7 @@ export default async function RanglijstPage({
                     : "bg-surface border-border text-muted hover:border-brand"
                 }`}
               >
-                {dep}
+                {dep.replace("Team ", "")}
               </Link>
             ))}
           </div>
@@ -188,7 +188,7 @@ export default async function RanglijstPage({
                 userId: row.user_id,
                 rank: row.rank,
                 displayName: row.display_name,
-                depLabel: [row.department, row.secondary_department].filter(Boolean).join(" · ") || "—",
+                depLabel: [row.department, row.secondary_department].filter(Boolean).map((d) => d!.replace("Team ", "")).join(" · ") || "—",
                 totalPoints: row.total_points ?? 0,
                 delta: row.delta,
                 isMe: row.user_id === user.id,

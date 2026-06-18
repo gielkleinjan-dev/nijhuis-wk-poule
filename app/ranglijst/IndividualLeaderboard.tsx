@@ -148,7 +148,7 @@ export default function IndividualLeaderboard({
 
       {afdeling && (
         <p className="text-sm text-muted text-center">
-          Gefilterd op team <strong>{afdeling}</strong> ·{" "}
+          Gefilterd op team <strong>{afdeling.replace("Team ", "")}</strong> ·{" "}
           <Link href="/ranglijst" className="text-brand underline">
             toon iedereen
           </Link>
