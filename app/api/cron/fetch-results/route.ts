@@ -39,7 +39,18 @@ export async function GET(req: Request) {
   );
 
   // 1. Fetch live results from football-data.org.
-  const apiMatches = await fetchWcMatches(apiKey);
+  // De provider hapert af en toe (tijdelijke 5xx of rate-limit). Vang dat hier
+  // op i.p.v. de hele cron-run te laten klappen met een kale 500: log de echte
+  // status/melding en geef een nette 503 terug. De volgende run (15 min later)
+  // pikt de uitslagen alsnog op.
+  let apiMatches;
+  try {
+    apiMatches = await fetchWcMatches(apiKey);
+  } catch (e) {
+    const detail = e instanceof Error ? e.message : String(e);
+    console.error("football_data_fetch_failed", detail);
+    return NextResponse.json({ error: "football_data_fetch_failed", detail }, { status: 503 });
+  }
   const updates = toMatchUpdates(apiMatches);
 
   // 2. Apply score updates via SECURITY DEFINER RPC. Returns number of changed rows.
@@ -48,6 +59,7 @@ export async function GET(req: Request) {
     p_updates: updates,
   });
   if (updErr) {
+    console.error("match_update_failed", updErr.message);
     return NextResponse.json({ error: "match_update_failed", detail: updErr.message }, { status: 500 });
   }
 
@@ -61,6 +73,7 @@ export async function GET(req: Request) {
     .from("matches")
     .select("id, external_id");
   if (mErr) {
+    console.error("match_lookup_failed", mErr.message);
     return NextResponse.json({ error: "match_lookup_failed", detail: mErr.message }, { status: 500 });
   }
   const extToInternal = new Map<number, number>();
@@ -78,6 +91,7 @@ export async function GET(req: Request) {
     ]);
 
   if (pErr) {
+    console.error("profiles_lookup_failed", pErr.message);
     return NextResponse.json({ error: "profiles_lookup_failed", detail: pErr.message }, { status: 500 });
   }
 
