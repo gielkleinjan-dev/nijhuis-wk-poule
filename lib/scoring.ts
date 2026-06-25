@@ -8,6 +8,8 @@
 // back to score-compare when scores differ.
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { scoreKnockoutPlacement } from "./scoring-knockout";
+import { isGroupCode, type GroupCode } from "./bracket/types";
 
 export type BracketRound =
   | "LAST_32"
@@ -315,7 +317,7 @@ export async function computeUserPointRows(
     { data: bracketPicks, error: bErr },
     { data: bonusRow, error: boErr },
   ] = await Promise.all([
-    supabase.from("matches").select("id, stage, status, home_score, away_score, home_team, away_team"),
+    supabase.from("matches").select("id, stage, status, home_score, away_score, home_team, away_team, group_name"),
     supabase
       .from("predictions")
       .select("match_id, home_score, away_score, toto_pick")
@@ -342,6 +344,22 @@ export async function computeUserPointRows(
   >();
   for (const m of matches ?? []) matchById.set(m.id, m);
 
+  // teamGroupMap (team-code → groep) + werkelijke bracket-bezetters per FIFA-
+  // match-nummer (matches.id == FIFA-nummer) voor de placement-knock-outtelling.
+  const teamGroupMap = new Map<string, GroupCode>();
+  const matchesByFifaNo = new Map<number, { home_team: string | null; away_team: string | null }>();
+  for (const m of matches ?? []) {
+    matchesByFifaNo.set(m.id, { home_team: m.home_team ?? null, away_team: m.away_team ?? null });
+    if (m.stage === "GROUP_STAGE" && m.group_name) {
+      const raw = m.group_name as string;
+      const letter = raw.startsWith("GROUP_") ? raw.slice(6) : raw;
+      if (isGroupCode(letter)) {
+        if (m.home_team) teamGroupMap.set(m.home_team, letter);
+        if (m.away_team) teamGroupMap.set(m.away_team, letter);
+      }
+    }
+  }
+
   for (const pred of predictions ?? []) {
     const m = matchById.get(pred.match_id);
     if (!m || m.status !== "FINISHED") continue;
@@ -356,57 +374,15 @@ export async function computeUserPointRows(
     if (pts > 0) rows.push({ source: "group", ref_id: String(pred.match_id), points: pts });
   }
 
-  // ── Knock-out per match (V2-stijl) ─────────────────────────────────────────
-  // Per knock-out-wedstrijd vergelijken we jouw winner-pick met de echte
-  // winnaar. Full pt als exact deze wedstrijd, half pt als jouw pick wel door
-  // is via een andere wedstrijd in dezelfde ronde, anders 0.
-  //
-  // FIFA match-nummer afgeleid uit (round, slot):
-  //   LAST_32 slot N → M(72+N)
-  //   LAST_16 slot N → M(88+N)
-  //   QUARTER_FINALS slot N → M(96+N)
-  //   SEMI_FINALS slot N → M(100+N)
-  //   FINAL slot 1 → M104
-  function slotToFifaNo(round: BracketRound, slot: number | null | undefined): number | null {
-    if (slot == null) return null;
-    switch (round) {
-      case "LAST_32": return 72 + slot;
-      case "LAST_16": return 88 + slot;
-      case "QUARTER_FINALS": return 96 + slot;
-      case "SEMI_FINALS": return 100 + slot;
-      case "FINAL": return slot === 1 ? 104 : null;
-      default: return null;
-    }
-  }
-
-  // Werkelijke winnaars per ronde (uit ctx.winnerByMatchId via matches.stage)
-  const winnersByRound: Partial<Record<BracketRound, Set<string>>> = {};
-  for (const [mid, winner] of ctx.winnerByMatchId) {
-    const m = matchById.get(mid);
-    if (!m) continue;
-    const stage = m.stage as BracketRound;
-    if (!winnersByRound[stage]) winnersByRound[stage] = new Set<string>();
-    winnersByRound[stage]!.add(winner);
-  }
-
-  for (const pick of bracketPicks ?? []) {
-    // Skip V1-only fallback rondes en de phase-A/B input-rijen
-    if (pick.round === "GROUP_TOP_2") continue;
-    if (pick.round === "BEST_THIRDS") continue;
-    if (pick.round === "CHAMPION") continue; // legacy V1, in V2 onder FINAL
-
-    const round = pick.round as BracketRound;
-    if (!(round in KO_POINTS_FULL)) continue;
-
-    const fifaNo = slotToFifaNo(round, pick.slot ?? null);
-    if (fifaNo == null) continue;
-
-    const actualWinner = ctx.winnerByMatchId.get(fifaNo);
-    const allRoundWinners = winnersByRound[round] ?? new Set<string>();
-    const pts = scoreKnockoutMatch(pick.team_code, actualWinner, allRoundWinners, round);
-    if (pts > 0) {
-      rows.push({ source: "knockout", ref_id: `${round}:${pick.slot}`, points: pts });
-    }
+  // ── Knock-out: placement-telling ───────────────────────────────────────────
+  // Punten zodra 100% zeker is dat een land op een bracket-plek staat (football-
+  // data vult matches.home_team/away_team per vakje zodra het vast staat) — niet
+  // pas als de wedstrijd gespeeld is. Zelfde waarden: vol[R] = juiste plek,
+  // half[R] = komt door op een ander vakje. Champion (winnaar finale) ongewijzigd.
+  // Volledige logica + tests in lib/scoring-knockout.ts.
+  const actualChampion = ctx.winnerByMatchId.get(104) ?? null;
+  for (const row of scoreKnockoutPlacement(bracketPicks ?? [], teamGroupMap, matchesByFifaNo, actualChampion)) {
+    rows.push(row);
   }
 
   if (bonusRow) {
