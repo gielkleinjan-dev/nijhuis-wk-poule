@@ -25,7 +25,7 @@ const ROUNDS_ORDER: Round[] = ["LAST_32", "LAST_16", "QUARTER_FINALS", "SEMI_FIN
 export function BracketBuilder({
   phaseA, phaseB, bracket, overrides, isLocked,
   teamsByCode, teamGroupMap, allTeams, matchDatesByFifaNo,
-  actualBySlot, ptsBySlot, colleaguesBySlot,
+  actualBySlot, ptsBySlot,
   onPick, onSetOverride,
 }: {
   phaseA: PhaseA;
@@ -39,7 +39,6 @@ export function BracketBuilder({
   matchDatesByFifaNo: ReadonlyMap<number, Date>;
   actualBySlot: OccupantMap;
   ptsBySlot: ReadonlyMap<string, number>;
-  colleaguesBySlot: ReadonlyMap<MatchId, { home: string[]; away: string[] }>;
   onPick: (matchId: MatchId, winner: string | undefined) => void;
   onSetOverride: (matchId: MatchId, side: Side, teamCode: string | null) => void;
 }) {
@@ -145,7 +144,6 @@ export function BracketBuilder({
                   }
                   const ov = overrides[id];
                   const actual = actualBySlot.get(id);
-                  const colleagues = colleaguesBySlot.get(id);
                   return (
                     <BracketMatch
                       key={id}
@@ -164,8 +162,6 @@ export function BracketBuilder({
                       homeActualPts={ptsBySlot.get(`${id}:home`) ?? 0}
                       awayActualPts={ptsBySlot.get(`${id}:away`) ?? 0}
                       roundFull={full}
-                      homeAdvancers={colleagues?.home ?? []}
-                      awayAdvancers={colleagues?.away ?? []}
                       allTeams={allowedTeams}
                       isLocked={isLocked}
                       teamsByCode={teamsByCode}

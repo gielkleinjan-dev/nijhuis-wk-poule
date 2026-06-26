@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { flagEmoji } from "@/lib/flags";
 import type { MatchId } from "@/lib/bracket/types";
 import { CountryDropdown } from "./CountryDropdown";
@@ -34,8 +34,6 @@ export function BracketMatch({
   homeActualPts,
   awayActualPts,
   roundFull,
-  homeAdvancers,
-  awayAdvancers,
   allTeams,
   isLocked,
   teamsByCode,
@@ -57,8 +55,6 @@ export function BracketMatch({
   homeActualPts: number;
   awayActualPts: number;
   roundFull: number;
-  homeAdvancers: string[];
-  awayAdvancers: string[];
   allTeams: ReadonlyArray<TeamLite>;
   isLocked: boolean;
   teamsByCode: ReadonlyMap<string, TeamLite>;
@@ -66,8 +62,6 @@ export function BracketMatch({
   onSetOverride: (side: Side, teamCode: string | null) => void;
 }) {
   const fmt = formatKickoff(kickoff);
-  const [showColleagues, setShowColleagues] = useState(false);
-  const colleagueTotal = homeAdvancers.length + awayAdvancers.length;
 
   // iOS ghost-click guard: na een dropdown-pick fired iOS soms een synthetische
   // click op de pill eronder. 500ms lockout vangt dat op.
@@ -242,56 +236,8 @@ export function BracketMatch({
         </div>
       )}
 
-      {/* Wie kan scoren? — collega's die het werkelijke thuis-/uitland lieten doorgaan */}
-      {colleagueTotal > 0 && (
-        <div className="mt-2">
-          <button
-            type="button"
-            onClick={() => setShowColleagues((v) => !v)}
-            className="inline-flex items-center gap-1.5 text-[11px] text-muted hover:text-fg transition"
-            aria-expanded={showColleagues}
-          >
-            <span aria-hidden>👥</span>
-            <span>Wie kan scoren? ({colleagueTotal})</span>
-            <span aria-hidden className={`transition-transform ${showColleagues ? "rotate-180" : ""}`}>▾</span>
-          </button>
-          {showColleagues && (
-            <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
-              <ColleagueCol code={homeActual} names={homeAdvancers} teamsByCode={teamsByCode} />
-              <ColleagueCol code={awayActual} names={awayAdvancers} teamsByCode={teamsByCode} />
-            </div>
-          )}
-        </div>
-      )}
-
       <span className="hidden">{matchId}</span>
     </li>
-  );
-}
-
-// Eén kolom: welk land + de collega's die dat land lieten doorgaan.
-function ColleagueCol({
-  code, names, teamsByCode,
-}: {
-  code: string | undefined;
-  names: string[];
-  teamsByCode: ReadonlyMap<string, TeamLite>;
-}) {
-  if (!code) return null;
-  const name = teamsByCode.get(code)?.name ?? code;
-  return (
-    <div className="rounded border border-border bg-bg/40 p-2 min-w-0">
-      <div className="flex items-center gap-1.5 font-medium text-fg mb-1">
-        <span className="flag-emoji text-base leading-none shrink-0" aria-hidden>{flagEmoji(code)}</span>
-        <span className="truncate">{name}</span>
-        <span className="text-muted font-normal">· {names.length}</span>
-      </div>
-      {names.length === 0 ? (
-        <div className="text-muted/70 italic">niemand</div>
-      ) : (
-        <div className="text-muted leading-relaxed">{names.join(", ")}</div>
-      )}
-    </div>
   );
 }
 

@@ -1,11 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { GroupCode, MatchId } from "@/lib/bracket/types";
+import type { GroupCode } from "@/lib/bracket/types";
 import { GROUP_CODES } from "@/lib/bracket/types";
 import type { OccupantMap } from "@/lib/scoring-knockout";
-
-export type ColleaguesBySlot = ReadonlyMap<MatchId, { home: string[]; away: string[] }>;
 import { PhaseAPicker } from "./PhaseAPicker";
 import { PhaseBPicker } from "./PhaseBPicker";
 import { BracketBuilder } from "./BracketBuilder";
@@ -26,7 +24,6 @@ export default function KnockoutFormV2({
   matchDatesByFifaNo,
   actualBySlot,
   ptsBySlot,
-  colleaguesBySlot,
 }: {
   teams: Team[];
   initial: V2InitialPicks;
@@ -35,7 +32,6 @@ export default function KnockoutFormV2({
   matchDatesByFifaNo: ReadonlyMap<number, Date>;
   actualBySlot: OccupantMap;
   ptsBySlot: ReadonlyMap<string, number>;
-  colleaguesBySlot: ColleaguesBySlot;
 }) {
   const teamGroupMap = useMemo(() => {
     const m = new Map<string, GroupCode>();
@@ -131,7 +127,6 @@ export default function KnockoutFormV2({
               matchDatesByFifaNo={matchDatesByFifaNo}
               actualBySlot={actualBySlot}
               ptsBySlot={ptsBySlot}
-              colleaguesBySlot={colleaguesBySlot}
               onPick={s.setMatchWinner}
               onSetOverride={s.setOverride}
             />
@@ -352,7 +347,6 @@ export default function KnockoutFormV2({
                 matchDatesByFifaNo={matchDatesByFifaNo}
                 actualBySlot={actualBySlot}
                 ptsBySlot={ptsBySlot}
-                colleaguesBySlot={colleaguesBySlot}
                 onPick={s.setMatchWinner}
                 onSetOverride={s.setOverride}
               />
