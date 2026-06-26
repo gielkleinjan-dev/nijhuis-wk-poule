@@ -2,13 +2,21 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import KnockoutFormV2 from "./v2/KnockoutFormV2";
 import { type GroupCode, isGroupCode, type MatchId } from "@/lib/bracket/types";
 import type { PhaseA, Bracket } from "@/lib/bracket/cascade";
-import { ALL_MATCH_IDS } from "@/lib/bracket/bracket-graph";
+import { ALL_MATCH_IDS, BRACKET_GRAPH } from "@/lib/bracket/bracket-graph";
+import {
+  decodeBracketPicks,
+  predictedOccupants,
+  actualOccupants,
+  scorePlacementPoints,
+} from "@/lib/scoring-knockout";
+import { fetchAllRows } from "@/lib/supabase/fetchAll";
 
 export default async function KnockoutPage() {
   const supabase = await createSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
 
+  const KO_ROUNDS = ["LAST_32", "LAST_16", "QUARTER_FINALS", "SEMI_FINALS", "FINAL"];
   const [
     { data: teamsRaw },
     { data: picksRaw },
@@ -17,6 +25,8 @@ export default async function KnockoutPage() {
     { data: koMatchesRaw },
     { data: pointRows },
     { data: overridesRaw },
+    allKoPicks,
+    { data: profilesRaw },
   ] = await Promise.all([
     supabase.from("teams").select("code, name").order("name"),
     supabase
@@ -31,13 +41,18 @@ export default async function KnockoutPage() {
       .not("group_name", "is", null),
     supabase
       .from("matches")
-      .select("id, kickoff_at")
-      .in("stage", ["LAST_32", "LAST_16", "QUARTER_FINALS", "SEMI_FINALS", "FINAL"]),
+      .select("id, kickoff_at, home_team, away_team")
+      .in("stage", KO_ROUNDS),
     supabase.from("points").select("points").eq("user_id", user.id).eq("source", "knockout"),
     supabase
       .from("bracket_match_overrides")
       .select("match_id, side, team_code")
       .eq("user_id", user.id),
+    // Alle deelnemers' winnaar-keuzes per KO-ronde — voor "wie kan scoren?".
+    fetchAllRows<{ user_id: string; round: string; team_code: string | null }>(
+      () => supabase.from("bracket_picks").select("user_id, round, team_code").in("round", KO_ROUNDS),
+    ),
+    supabase.from("profiles").select("id, display_name, department"),
   ]);
 
   const totalPoints = (pointRows ?? []).reduce((s, r) => s + (r.points ?? 0), 0);
@@ -108,6 +123,57 @@ export default async function KnockoutPage() {
     if (m.id && m.kickoff_at) matchDatesByFifaNo.set(m.id, new Date(m.kickoff_at));
   }
 
+  // ── Werkelijke uitslag + punten per vakje (read-only, naast je keuzes) ──────
+  // Zelfde engine als de ranglijst, zodat de getoonde punten exact kloppen.
+  const teamGroupForScore = new Map<string, GroupCode>(
+    teamsV2.map((t) => [t.code, t.group]),
+  );
+  const { phaseA: dPhaseA, phaseB: dPhaseB, bracket: dBracket } = decodeBracketPicks(
+    (picksRaw ?? []).map((p) => ({ round: p.round, slot: p.slot, team_code: p.team_code })),
+  );
+  const predicted = predictedOccupants(dPhaseA, dPhaseB, dBracket, teamGroupForScore);
+  const actualBySlot = actualOccupants(
+    new Map((koMatchesRaw ?? []).map((m) => [m.id, { home_team: m.home_team, away_team: m.away_team }])),
+  );
+  const ptsBySlot = new Map<string, number>(); // "${matchId}:${side}" → punten
+  for (const r of scorePlacementPoints(predicted, actualBySlot)) {
+    const parts = r.ref_id.split(":"); // [round, matchId, side]
+    if (parts.length === 3) ptsBySlot.set(`${parts[1]}:${parts[2]}`, r.points);
+  }
+
+  // ── "Wie kan scoren?" — collega's die een land lieten doorgaan ──────────────
+  // Per KO-ronde is bracket_picks.team_code de winnaar-keuze. Wie het werkelijke
+  // thuis-/uitland van een wedstrijd als winnaar koos, kan in de volgende ronde
+  // punten pakken. We groeperen op `${ronde}:${land}` → namen.
+  const TEST_DEPARTMENTS = new Set(["__LOADTEST__", "__SCORING_TEST__"]);
+  const nameByUser = new Map<string, string>();
+  for (const p of profilesRaw ?? []) {
+    if (!p.display_name) continue;
+    if (p.department && TEST_DEPARTMENTS.has(p.department)) continue; // testaccounts weg
+    nameByUser.set(p.id, p.display_name);
+  }
+  const advancersByRoundTeam = new Map<string, string[]>();
+  for (const pk of allKoPicks ?? []) {
+    if (!pk.team_code) continue;
+    const name = nameByUser.get(pk.user_id);
+    if (!name) continue;
+    const key = `${pk.round}:${pk.team_code}`;
+    const arr = advancersByRoundTeam.get(key);
+    if (arr) arr.push(name);
+    else advancersByRoundTeam.set(key, [name]);
+  }
+  for (const arr of advancersByRoundTeam.values()) arr.sort((a, b) => a.localeCompare(b, "nl"));
+
+  const colleaguesBySlot = new Map<MatchId, { home: string[]; away: string[] }>();
+  for (const matchId of ALL_MATCH_IDS) {
+    const actual = actualBySlot.get(matchId);
+    if (!actual) continue;
+    const round = BRACKET_GRAPH[matchId].round;
+    const home = actual.home ? (advancersByRoundTeam.get(`${round}:${actual.home}`) ?? []) : [];
+    const away = actual.away ? (advancersByRoundTeam.get(`${round}:${actual.away}`) ?? []) : [];
+    if (home.length || away.length) colleaguesBySlot.set(matchId, { home, away });
+  }
+
   // Overrides per match per side
   const overrides: Partial<Record<MatchId, { home?: string; away?: string }>> = {};
   for (const o of overridesRaw ?? []) {
@@ -125,6 +191,9 @@ export default async function KnockoutPage() {
       isLocked={isLocked}
       totalPoints={totalPoints}
       matchDatesByFifaNo={matchDatesByFifaNo}
+      actualBySlot={actualBySlot}
+      ptsBySlot={ptsBySlot}
+      colleaguesBySlot={colleaguesBySlot}
     />
   );
 }

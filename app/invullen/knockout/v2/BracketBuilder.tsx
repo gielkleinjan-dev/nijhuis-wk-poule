@@ -6,35 +6,18 @@ import { computeR32Slots, type PhaseA, type Bracket } from "@/lib/bracket/cascad
 import type { GroupCode, MatchId, Round } from "@/lib/bracket/types";
 import { BracketMatch } from "./BracketMatch";
 import type { MatchOverrides, Side } from "./useBracketState";
+import { type OccupantMap, PLACEMENT_FULL, PLACEMENT_HALF, CHAMPION_POINTS } from "@/lib/scoring-knockout";
 
 type TeamLite = { code: string; name: string };
 
-const ROUND_META: Record<Round, { title: string; hint: string; full: number; half: number }> = {
-  LAST_32: {
-    title: "1/16e finale",
-    hint: "32 landen, 16 wedstrijden. Kies per wedstrijd de winnaar.",
-    full: 8, half: 4,
-  },
-  LAST_16: {
-    title: "1/8e finale",
-    hint: "16 landen, 8 wedstrijden. Kies per wedstrijd de winnaar.",
-    full: 14, half: 7,
-  },
-  QUARTER_FINALS: {
-    title: "Kwartfinale",
-    hint: "8 landen, 4 wedstrijden. Kies per wedstrijd de winnaar.",
-    full: 24, half: 12,
-  },
-  SEMI_FINALS: {
-    title: "Halve finale",
-    hint: "4 landen, 2 wedstrijden. De winnaars spelen de finale.",
-    full: 36, half: 18,
-  },
-  FINAL: {
-    title: "Finale",
-    hint: "Eén wedstrijd. De winnaar is wereldkampioen.",
-    full: 96, half: 0,
-  },
+// Punten komen rechtstreeks uit de score-engine (PLACEMENT_FULL/HALF +
+// CHAMPION_POINTS), zodat deze pagina niet kan afwijken van de ranglijst.
+const ROUND_META: Record<Round, { title: string; hint: string }> = {
+  LAST_32: { title: "1/16e finale", hint: "32 landen, 16 wedstrijden. Kies per wedstrijd de winnaar." },
+  LAST_16: { title: "1/8e finale", hint: "16 landen, 8 wedstrijden. Kies per wedstrijd de winnaar." },
+  QUARTER_FINALS: { title: "Kwartfinale", hint: "8 landen, 4 wedstrijden. Kies per wedstrijd de winnaar." },
+  SEMI_FINALS: { title: "Halve finale", hint: "4 landen, 2 wedstrijden. De winnaars spelen de finale." },
+  FINAL: { title: "Finale", hint: "Eén wedstrijd. De winnaar is wereldkampioen." },
 };
 
 const ROUNDS_ORDER: Round[] = ["LAST_32", "LAST_16", "QUARTER_FINALS", "SEMI_FINALS", "FINAL"];
@@ -42,6 +25,7 @@ const ROUNDS_ORDER: Round[] = ["LAST_32", "LAST_16", "QUARTER_FINALS", "SEMI_FIN
 export function BracketBuilder({
   phaseA, phaseB, bracket, overrides, isLocked,
   teamsByCode, teamGroupMap, allTeams, matchDatesByFifaNo,
+  actualBySlot, ptsBySlot, colleaguesBySlot,
   onPick, onSetOverride,
 }: {
   phaseA: PhaseA;
@@ -53,6 +37,9 @@ export function BracketBuilder({
   teamGroupMap: ReadonlyMap<string, GroupCode>;
   allTeams: ReadonlyArray<TeamLite>;
   matchDatesByFifaNo: ReadonlyMap<number, Date>;
+  actualBySlot: OccupantMap;
+  ptsBySlot: ReadonlyMap<string, number>;
+  colleaguesBySlot: ReadonlyMap<MatchId, { home: string[]; away: string[] }>;
   onPick: (matchId: MatchId, winner: string | undefined) => void;
   onSetOverride: (matchId: MatchId, side: Side, teamCode: string | null) => void;
 }) {
@@ -67,6 +54,9 @@ export function BracketBuilder({
         const meta = ROUND_META[round];
         const ids = MATCH_IDS_BY_ROUND[round];
         const filled = ids.filter((id) => bracket[id]).length;
+        const full = PLACEMENT_FULL[round as keyof typeof PLACEMENT_FULL] ?? 0;
+        const half = PLACEMENT_HALF[round as keyof typeof PLACEMENT_HALF] ?? 0;
+        const isFinal = round === "FINAL";
         return (
           <section key={round} className="bg-surface border border-border rounded-lg overflow-hidden">
             <div className="px-5 py-3 border-b border-border bg-bg/50">
@@ -82,11 +72,16 @@ export function BracketBuilder({
               <p className="text-xs text-muted">{meta.hint}</p>
               <div className="flex flex-wrap gap-1.5 mt-1.5">
                 <span className="bg-pitch text-white text-[11px] font-semibold px-1.5 py-0.5 rounded">
-                  {meta.full} pt juiste land op juiste plek
+                  {full} pt {isFinal ? "juiste finalist op juiste plek" : "juiste land op juiste plek"}
                 </span>
-                {meta.half > 0 && (
+                {half > 0 && (
                   <span className="bg-amber-100 text-amber-800 border border-amber-200 text-[11px] font-semibold px-1.5 py-0.5 rounded">
-                    {meta.half} pt juiste land op verkeerde plek
+                    {half} pt {isFinal ? "juiste finalist op verkeerde plek" : "juiste land op verkeerde plek"}
+                  </span>
+                )}
+                {isFinal && (
+                  <span className="bg-pitch text-white text-[11px] font-semibold px-1.5 py-0.5 rounded">
+                    {CHAMPION_POINTS} pt wereldkampioen
                   </span>
                 )}
               </div>
@@ -149,6 +144,8 @@ export function BracketBuilder({
                     awayEmptyLabel = `Winnaar W${pa.fifaMatchNo}`;
                   }
                   const ov = overrides[id];
+                  const actual = actualBySlot.get(id);
+                  const colleagues = colleaguesBySlot.get(id);
                   return (
                     <BracketMatch
                       key={id}
@@ -162,6 +159,13 @@ export function BracketBuilder({
                       awayEmptyLabel={awayEmptyLabel}
                       kickoff={matchDatesByFifaNo.get(node.fifaMatchNo)}
                       winner={bracket[id]}
+                      homeActual={actual?.home}
+                      awayActual={actual?.away}
+                      homeActualPts={ptsBySlot.get(`${id}:home`) ?? 0}
+                      awayActualPts={ptsBySlot.get(`${id}:away`) ?? 0}
+                      roundFull={full}
+                      homeAdvancers={colleagues?.home ?? []}
+                      awayAdvancers={colleagues?.away ?? []}
                       allTeams={allowedTeams}
                       isLocked={isLocked}
                       teamsByCode={teamsByCode}

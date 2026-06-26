@@ -1,8 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { GroupCode } from "@/lib/bracket/types";
+import type { GroupCode, MatchId } from "@/lib/bracket/types";
 import { GROUP_CODES } from "@/lib/bracket/types";
+import type { OccupantMap } from "@/lib/scoring-knockout";
+
+export type ColleaguesBySlot = ReadonlyMap<MatchId, { home: string[]; away: string[] }>;
 import { PhaseAPicker } from "./PhaseAPicker";
 import { PhaseBPicker } from "./PhaseBPicker";
 import { BracketBuilder } from "./BracketBuilder";
@@ -21,12 +24,18 @@ export default function KnockoutFormV2({
   isLocked,
   totalPoints,
   matchDatesByFifaNo,
+  actualBySlot,
+  ptsBySlot,
+  colleaguesBySlot,
 }: {
   teams: Team[];
   initial: V2InitialPicks;
   isLocked: boolean;
   totalPoints?: number;
   matchDatesByFifaNo: ReadonlyMap<number, Date>;
+  actualBySlot: OccupantMap;
+  ptsBySlot: ReadonlyMap<string, number>;
+  colleaguesBySlot: ColleaguesBySlot;
 }) {
   const teamGroupMap = useMemo(() => {
     const m = new Map<string, GroupCode>();
@@ -59,6 +68,117 @@ export default function KnockoutFormV2({
     if (!s.phaseBComplete) return "B";
     return "C";
   });
+
+  // ── Gesloten weergave: bracket is hoofdscherm, stap 1 & 2 ingeklapt ──────────
+  // Tijdens het invullen (niet-locked) blijft de stappen-flow hieronder.
+  if (isLocked) {
+    return (
+      <div className="space-y-4">
+        <div className="tab-hero bg-surface border border-border rounded-lg p-5">
+          <div className="flex items-baseline justify-between gap-3 mb-1">
+            <h1 className="text-2xl font-bold leading-tight">Knock-out</h1>
+            <div className="shrink-0 text-right leading-tight flex items-baseline gap-3">
+              {(totalPoints ?? 0) > 0 && (
+                <div>
+                  <div className="text-xl font-bold tabular-nums text-pitch">{totalPoints}</div>
+                  <div className="text-[10px] text-muted">punten</div>
+                </div>
+              )}
+              <div>
+                <div className="text-xl font-bold tabular-nums">
+                  {s.phaseACount + s.phaseB.size + s.bracketCount}<span className="text-sm text-muted font-normal">/63</span>
+                </div>
+                <div className="text-[10px] text-muted">ingevuld</div>
+              </div>
+            </div>
+          </div>
+          <p className="text-sm text-muted">
+            Jouw vastgezette knock-out picks. Je verdient punten voor elk land dat op de{" "}
+            <span className="font-medium text-fg">juiste plek</span> in jouw schema uitkomt — vanaf de
+            laatste 32 t/m de finale, plus de wereldkampioen.
+          </p>
+        </div>
+
+        {/* Hoofdscherm: het knock-out schema met werkelijke uitslagen + punten */}
+        <div className="bg-surface border border-border rounded-lg overflow-hidden">
+          <div className="px-5 py-4 border-b border-border bg-bg/30">
+            <h2 className="text-base font-bold mb-1">Jouw knock-out schema</h2>
+            <p className="text-xs text-muted">
+              Per wedstrijd zie je jouw keuze en — zodra bekend — de werkelijke uitslag met de punten
+              die je daar verdiende.
+            </p>
+            <ul className="mt-3 space-y-1.5 text-xs text-muted">
+              <li className="flex items-center gap-2.5">
+                <span className="inline-block w-5 h-5 rounded bg-pitch shrink-0" aria-hidden />
+                <span>winnaar van de wedstrijd</span>
+              </li>
+              <li className="flex items-center gap-2.5">
+                <span className="inline-block w-5 h-5 rounded bg-pitch-soft border border-pitch/40 shrink-0" aria-hidden />
+                <span>ander land op deze plek gezet</span>
+              </li>
+            </ul>
+          </div>
+          <div className="p-3 space-y-3">
+            <BracketBuilder
+              phaseA={s.phaseA}
+              phaseB={s.phaseB}
+              bracket={s.bracket}
+              overrides={s.overrides}
+              isLocked={isLocked}
+              teamsByCode={teamsByCode}
+              teamGroupMap={teamGroupMap}
+              allTeams={allTeams}
+              matchDatesByFifaNo={matchDatesByFifaNo}
+              actualBySlot={actualBySlot}
+              ptsBySlot={ptsBySlot}
+              colleaguesBySlot={colleaguesBySlot}
+              onPick={s.setMatchWinner}
+              onSetOverride={s.setOverride}
+            />
+          </div>
+        </div>
+
+        {/* Stap 1 & 2 — als historische context, ingeklapt */}
+        <details className="group bg-surface border border-border rounded-lg overflow-hidden">
+          <summary className="px-5 py-4 cursor-pointer select-none flex items-center justify-between gap-3 hover:bg-bg/30">
+            <div>
+              <div className="text-base font-bold">Mijn groepsvoorspelling</div>
+              <div className="text-xs text-muted">
+                Je top 2 per poule en je beste nummers 3 — de basis waarop dit schema is opgebouwd.
+              </div>
+            </div>
+            <span className="text-muted text-sm shrink-0 transition-transform group-open:rotate-180" aria-hidden>▾</span>
+          </summary>
+          <div className="border-t border-border">
+            <div className="px-5 py-3 border-b border-border bg-bg/30">
+              <h3 className="text-sm font-bold">Top 2 per poule</h3>
+              <p className="text-xs text-muted">De nummer 1 en 2 die jij per poule voorspelde.</p>
+            </div>
+            <PhaseAPicker
+              teamsByGroup={teamsByGroup}
+              phaseA={s.phaseA}
+              isLocked={isLocked}
+              onSetRank={s.setPhaseARank}
+              nextFreeRank={s.nextFreeRank}
+            />
+            <div className="px-5 py-3 border-y border-border bg-bg/30">
+              <h3 className="text-sm font-bold">Beste nummers 3</h3>
+              <p className="text-xs text-muted">De 8 poules waarvan jij de nummer 3 liet doorgaan.</p>
+            </div>
+            <PhaseBPicker
+              teamsByGroup={teamsByGroup}
+              phaseA={s.phaseA}
+              phaseB={s.phaseB}
+              isLocked={isLocked}
+              onToggle={s.togglePhaseB}
+            />
+          </div>
+        </details>
+
+        <TodayButton />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -230,6 +350,9 @@ export default function KnockoutFormV2({
                 teamGroupMap={teamGroupMap}
                 allTeams={allTeams}
                 matchDatesByFifaNo={matchDatesByFifaNo}
+                actualBySlot={actualBySlot}
+                ptsBySlot={ptsBySlot}
+                colleaguesBySlot={colleaguesBySlot}
                 onPick={s.setMatchWinner}
                 onSetOverride={s.setOverride}
               />

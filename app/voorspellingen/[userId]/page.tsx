@@ -25,19 +25,33 @@ import TodayButton from "@/app/components/TodayButton";
 import GroupSortToggle, { type GroupSort } from "@/app/components/GroupSortToggle";
 import { isTodayNL } from "@/lib/today";
 
-function TeamSpan({ code, name, highlighted }: { code: string | undefined | null; name?: string; highlighted?: boolean }) {
+// tone: "correct" = juist land op juiste plek (opaal groen),
+//       "wrongSlot" = juist land op verkeerde plek (opaal geel),
+//       "winner" = jouw gekozen winnaar die doorgaat (harde groene lijn).
+// highlighted = jouw gekozen winnaar (gevulde pill), ongeacht uitkomst.
+function TeamSpan({
+  code, name, highlighted, tone,
+}: {
+  code: string | undefined | null;
+  name?: string;
+  highlighted?: boolean;
+  tone?: "correct" | "wrongSlot" | "winner";
+}) {
   if (!code) return <span className="text-muted italic">—</span>;
-  if (highlighted) {
-    // Winnaar-pill, zelfde stijl als in de invul-knock-out
-    return (
-      <span className="inline-flex items-center gap-1 bg-pitch text-white font-semibold border border-pitch rounded px-1.5 py-0.5 max-w-full min-w-0">
-        <span aria-hidden className="flag-emoji shrink-0">{flagEmoji(code)}</span>
-        <span className="truncate min-w-0">{name ?? code}</span>
-      </span>
-    );
-  }
+  // Onderscheid loopt via kleur/vulling — niet via lettergrootte of -gewicht,
+  // zodat alle landnamen visueel even groot ogen (geen vet = "groter"-illusie).
+  const cls =
+    tone === "correct"
+      ? "bg-green-100 text-green-900 border border-green-300"
+      : tone === "wrongSlot"
+      ? "bg-amber-100 text-amber-900 border border-amber-300"
+      : tone === "winner"
+      ? "border-2 border-pitch text-fg"
+      : highlighted
+      ? "bg-pitch text-white border border-pitch"
+      : "border border-transparent";
   return (
-    <span className="inline-flex items-center gap-1 max-w-full min-w-0">
+    <span className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 max-w-full min-w-0 font-medium ${cls}`}>
       <span aria-hidden className="flag-emoji shrink-0">{flagEmoji(code)}</span>
       <span className="truncate min-w-0">{name ?? code}</span>
     </span>
@@ -368,6 +382,8 @@ export default async function VoorspellingDetailPage({
     myAway: string | undefined;
     myPick: string | undefined;
     actualWinner: string | undefined;
+    homePts: number;
+    awayPts: number;
     pts: number;
   };
   const koByStage = new Map<BracketRound, { matches: MatchScore[]; subtotal: number }>();
@@ -384,6 +400,8 @@ export default async function VoorspellingDetailPage({
         myAway: pred?.away,
         myPick: mid ? dBracket[mid] : undefined,
         actualWinner: winnerByMatchId.get(m.id),
+        homePts,
+        awayPts,
         pts: homePts + awayPts,
       };
     });
@@ -818,10 +836,11 @@ export default async function VoorspellingDetailPage({
                 <div className="text-right">Pt</div>
               </div>
               <ul className="divide-y divide-border">
-                {data.matches.map(({ match: m, myHome, myAway, myPick, actualWinner, pts }) => {
+                {data.matches.map(({ match: m, myHome, myAway, myPick, actualWinner, homePts, awayPts, pts }) => {
                   const finished = m.status === "FINISHED" && m.home_score != null && m.away_score != null;
-                  const realHomeWon = finished && (m.home_score ?? 0) > (m.away_score ?? 0);
-                  const realAwayWon = finished && (m.away_score ?? 0) > (m.home_score ?? 0);
+                  // Kleur per werkelijk land: vol = juiste plek (groen), half = komt door (geel).
+                  const slotTone = (p: number): "correct" | "wrongSlot" | undefined =>
+                    p === 0 ? undefined : p >= full ? "correct" : "wrongSlot";
                   return (
                     <li key={m.id} data-kickoff={m.kickoff_at} className="px-3 sm:px-4 py-2.5 sm:grid sm:grid-cols-[7rem_1fr_1fr_3rem] sm:gap-2 sm:items-center">
                       <div>
@@ -833,9 +852,9 @@ export default async function VoorspellingDetailPage({
                         <span className="sm:hidden text-[10px] text-muted block mb-0.5">Voorspelling:</span>
                         {myHome || myAway ? (
                           <div className="text-xs flex items-center gap-1 flex-wrap">
-                            <TeamSpan code={myHome} name={myHome ? teamName.get(myHome) : undefined} highlighted={myPick === myHome && !!myPick} />
+                            <TeamSpan code={myHome} name={myHome ? teamName.get(myHome) : undefined} highlighted={myPick === myHome && !!myPick} tone={myPick === myHome && !!myPick && actualWinner === myPick ? "winner" : undefined} />
                             <span className="text-muted">vs</span>
-                            <TeamSpan code={myAway} name={myAway ? teamName.get(myAway) : undefined} highlighted={myPick === myAway && !!myPick} />
+                            <TeamSpan code={myAway} name={myAway ? teamName.get(myAway) : undefined} highlighted={myPick === myAway && !!myPick} tone={myPick === myAway && !!myPick && actualWinner === myPick ? "winner" : undefined} />
                             {myPick && myPick !== myHome && myPick !== myAway && (
                               <span className="ml-1 text-[10px] text-amber-700">(override: {teamName.get(myPick) ?? myPick})</span>
                             )}
@@ -847,13 +866,17 @@ export default async function VoorspellingDetailPage({
                       {/* Werkelijk: echte teams + score + winnaar groen */}
                       <div className="mt-1.5 sm:mt-0">
                         <span className="sm:hidden text-[10px] text-muted block mb-0.5">Werkelijk:</span>
-                        {m.home_team && m.away_team ? (
+                        {m.home_team || m.away_team ? (
                           <div className="text-xs flex items-center gap-1 flex-wrap">
-                            <TeamSpan code={m.home_team} name={teamName.get(m.home_team)} highlighted={realHomeWon} />
+                            {m.home_team
+                              ? <TeamSpan code={m.home_team} name={teamName.get(m.home_team)} tone={slotTone(homePts)} />
+                              : <span className="text-muted italic">?</span>}
                             <span className="text-muted">
                               {finished ? `${m.home_score}–${m.away_score}` : "vs"}
                             </span>
-                            <TeamSpan code={m.away_team} name={teamName.get(m.away_team)} highlighted={realAwayWon} />
+                            {m.away_team
+                              ? <TeamSpan code={m.away_team} name={teamName.get(m.away_team)} tone={slotTone(awayPts)} />
+                              : <span className="text-muted italic">?</span>}
                             {finished && !actualWinner && m.home_score === m.away_score && (
                               <span className="text-[10px] text-muted italic">(gelijkspel / TBD)</span>
                             )}
