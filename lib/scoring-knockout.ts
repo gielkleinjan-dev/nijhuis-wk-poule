@@ -24,15 +24,29 @@ import {
 } from "./bracket/bracket-graph";
 import { computeR32Slots, type PhaseA, type Bracket, type TeamGroupMap } from "./bracket/cascade";
 import { isGroupCode, type MatchId } from "./bracket/types";
-import { KO_POINTS_FULL, KO_POINTS_HALF, type BracketRound, type PointsRow } from "./scoring";
+import type { BracketRound, PointsRow } from "./scoring";
 
-// Rondes die via placement (vakje-gevuld) gescoord worden. De FINALE valt hier
-// bewust buiten — die blijft op de bestaande kampioen-telling (scoreChampion).
+// Eigen puntenwaarden voor de placement-telling (ontkoppeld van de oude
+// winnaar-gebaseerde KO_POINTS in scoring.ts). Per ronde: vol = juiste plek,
+// half = komt door op een ander vakje. De FINALE is een eigen ronde (de twee
+// finalisten, 56/28); de wereldkampioen is een aparte beloning (40) bovenop.
+type PlacementRound = "LAST_32" | "LAST_16" | "QUARTER_FINALS" | "SEMI_FINALS" | "FINAL";
+const PLACEMENT_FULL: Record<PlacementRound, number> = {
+  LAST_32: 8, LAST_16: 14, QUARTER_FINALS: 24, SEMI_FINALS: 36, FINAL: 56,
+};
+const PLACEMENT_HALF: Record<PlacementRound, number> = {
+  LAST_32: 4, LAST_16: 7, QUARTER_FINALS: 12, SEMI_FINALS: 18, FINAL: 28,
+};
+export const CHAMPION_POINTS = 40;
+
+// Rondes die via placement (vakje-gevuld) gescoord worden — t/m de FINALE
+// (de twee finalisten). De wereldkampioen wordt apart geteld (scoreChampion).
 export const PLACEMENT_ROUNDS = [
   "LAST_32",
   "LAST_16",
   "QUARTER_FINALS",
   "SEMI_FINALS",
+  "FINAL",
 ] as const satisfies readonly BracketRound[];
 
 export type SlotPair = { home?: string; away?: string };
@@ -158,9 +172,9 @@ export function scorePlacementPoints(predicted: OccupantMap, actual: OccupantMap
 
         let pts = 0;
         if (p?.[side] && p[side] === actualTeam) {
-          pts = KO_POINTS_FULL[round]; // juiste plek
+          pts = PLACEMENT_FULL[round]; // juiste plek
         } else if (predictedInRound.has(actualTeam)) {
-          pts = KO_POINTS_HALF[round]; // komt door, ander vakje
+          pts = PLACEMENT_HALF[round]; // komt door, ander vakje
         }
         if (pts > 0) {
           rows.push({ source: "knockout", ref_id: `${round}:${mid}:${side}`, points: pts });
@@ -172,15 +186,16 @@ export function scorePlacementPoints(predicted: OccupantMap, actual: OccupantMap
   return rows;
 }
 
-// ── Wereldkampioen (ongewijzigd t.o.v. huidige telling) ───────────────────────
-// De finale/kampioen kan pas bekend zijn als de finale gespeeld is, dus dit
-// blijft resultaat-gebaseerd: voorspelde kampioen (bracket["F-1"]) == werkelijke
-// winnaar van de finale → KO_POINTS_FULL.FINAL.
+// ── Wereldkampioen (aparte beloning bovenop de finale-plaatsing) ──────────────
+// De kampioen kan pas bekend zijn als de finale gespeeld is, dus dit blijft
+// resultaat-gebaseerd: voorspelde kampioen (bracket["F-1"]) == werkelijke
+// winnaar van de finale → CHAMPION_POINTS (40). Het halen van de finale zelf
+// wordt al via de placement-telling (FINAL, 56/28) beloond.
 export function scoreChampion(bracket: Bracket, actualChampion: string | null | undefined): PointsRow | null {
   const pick = bracket["F-1"];
   if (!pick || !actualChampion) return null;
   if (pick !== actualChampion) return null;
-  return { source: "knockout", ref_id: "FINAL:champion", points: KO_POINTS_FULL.FINAL };
+  return { source: "knockout", ref_id: "FINAL:champion", points: CHAMPION_POINTS };
 }
 
 // ── Volledige knock-outtelling voor één deelnemer ─────────────────────────────

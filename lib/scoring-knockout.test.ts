@@ -114,10 +114,25 @@ describe("scorePlacementPoints — achtste finale via voedende keuze", () => {
   });
 });
 
-describe("scoreChampion — ongewijzigde kampioen-telling", () => {
-  it("juiste kampioen levert 96", () => {
+describe("scorePlacementPoints — finale (finalisten)", () => {
+  const tgm = teamGroupMap();
+
+  it("juiste finalist op de juiste kant levert vol (56)", () => {
+    // F-1 (M104) wordt gevoed door SF-1 (home) en SF-2 (away).
+    // Voorspel 1A wint SF-1 → voorspelde finalist op F-1 home = 1A.
+    const bracket: Bracket = { "SF-1": "1A", "SF-2": "1B" };
+    const predicted = predictedOccupants(fullPhaseA(), fullPhaseB(), bracket, tgm);
+    const actual = actualOccupants(occ([[104, "1A", "1B"]]));
+    const rows = scorePlacementPoints(predicted, actual).filter((r) => r.ref_id.startsWith("FINAL:F-1:"));
+    expect(rows).toHaveLength(2);
+    expect(rows.every((r) => r.points === 56)).toBe(true);
+  });
+});
+
+describe("scoreChampion — aparte kampioen-beloning (40)", () => {
+  it("juiste kampioen levert 40", () => {
     const row = scoreChampion({ "F-1": "1A" } as Bracket, "1A");
-    expect(row?.points).toBe(96);
+    expect(row?.points).toBe(40);
     expect(row?.ref_id).toBe("FINAL:champion");
   });
   it("foute kampioen levert null", () => {
@@ -163,7 +178,7 @@ describe("scoreKnockoutPlacement — end-to-end", () => {
     const matches = occ([[73, "2A", "2B"]]); // R32-1 exact
     const rows = scoreKnockoutPlacement(picks, tgm, matches, "1A");
     const total = rows.reduce((s, r) => s + r.points, 0);
-    // R32-1 home+away vol (8+8) + kampioen (96) = 112
-    expect(total).toBe(112);
+    // R32-1 home+away vol (8+8) + kampioen (40) = 56
+    expect(total).toBe(56);
   });
 });
