@@ -83,8 +83,9 @@ export default function KnockoutFormV2({
         <div className="text-sm text-muted">
           {isLocked ? (
             <p>
-              Jouw vastgezette knock-out picks. Gebruik de tabs hieronder om te bladeren —{" "}
-              <span className="font-medium text-fg">Winnaars per wedstrijd</span> is waar je punten voor verdient.
+              Jouw vastgezette knock-out picks. Gebruik de tabs hieronder om te bladeren. Je verdient
+              punten voor elk land dat op de <span className="font-medium text-fg">juiste plek</span> in
+              jouw schema uitkomt — vanaf de laatste 32 t/m de finale, plus de wereldkampioen.
             </p>
           ) : (
             <div className="space-y-2">
@@ -95,11 +96,15 @@ export default function KnockoutFormV2({
               <p>
                 <span className="font-medium text-fg">Stap 1 en 2</span> bepalen welke 32 landen
                 aan jouw knock-out beginnen — de nummer 1 en 2 per poule en jouw 8 beste nummers 3.
-                Daarop bouwen we automatisch jouw persoonlijke schema. Daarvoor krijg je nog geen punten.
+                Daarop bouwen we automatisch jouw persoonlijke schema.
               </p>
               <p>
-                <span className="font-medium text-fg">Stap 3</span> is waar je punten verdient:
-                kies per wedstrijd wie wint. Goed gegokt op de juiste plek levert de volle punten op.
+                Je verdient punten voor elk land dat jij op de{" "}
+                <span className="font-medium text-fg">juiste plek</span> in het schema voorspelt —
+                vanaf de laatste 32 t/m de finale, plus de wereldkampioen. Juiste plek = volle punten,
+                juist land op de verkeerde plek = halve punten. In{" "}
+                <span className="font-medium text-fg">stap 3</span> kies je per wedstrijd wie doorgaat,
+                zodat we weten welke landen jij verder in het schema verwacht.
               </p>
             </div>
           )}
@@ -195,8 +200,8 @@ export default function KnockoutFormV2({
               num={3}
               title="Winnaars per wedstrijd"
               subtitle={isLocked
-                ? "Jouw persoonlijke knock-out schema — vastgezet. Hier verdien je punten."
-                : "Hieronder staat jouw persoonlijke knock-out schema, opgebouwd uit stap 1 en 2. Kies per wedstrijd wie wint — dit is waar je punten voor verdient. Eigenwijs? Extra spreiding? Je kunt je automatische schema op alle plaatsen aanpassen door een ander land te selecteren."}
+                ? "Jouw persoonlijke knock-out schema — vastgezet. Punten vallen voor elk land op de juiste plek, t/m de finale en de wereldkampioen."
+                : "Hieronder staat jouw persoonlijke knock-out schema, opgebouwd uit stap 1 en 2. Kies per wedstrijd wie doorgaat — zo bepaal je welke landen jij verder in het schema verwacht. Elk land op de juiste plek levert punten op, t/m de finale. Eigenwijs? Extra spreiding? Je kunt je automatische schema op alle plaatsen aanpassen door een ander land te selecteren."}
               legend={[
                 { sw: "bg-pitch", text: "winnaar van de wedstrijd" },
                 { sw: "bg-pitch-soft border border-pitch/40", text: "ander land op deze plek gezet" },

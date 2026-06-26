@@ -1,7 +1,8 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { flagEmoji } from "@/lib/flags";
-import { scoreGroupPrediction, deriveSurvivors, KO_POINTS_HALF, type BracketRound } from "@/lib/scoring";
+import { scoreGroupPrediction, deriveSurvivors, type BracketRound } from "@/lib/scoring";
+import { PLACEMENT_HALF } from "@/lib/scoring-knockout";
 import { isAdmin } from "@/lib/admin";
 
 // V2-aligned KO-rondes voor de /uitslagen-weergave. We gebruiken bewust de
@@ -16,11 +17,11 @@ import { isAdmin } from "@/lib/admin";
 // bevatte. Daardoor zou /uitslagen straks andere totalen tonen dan
 // /ranglijst zodra wedstrijden gespeeld worden.
 const KO_ROUNDS_V2: ReadonlyArray<{ key: BracketRound; label: string; points: number }> = [
-  { key: "LAST_32",         label: "1/16e finale",     points: KO_POINTS_HALF.LAST_32 },
-  { key: "LAST_16",         label: "1/8e finale",      points: KO_POINTS_HALF.LAST_16 },
-  { key: "QUARTER_FINALS",  label: "Kwartfinale",      points: KO_POINTS_HALF.QUARTER_FINALS },
-  { key: "SEMI_FINALS",     label: "Halve finale",     points: KO_POINTS_HALF.SEMI_FINALS },
-  { key: "FINAL",           label: "Finale",           points: KO_POINTS_HALF.FINAL },
+  { key: "LAST_32",         label: "1/16e finale",     points: PLACEMENT_HALF.LAST_32 },
+  { key: "LAST_16",         label: "1/8e finale",      points: PLACEMENT_HALF.LAST_16 },
+  { key: "QUARTER_FINALS",  label: "Kwartfinale",      points: PLACEMENT_HALF.QUARTER_FINALS },
+  { key: "SEMI_FINALS",     label: "Halve finale",     points: PLACEMENT_HALF.SEMI_FINALS },
+  { key: "FINAL",           label: "Finale",           points: PLACEMENT_HALF.FINAL },
 ];
 import MainNav from "@/app/components/MainNav";
 import BrandLogo from "@/app/components/BrandLogo";
@@ -63,6 +64,7 @@ export default async function UitslagenPage({
     { data: predictionsRaw },
     { data: bracketPicksRaw },
     { data: bonusRow },
+    { data: pointsRows },
   ] = await Promise.all([
     supabase.from("settings").select("lock_at").eq("id", 1).single(),
     supabase
@@ -82,7 +84,13 @@ export default async function UitslagenPage({
       .select("top_scorer, total_goals_tiebreak, total_yellow_cards_tiebreak")
       .eq("user_id", user.id)
       .maybeSingle(),
+    // Bron-van-waarheid voor de eigen totalen: de toegekende punten per bron.
+    // Zo is het getoonde totaal per definitie gelijk aan de ranglijst.
+    supabase.from("points").select("source, points").eq("user_id", user.id),
   ]);
+
+  const sumSource = (src: string) =>
+    (pointsRows ?? []).filter((r) => r.source === src).reduce((s, r) => s + (r.points ?? 0), 0);
 
   const lockAt = settings?.lock_at ?? "2026-06-10T15:00:00Z";
   const isLocked = new Date(lockAt) <= new Date();
@@ -214,16 +222,11 @@ export default async function UitslagenPage({
     picksByRound.get(p.round)!.add(p.team_code);
   }
 
-  const koTotalPts = KO_ROUNDS_V2.reduce((sum, r) => {
-    const picks = picksByRound.get(r.key) ?? new Set<string>();
-    const survs = survivors[r.key];
-    if (!survs?.size) return sum;
-    return sum + Array.from(picks).filter((c) => survs.has(c)).length * r.points;
-  }, 0);
-
-  // ── Bonus ─────────────────────────────────────────────────────────────────
-  // Actual bonus results would come from settings/admin; placeholder for now
-  const bonusTotalPts = 0; // filled in by cron when tournament ends
+  // Totalen uit de toegekende punten (gelijk aan de ranglijst). De per-ronde
+  // KO-tabel hieronder blijft een "wie leeft nog"-overzicht; het exacte per-
+  // vakje totaal staat op de bracket-detailpagina.
+  const koTotalPts = sumSource("knockout");
+  const bonusTotalPts = sumSource("bonus");
 
   const grandTotal = groupTotalPts + koTotalPts + bonusTotalPts;
 
