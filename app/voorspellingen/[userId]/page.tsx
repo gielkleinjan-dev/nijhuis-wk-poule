@@ -4,12 +4,19 @@ import Link from "next/link";
 import { flagEmoji } from "@/lib/flags";
 import {
   scoreGroupPrediction,
-  scoreKnockoutMatch,
-  KO_POINTS_FULL,
-  KO_POINTS_HALF,
   type BracketRound,
   type NLProgress,
 } from "@/lib/scoring";
+import {
+  decodeBracketPicks,
+  predictedOccupants,
+  actualOccupants,
+  scorePlacementPoints,
+  scoreChampion,
+  CHAMPION_POINTS,
+  PLACEMENT_FULL,
+  PLACEMENT_HALF,
+} from "@/lib/scoring-knockout";
 import { computeR32Slots } from "@/lib/bracket/cascade";
 import { BRACKET_GRAPH } from "@/lib/bracket/bracket-graph";
 import { isGroupCode, type GroupCode, type MatchId } from "@/lib/bracket/types";
@@ -297,11 +304,13 @@ export default async function VoorspellingDetailPage({
     return { home: ov?.home ?? h, away: ov?.away ?? a };
   }
 
-  // ── Knock-out per match (V2 scoring) ──────────────────────────────────────
+  // ── Knock-out: placement-telling (identiek aan de ranglijst-engine) ─────────
   const koMatches = (matchesRaw ?? []).filter((m) =>
     ["LAST_32", "LAST_16", "QUARTER_FINALS", "SEMI_FINALS", "FINAL"].includes(m.stage),
   );
 
+  // Werkelijke winnaar per KO-wedstrijd — voor de gelijkspel/penalty-notatie en
+  // de wereldkampioen. NB: penalty's zijn niet uit de score af te leiden.
   const winnerByMatchId = new Map<number, string>();
   for (const m of koMatches) {
     if (m.status !== "FINISHED" || m.home_score == null || m.away_score == null || m.home_score === m.away_score) continue;
@@ -309,32 +318,27 @@ export default async function VoorspellingDetailPage({
     if (w) winnerByMatchId.set(m.id, w);
   }
 
-  // Werkelijke winnaars per ronde
-  const realWinnersByRound: Partial<Record<BracketRound, Set<string>>> = {};
-  for (const [mid, winner] of winnerByMatchId) {
-    const m = koMatches.find((x) => x.id === mid);
-    if (!m) continue;
-    const stage = m.stage as BracketRound;
-    if (!realWinnersByRound[stage]) realWinnersByRound[stage] = new Set<string>();
-    realWinnersByRound[stage]!.add(winner);
+  // Placement-telling via DEZELFDE engine als computeUserPointRows (de ranglijst),
+  // zodat dit totaal exact gelijk is aan de ranglijst. Overrides tellen NIET mee —
+  // de engine leest alleen bracket_picks (winnaar-keuzes).
+  // Decode exact zoals de engine (decodeBracketPicks) — geen divergentie mogelijk.
+  const { phaseA: dPhaseA, phaseB: dPhaseB, bracket: dBracket } = decodeBracketPicks(
+    (bracketPicksRaw ?? []).map((p) => ({ round: p.round, slot: p.slot, team_code: p.team_code })),
+  );
+  const predicted = predictedOccupants(dPhaseA, dPhaseB, dBracket, teamGroupMap);
+  const actual = actualOccupants(
+    new Map(koMatches.map((m) => [m.id, { home_team: m.home_team, away_team: m.away_team }])),
+  );
+  const placementRows = scorePlacementPoints(predicted, actual);
+  const championPick = dBracket["F-1"];
+  const actualChampion = winnerByMatchId.get(104) ?? null;
+  const championPts = scoreChampion(dBracket, actualChampion)?.points ?? 0;
+  const ptsBySlot = new Map<string, number>(); // "${matchId}:${side}" → punten
+  for (const r of placementRows) {
+    const parts = r.ref_id.split(":"); // [round, matchId, side]
+    if (parts.length === 3) ptsBySlot.set(`${parts[1]}:${parts[2]}`, r.points);
   }
 
-  // Per match: jouw winner-pick (uit bracket_picks met slot=N en round=stage)
-  const myPickByFifa = new Map<number, string>();
-  for (const p of bracketPicksRaw ?? []) {
-    if (typeof p.slot !== "number" || !p.team_code) continue;
-    const stage = p.round as BracketRound;
-    if (!["LAST_32", "LAST_16", "QUARTER_FINALS", "SEMI_FINALS", "FINAL"].includes(stage)) continue;
-    let fifaNo: number | null = null;
-    if (stage === "LAST_32") fifaNo = 72 + p.slot;
-    else if (stage === "LAST_16") fifaNo = 88 + p.slot;
-    else if (stage === "QUARTER_FINALS") fifaNo = 96 + p.slot;
-    else if (stage === "SEMI_FINALS") fifaNo = 100 + p.slot;
-    else if (stage === "FINAL" && p.slot === 1) fifaNo = 104;
-    if (fifaNo != null) myPickByFifa.set(fifaNo, p.team_code);
-  }
-
-  // Group matches per stage
   const stageOrder: BracketRound[] = ["LAST_32", "LAST_16", "QUARTER_FINALS", "SEMI_FINALS", "FINAL"];
   const koMatchesByStage = new Map<BracketRound, typeof koMatches>();
   for (const stage of stageOrder) koMatchesByStage.set(stage, []);
@@ -346,7 +350,18 @@ export default async function VoorspellingDetailPage({
     arr.sort((a, b) => a.id - b.id);
   }
 
-  // Score per ronde + per match
+  const midOf = (id: number, stage: BracketRound): MatchId | null => {
+    if (stage === "LAST_32") return `R32-${id - 72}` as MatchId;
+    if (stage === "LAST_16") return `R16-${id - 88}` as MatchId;
+    if (stage === "QUARTER_FINALS") return `QF-${id - 96}` as MatchId;
+    if (stage === "SEMI_FINALS") return `SF-${id - 100}` as MatchId;
+    if (stage === "FINAL" && id === 104) return "F-1" as MatchId;
+    return null;
+  };
+
+  // Score per ronde + per match: twee vakjes per wedstrijd (home + away).
+  // myHome/myAway = jouw voorspelde landen op die plek (zonder overrides, zoals
+  // de telling). pts = vol bij juiste plek, half bij komt-door-elders, per vakje.
   type MatchScore = {
     match: (typeof koMatches)[number];
     myHome: string | undefined;
@@ -358,15 +373,22 @@ export default async function VoorspellingDetailPage({
   const koByStage = new Map<BracketRound, { matches: MatchScore[]; subtotal: number }>();
   for (const stage of stageOrder) {
     const matches = koMatchesByStage.get(stage) ?? [];
-    const allRoundWinners = realWinnersByRound[stage] ?? new Set<string>();
     const matchScores: MatchScore[] = matches.map((m) => {
-      const myPick = myPickByFifa.get(m.id);
-      const actualWinner = winnerByMatchId.get(m.id);
-      const pts = scoreKnockoutMatch(myPick, actualWinner, allRoundWinners, stage);
-      const { home: myHome, away: myAway } = userHomeAway(m.id, stage);
-      return { match: m, myHome, myAway, myPick, actualWinner, pts };
+      const mid = midOf(m.id, stage);
+      const pred = mid ? predicted.get(mid) : undefined;
+      const homePts = mid ? (ptsBySlot.get(`${mid}:home`) ?? 0) : 0;
+      const awayPts = mid ? (ptsBySlot.get(`${mid}:away`) ?? 0) : 0;
+      return {
+        match: m,
+        myHome: pred?.home,
+        myAway: pred?.away,
+        myPick: mid ? dBracket[mid] : undefined,
+        actualWinner: winnerByMatchId.get(m.id),
+        pts: homePts + awayPts,
+      };
     });
-    const subtotal = matchScores.reduce((s, ms) => s + ms.pts, 0);
+    let subtotal = matchScores.reduce((s, ms) => s + ms.pts, 0);
+    if (stage === "FINAL") subtotal += championPts;
     koByStage.set(stage, { matches: matchScores, subtotal });
   }
   const koTotalPts = Array.from(koByStage.values()).reduce((s, x) => s + x.subtotal, 0);
@@ -763,8 +785,9 @@ export default async function VoorspellingDetailPage({
         {stageOrder.map((stage) => {
           const data = koByStage.get(stage);
           if (!data || data.matches.length === 0) return null;
-          const full = KO_POINTS_FULL[stage];
-          const half = KO_POINTS_HALF[stage];
+          const full = PLACEMENT_FULL[stage as keyof typeof PLACEMENT_FULL] ?? 0;
+          const half = PLACEMENT_HALF[stage as keyof typeof PLACEMENT_HALF] ?? 0;
+          const isFinal = stage === "FINAL";
           return (
             <div key={stage} className="bg-surface border border-border rounded-lg overflow-hidden">
               <div className="px-5 py-3 border-b border-border bg-bg/50 flex items-start justify-between gap-3">
@@ -772,11 +795,16 @@ export default async function VoorspellingDetailPage({
                   <span className="text-sm font-bold">{ROUND_LABEL[stage]}</span>
                   <div className="flex flex-wrap gap-1.5 mt-1">
                     <span className="bg-pitch text-white text-[11px] font-semibold px-1.5 py-0.5 rounded">
-                      {full} pt juiste land op juiste plek
+                      {full} pt {isFinal ? "juiste finalist op juiste plek" : "juiste land op juiste plek"}
                     </span>
                     {half > 0 && (
                       <span className="bg-amber-100 text-amber-800 border border-amber-200 text-[11px] font-semibold px-1.5 py-0.5 rounded">
-                        {half} pt juiste land op verkeerde plek
+                        {half} pt {isFinal ? "juiste finalist op verkeerde plek" : "juiste land op verkeerde plek"}
+                      </span>
+                    )}
+                    {isFinal && (
+                      <span className="bg-pitch text-white text-[11px] font-semibold px-1.5 py-0.5 rounded">
+                        {CHAMPION_POINTS} pt wereldkampioen
                       </span>
                     )}
                   </div>
@@ -834,9 +862,9 @@ export default async function VoorspellingDetailPage({
                           <span className="text-muted italic text-xs">teams nog niet bekend</span>
                         )}
                       </div>
-                      {/* Punten */}
+                      {/* Punten — vallen zodra de landen op hun plek staan (niet pas bij eindstand) */}
                       <div className="sm:text-right mt-1.5 sm:mt-0">
-                        {finished ? (
+                        {m.home_team || m.away_team ? (
                           <PtsChip pts={pts} />
                         ) : (
                           <span className="text-muted text-xs">—</span>
@@ -846,6 +874,27 @@ export default async function VoorspellingDetailPage({
                   );
                 })}
               </ul>
+              {isFinal && (
+                <div className="px-4 py-2.5 border-t border-border flex items-center justify-between gap-2 text-xs bg-bg/20">
+                  <span className="flex items-center gap-1.5 flex-wrap">
+                    <span className="font-semibold uppercase tracking-wide text-muted">Wereldkampioen</span>
+                    {championPick ? (
+                      <TeamSpan code={championPick} name={teamName.get(championPick)} highlighted={!!actualChampion && championPick === actualChampion} />
+                    ) : (
+                      <span className="text-muted italic">niet ingevuld</span>
+                    )}
+                    {actualChampion && (
+                      <>
+                        <span className="text-muted">· werkelijk:</span>
+                        <TeamSpan code={actualChampion} name={teamName.get(actualChampion)} />
+                      </>
+                    )}
+                  </span>
+                  <span className="shrink-0">
+                    {actualChampion ? <PtsChip pts={championPts} /> : <span className="text-muted">—</span>}
+                  </span>
+                </div>
+              )}
             </div>
           );
         })}

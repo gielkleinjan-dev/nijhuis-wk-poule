@@ -30,11 +30,11 @@ import type { BracketRound, PointsRow } from "./scoring";
 // winnaar-gebaseerde KO_POINTS in scoring.ts). Per ronde: vol = juiste plek,
 // half = komt door op een ander vakje. De FINALE is een eigen ronde (de twee
 // finalisten, 56/28); de wereldkampioen is een aparte beloning (40) bovenop.
-type PlacementRound = "LAST_32" | "LAST_16" | "QUARTER_FINALS" | "SEMI_FINALS" | "FINAL";
-const PLACEMENT_FULL: Record<PlacementRound, number> = {
+export type PlacementRound = "LAST_32" | "LAST_16" | "QUARTER_FINALS" | "SEMI_FINALS" | "FINAL";
+export const PLACEMENT_FULL: Record<PlacementRound, number> = {
   LAST_32: 8, LAST_16: 14, QUARTER_FINALS: 24, SEMI_FINALS: 36, FINAL: 56,
 };
-const PLACEMENT_HALF: Record<PlacementRound, number> = {
+export const PLACEMENT_HALF: Record<PlacementRound, number> = {
   LAST_32: 4, LAST_16: 7, QUARTER_FINALS: 12, SEMI_FINALS: 18, FINAL: 28,
 };
 export const CHAMPION_POINTS = 40;
