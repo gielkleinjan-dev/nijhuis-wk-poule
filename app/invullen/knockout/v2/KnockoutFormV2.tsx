@@ -73,20 +73,14 @@ export default function KnockoutFormV2({
         <div className="tab-hero bg-surface border border-border rounded-lg p-5">
           <div className="flex items-baseline justify-between gap-3 mb-1">
             <h1 className="text-2xl font-bold leading-tight">Knock-out</h1>
-            <div className="shrink-0 text-right leading-tight flex items-baseline gap-3">
-              {(totalPoints ?? 0) > 0 && (
-                <div>
-                  <div className="text-xl font-bold tabular-nums text-pitch">{totalPoints}</div>
-                  <div className="text-[10px] text-muted">punten</div>
-                </div>
-              )}
-              <div>
-                <div className="text-xl font-bold tabular-nums">
-                  {s.phaseACount + s.phaseB.size + s.bracketCount}<span className="text-sm text-muted font-normal">/63</span>
-                </div>
-                <div className="text-[10px] text-muted">ingevuld</div>
+            {/* Gesloten poule: iedereen heeft alles ingevuld, dus 63/63 zegt niks
+                meer. Alleen de punten, rechts, in de hero-tekstkleur (wit). */}
+            {(totalPoints ?? 0) > 0 && (
+              <div className="shrink-0 text-right leading-tight">
+                <div className="text-xl font-bold tabular-nums">{totalPoints}</div>
+                <div className="text-[10px] text-muted">punten</div>
               </div>
-            </div>
+            )}
           </div>
         </div>
 
