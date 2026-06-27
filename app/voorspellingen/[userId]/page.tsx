@@ -843,7 +843,9 @@ export default async function VoorspellingDetailPage({
                     p === 0 ? undefined : p >= full ? "correct" : "wrongSlot";
                   return (
                     <li key={m.id} data-kickoff={m.kickoff_at} className="px-3 sm:px-4 py-2.5 sm:grid sm:grid-cols-[7rem_1fr_1fr_3rem] sm:gap-2 sm:items-center">
-                      <div>
+                      {/* Mobiel: W-nummer + datum op één regel (scheelt hoogte);
+                          desktop: gestapeld in de smalle kolom. */}
+                      <div className="flex items-baseline gap-1.5 sm:block">
                         <div className="text-[10px] font-mono text-muted">W{m.id}</div>
                         <div className="text-[10px] text-muted">{fmt(m.kickoff_at)}</div>
                       </div>
