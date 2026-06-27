@@ -28,10 +28,14 @@ export default async function RanglijstPage({
       .select("user_id, display_name, department, secondary_department, total_points, rank, rank_prev")
       .order("rank", { ascending: true }),
     supabase.from("settings").select("lock_at").eq("id", 1).single(),
+    // Meest recente snapshot VÓÓR vandaag (niet strikt 'gisteren'): tussen
+    // groepsfase-einde en KO-start draait de cron niet, dus 'gisteren' kan
+    // ontbreken. Nieuwste eerst; we pakken hieronder de laatst beschikbare dag.
     supabase
       .from("team_rank_snapshots")
-      .select("department, rank")
-      .eq("snapped_at", new Date(Date.now() - 86400000).toISOString().slice(0, 10)),
+      .select("department, rank, snapped_at")
+      .lt("snapped_at", new Date().toISOString().slice(0, 10))
+      .order("snapped_at", { ascending: false }),
   ]);
 
   const rows = leaderboard ?? [];
@@ -70,8 +74,13 @@ export default async function RanglijstPage({
   const rocketMap = new Map(risers.map((r, i) => [r.user_id, 3 - i]));
   const chuteMap  = new Map(fallers.map((r, i) => [r.user_id, 3 - i]));
 
-  // Team movement
-  const teamPrevRank = new Map((teamSnapshots ?? []).map((s) => [s.department, s.rank]));
+  // Team movement — gebruik alleen de laatst beschikbare snapshot-dag.
+  const latestSnapDate = teamSnapshots?.[0]?.snapped_at ?? null;
+  const teamPrevRank = new Map(
+    (teamSnapshots ?? [])
+      .filter((s) => s.snapped_at === latestSnapDate)
+      .map((s) => [s.department, s.rank]),
+  );
   const teamStandingsWithDelta = teamStandings.map((t, i) => {
     const prev = teamPrevRank.get(t.dep);
     return { ...t, delta: prev != null ? prev - (i + 1) : null };
