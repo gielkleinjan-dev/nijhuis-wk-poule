@@ -271,19 +271,23 @@ export default function BonusForm({
           <h1 className="text-2xl font-bold leading-tight">Bonusvragen</h1>
           {(totalPoints ?? 0) > 0 && (
             <div className="shrink-0 text-right leading-tight">
-              <div className="text-xl font-bold tabular-nums text-pitch">{totalPoints}</div>
+              <div className="text-xl font-bold tabular-nums">{totalPoints}</div>
               <div className="text-[10px] text-muted">punten</div>
             </div>
           )}
         </div>
-        <p className="text-sm text-muted">
-          Elke vraag levert <span className="font-medium text-ink">10 punten</span> op bij een
-          exact antwoord, en <span className="font-medium text-ink">5 punten</span> bij een
-          getal binnen ±3 van het werkelijke aantal. Het totaal aantal doelpunten in het
-          toernooi is ook de <span className="font-medium text-ink">beslisser</span>: bij
-          een gelijke eindstand in het algemeen klassement wint wie het dichtst bij het
-          werkelijke aantal zit.
-        </p>
+        {/* Uitleg alleen tijdens het invullen; bij gesloten poule blijft alleen
+            de titel staan (consistent met de knock-out-hero). */}
+        {!isLocked && (
+          <p className="text-sm text-muted">
+            Elke vraag levert <span className="font-medium text-ink">10 punten</span> op bij een
+            exact antwoord, en <span className="font-medium text-ink">5 punten</span> bij een
+            getal binnen ±3 van het werkelijke aantal. Het totaal aantal doelpunten in het
+            toernooi is ook de <span className="font-medium text-ink">beslisser</span>: bij
+            een gelijke eindstand in het algemeen klassement wint wie het dichtst bij het
+            werkelijke aantal zit.
+          </p>
+        )}
       </div>
 
 
