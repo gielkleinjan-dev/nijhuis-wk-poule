@@ -88,7 +88,7 @@ export default function IndividualLeaderboard({
                 return (
                   <tr
                     key={row.userId}
-                    className={`border-b border-border last:border-0 transition ${
+                    className={`border-b border-border last:border-0 transition lg:h-[60px] lg:[&>td]:py-0 ${
                       row.isMe ? "bg-brand-soft" : i % 2 === 0 ? "bg-surface" : "bg-bg/30"
                     }`}
                   >

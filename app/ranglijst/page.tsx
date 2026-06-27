@@ -153,7 +153,7 @@ export default async function RanglijstPage({
           tables in row 2 — so the tables always start at the same Y.
           On mobile (flex-col) we use order-* to keep each column together.
         */}
-        <div className="flex flex-col lg:grid lg:grid-cols-[1fr_17rem] gap-6">
+        <div className="flex flex-col lg:grid lg:grid-cols-[1fr_18rem] gap-6">
 
           {/* ── Individueel header ── row 1 col 1 */}
           <div className="order-1 lg:col-start-1 lg:row-start-1 tab-hero bg-surface border border-border rounded-lg p-5">
@@ -230,7 +230,7 @@ export default async function RanglijstPage({
                       return (
                         <tr
                           key={t.dep}
-                          className={`border-b border-border last:border-0 ${
+                          className={`border-b border-border last:border-0 lg:h-[60px] lg:[&>td]:py-0 ${
                             isMyTeam ? "bg-brand-soft" : i % 2 === 0 ? "bg-surface" : "bg-bg/30"
                           }`}
                         >
