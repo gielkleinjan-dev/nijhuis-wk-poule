@@ -101,7 +101,7 @@ export default async function RanglijstPage({
     <main className="min-h-screen">
       <LockCountdown lockAt={lockAt} />
       <header className="border-b border-border bg-surface">
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 py-4 flex items-center justify-between gap-3 sm:gap-4">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 py-4 flex items-center justify-between gap-3 sm:gap-4">
           <BrandLogo href="/invullen" />
           <UserHeader
             displayName={user.user_metadata?.display_name || user.email || ""}
@@ -112,9 +112,9 @@ export default async function RanglijstPage({
         </div>
       </header>
 
-      <MainNav isAdmin={userIsAdmin} isLocked={isLocked} lockAt={lockAt} maxWidth="max-w-4xl" />
+      <MainNav isAdmin={userIsAdmin} isLocked={isLocked} lockAt={lockAt} maxWidth="max-w-5xl" />
 
-      <div className="mx-auto max-w-4xl px-6 py-8 space-y-4">
+      <div className="mx-auto max-w-5xl px-6 py-8 space-y-4">
 
         {/* Filter pills — volle breedte boven beide kolommen */}
         <div>
@@ -153,7 +153,7 @@ export default async function RanglijstPage({
           tables in row 2 — so the tables always start at the same Y.
           On mobile (flex-col) we use order-* to keep each column together.
         */}
-        <div className="flex flex-col lg:grid lg:grid-cols-[1fr_18rem] gap-6">
+        <div className="flex flex-col lg:grid lg:grid-cols-[1fr_26rem] gap-6">
 
           {/* ── Individueel header ── row 1 col 1 */}
           <div className="order-1 lg:col-start-1 lg:row-start-1 tab-hero bg-surface border border-border rounded-lg p-5">
@@ -246,7 +246,7 @@ export default async function RanglijstPage({
                             )}
                           </td>
                           <td className="px-3 py-3 font-medium text-sm leading-tight">
-                            <span className="inline-flex items-center gap-1 flex-wrap">
+                            <span className="inline-flex items-center gap-1 whitespace-nowrap">
                               {t.dep.replace("Team ", "")}
                               {isMyTeam && <span className="text-xs text-brand font-normal">(jij)</span>}
                               {rocketDepMap.has(t.dep) && <span title="Stijger">{"🚀".repeat(rocketDepMap.get(t.dep)!)}</span>}
