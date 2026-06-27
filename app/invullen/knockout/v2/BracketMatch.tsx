@@ -192,16 +192,20 @@ export function BracketMatch({
             />
           </div>
         </div>
-        {/* Tweede regel: ↺-knoppen onder de pills, vol-breed klikbaar */}
-        <div className="flex items-center gap-1.5">
-          <div className="flex-1 min-w-0">
-            <ResetButton enabled={canResetHome} onClick={resetHome} ariaLabel="Reset thuis-keuze" wide />
+        {/* Tweede regel: ↺-knoppen onder de pills, vol-breed klikbaar. Bij een
+            gesloten poule valt er niets te wissen — dan deze rij niet renderen,
+            anders ontstaat er lege witruimte boven de Werkelijk-regel. */}
+        {!isLocked && (
+          <div className="flex items-center gap-1.5">
+            <div className="flex-1 min-w-0">
+              <ResetButton enabled={canResetHome} onClick={resetHome} ariaLabel="Reset thuis-keuze" wide />
+            </div>
+            <div className="w-6 shrink-0" aria-hidden />
+            <div className="flex-1 min-w-0">
+              <ResetButton enabled={canResetAway} onClick={resetAway} ariaLabel="Reset uit-keuze" wide />
+            </div>
           </div>
-          <div className="w-6 shrink-0" aria-hidden />
-          <div className="flex-1 min-w-0">
-            <ResetButton enabled={canResetAway} onClick={resetAway} ariaLabel="Reset uit-keuze" wide />
-          </div>
-        </div>
+        )}
       </div>
 
       {/* Werkelijke uitslag + behaalde punten — read-only. Eigen layout per
