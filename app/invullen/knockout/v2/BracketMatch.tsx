@@ -212,7 +212,7 @@ export function BracketMatch({
           breakpoint die exact de pill-rij hierboven volgt (incl. de w-6 ruimte
           voor de ↺-knoppen op desktop), zodat thuis/uit netjes uitlijnen. */}
       {(homeActual || awayActual) && (
-        <div className="mt-2 pt-2 border-t border-border/60 text-[11px]">
+        <div className="mt-1.5 text-[11px]">
           {/* Desktop: zelfde kolommen als de pill-rij (w-28 · flex-1 · w-6 · vs · w-6 · flex-1) */}
           <div className="hidden sm:flex items-center gap-2">
             <div className="w-28 shrink-0 text-muted">Werkelijk</div>
@@ -268,9 +268,9 @@ function ActualSlot({
       ? "bg-pitch text-white border border-pitch"
       : "bg-amber-100 text-amber-800 border border-amber-200";
   return (
-    <span className="inline-flex items-center gap-1.5 min-w-0 pl-[9px]">
+    <span className="flex items-center gap-1.5 min-w-0 pl-[9px]">
       <span className="flag-emoji text-base leading-none shrink-0" aria-hidden>{flagEmoji(code)}</span>
-      <span className="truncate text-fg">{name}</span>
+      <span className="truncate min-w-0 text-fg">{name}</span>
       <span className={`shrink-0 px-1 py-0.5 rounded text-[10px] font-semibold tabular-nums ${chip}`}>
         {pts === 0 ? "mis" : `+${pts}`}
       </span>
