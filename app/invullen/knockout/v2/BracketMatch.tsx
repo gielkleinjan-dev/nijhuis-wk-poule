@@ -155,8 +155,14 @@ export function BracketMatch({
         </div>
       </div>
 
-      {/* Mobile (< sm): 3 regels — teams boven, ↺-knoppen midden, datum onder */}
+      {/* Mobile (< sm): datum als kop, dan keuze-pills, dan ↺-knoppen. De
+          Werkelijk-regel volgt hieronder — zo blijft alles per wedstrijd bijeen
+          en hoort de werkelijke uitslag duidelijk bij de wedstrijd erboven. */}
       <div className="sm:hidden space-y-1.5">
+        <div className="flex items-center justify-between text-[11px] text-muted">
+          <span>{fmt}</span>
+          <span className="font-mono text-muted/70">W{fifaMatchNo}</span>
+        </div>
         <div className="flex items-center gap-1.5">
           <div className="flex-1 min-w-0">
             <TeamPill
@@ -195,10 +201,6 @@ export function BracketMatch({
           <div className="flex-1 min-w-0">
             <ResetButton enabled={canResetAway} onClick={resetAway} ariaLabel="Reset uit-keuze" wide />
           </div>
-        </div>
-        <div className="flex items-center justify-between text-[11px] text-muted pt-0.5">
-          <span>{fmt}</span>
-          <span className="font-mono text-muted/70">W{fifaMatchNo}</span>
         </div>
       </div>
 

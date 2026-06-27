@@ -42,7 +42,7 @@ function TeamSpan({
   // zodat alle landnamen visueel even groot ogen (geen vet = "groter"-illusie).
   const cls =
     tone === "correct"
-      ? "bg-green-100 text-green-900 border border-green-300"
+      ? "bg-pitch-soft text-pitch border border-pitch/40"
       : tone === "wrongSlot"
       ? "bg-amber-100 text-amber-900 border border-amber-300"
       : tone === "winner"
@@ -863,30 +863,41 @@ export default async function VoorspellingDetailPage({
                           <span className="text-muted italic text-xs">niet ingevuld</span>
                         )}
                       </div>
-                      {/* Werkelijk: echte teams + score + winnaar groen */}
+                      {/* Werkelijk: echte teams + score + winnaar groen. Op mobiel
+                          staan de punten op dezelfde regel (rechts), net als de groepsfase. */}
                       <div className="mt-1.5 sm:mt-0">
                         <span className="sm:hidden text-[10px] text-muted block mb-0.5">Werkelijk:</span>
-                        {m.home_team || m.away_team ? (
-                          <div className="text-xs flex items-center gap-1 flex-wrap">
-                            {m.home_team
-                              ? <TeamSpan code={m.home_team} name={teamName.get(m.home_team)} tone={slotTone(homePts)} />
-                              : <span className="text-muted italic">?</span>}
-                            <span className="text-muted">
-                              {finished ? `${m.home_score}–${m.away_score}` : "vs"}
-                            </span>
-                            {m.away_team
-                              ? <TeamSpan code={m.away_team} name={teamName.get(m.away_team)} tone={slotTone(awayPts)} />
-                              : <span className="text-muted italic">?</span>}
-                            {finished && !actualWinner && m.home_score === m.away_score && (
-                              <span className="text-[10px] text-muted italic">(gelijkspel / TBD)</span>
+                        <div className="flex items-center justify-between gap-2">
+                          {m.home_team || m.away_team ? (
+                            <div className="text-xs flex items-center gap-1 flex-wrap min-w-0">
+                              {m.home_team
+                                ? <TeamSpan code={m.home_team} name={teamName.get(m.home_team)} tone={slotTone(homePts)} />
+                                : <span className="text-muted italic">?</span>}
+                              <span className="text-muted">
+                                {finished ? `${m.home_score}–${m.away_score}` : "vs"}
+                              </span>
+                              {m.away_team
+                                ? <TeamSpan code={m.away_team} name={teamName.get(m.away_team)} tone={slotTone(awayPts)} />
+                                : <span className="text-muted italic">?</span>}
+                              {finished && !actualWinner && m.home_score === m.away_score && (
+                                <span className="text-[10px] text-muted italic">(gelijkspel / TBD)</span>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-muted italic text-xs">teams nog niet bekend</span>
+                          )}
+                          {/* Mobiel: punten inline rechts naast de werkelijke landen */}
+                          <div className="sm:hidden shrink-0">
+                            {m.home_team || m.away_team ? (
+                              <PtsChip pts={pts} />
+                            ) : (
+                              <span className="text-muted text-xs">—</span>
                             )}
                           </div>
-                        ) : (
-                          <span className="text-muted italic text-xs">teams nog niet bekend</span>
-                        )}
+                        </div>
                       </div>
-                      {/* Punten — vallen zodra de landen op hun plek staan (niet pas bij eindstand) */}
-                      <div className="sm:text-right mt-1.5 sm:mt-0">
+                      {/* Punten — desktop: eigen kolom rechts (mobiel staat 'ie inline bij Werkelijk) */}
+                      <div className="hidden sm:block sm:text-right">
                         {m.home_team || m.away_team ? (
                           <PtsChip pts={pts} />
                         ) : (
