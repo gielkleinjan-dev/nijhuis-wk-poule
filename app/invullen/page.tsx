@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import GroupStageForm, { type Match, type Prediction } from "./GroupStageForm";
 import ActiveMatchWidget from "@/app/components/ActiveMatchWidget";
@@ -5,10 +6,27 @@ import KnockoutMatchWidget, { type KoPickRow } from "@/app/components/KnockoutMa
 import { BRACKET_GRAPH, ALL_MATCH_IDS } from "@/lib/bracket/bracket-graph";
 import type { MatchId } from "@/lib/bracket/types";
 
-export default async function InvullenPage() {
+export default async function InvullenPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>;
+}) {
   const supabase = await createSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null; // layout handles redirect
+
+  // Zodra de knock-out gestart is (R32-landen geplaatst) wordt "Mijn poule"
+  // standaard de knock-out — behalve als je expliciet de Groepsfase-subtab
+  // koos (?tab=groep). Zo kom je na de poulefase meteen bij de KO-wedstrijden.
+  const { tab } = await searchParams;
+  if (tab !== "groep") {
+    const { count: koPlaced } = await supabase
+      .from("matches")
+      .select("id", { count: "exact", head: true })
+      .in("stage", ["LAST_32", "LAST_16", "QUARTER_FINALS", "SEMI_FINALS", "FINAL"])
+      .not("home_team", "is", null);
+    if ((koPlaced ?? 0) > 0) redirect("/invullen/knockout");
+  }
 
   const [{ data: matchesRaw }, { data: teamsRaw }, { data: predictionsRaw }, { data: settings }, { data: pointRows }] =
     await Promise.all([

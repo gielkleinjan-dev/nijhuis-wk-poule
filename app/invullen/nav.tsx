@@ -8,10 +8,13 @@ const BASE_TABS = [
   { href: "/ranglijst", label: "Ranglijst" },
 ];
 
+// Groepsfase linkt naar ?tab=groep zodat 'ie nooit doorstuurt naar knock-out
+// (na de poulefase is /invullen standaard de knock-out). match = pad voor de
+// actief-status (querystring telt daar niet mee).
 const SUBTABS = [
-  { href: "/invullen", label: "Groepsfase" },
-  { href: "/invullen/knockout", label: "Knock-out" },
-  { href: "/invullen/bonus", label: "Bonus" },
+  { href: "/invullen?tab=groep", match: "/invullen", label: "Groepsfase" },
+  { href: "/invullen/knockout", match: "/invullen/knockout", label: "Knock-out" },
+  { href: "/invullen/bonus", match: "/invullen/bonus", label: "Bonus" },
 ];
 
 export default function InvullenNav({
@@ -73,7 +76,7 @@ export default function InvullenNav({
             Onderdeel:
           </span>
           {SUBTABS.map((t) => {
-            const active = path === t.href;
+            const active = path === t.match;
             return (
               <Link
                 key={t.href}
