@@ -88,50 +88,24 @@ export default function KnockoutFormV2({
               </div>
             </div>
           </div>
-          <p className="text-sm text-muted">
-            Jouw vastgezette knock-out picks. Je verdient punten voor elk land dat op de{" "}
-            <span className="font-medium text-fg">juiste plek</span> in jouw schema uitkomt — vanaf de
-            laatste 32 t/m de finale, plus de wereldkampioen.
-          </p>
         </div>
 
-        {/* Hoofdscherm: het knock-out schema met werkelijke uitslagen + punten */}
-        <div className="bg-surface border border-border rounded-lg overflow-hidden">
-          <div className="px-5 py-4 border-b border-border bg-bg/30">
-            <h2 className="text-base font-bold mb-1">Jouw knock-out schema</h2>
-            <p className="text-xs text-muted">
-              Per wedstrijd zie je jouw keuze en — zodra bekend — de werkelijke uitslag met de punten
-              die je daar verdiende.
-            </p>
-            <ul className="mt-3 space-y-1.5 text-xs text-muted">
-              <li className="flex items-center gap-2.5">
-                <span className="inline-block w-5 h-5 rounded bg-pitch shrink-0" aria-hidden />
-                <span>winnaar van de wedstrijd</span>
-              </li>
-              <li className="flex items-center gap-2.5">
-                <span className="inline-block w-5 h-5 rounded bg-pitch-soft border border-pitch/40 shrink-0" aria-hidden />
-                <span>ander land op deze plek gezet</span>
-              </li>
-            </ul>
-          </div>
-          <div className="p-3 space-y-3">
-            <BracketBuilder
-              phaseA={s.phaseA}
-              phaseB={s.phaseB}
-              bracket={s.bracket}
-              overrides={s.overrides}
-              isLocked={isLocked}
-              teamsByCode={teamsByCode}
-              teamGroupMap={teamGroupMap}
-              allTeams={allTeams}
-              matchDatesByFifaNo={matchDatesByFifaNo}
-              actualBySlot={actualBySlot}
-              ptsBySlot={ptsBySlot}
-              onPick={s.setMatchWinner}
-              onSetOverride={s.setOverride}
-            />
-          </div>
-        </div>
+        {/* Het knock-out schema zelf (eigen ronde-kaarten met werkelijke uitslag + punten) */}
+        <BracketBuilder
+          phaseA={s.phaseA}
+          phaseB={s.phaseB}
+          bracket={s.bracket}
+          overrides={s.overrides}
+          isLocked={isLocked}
+          teamsByCode={teamsByCode}
+          teamGroupMap={teamGroupMap}
+          allTeams={allTeams}
+          matchDatesByFifaNo={matchDatesByFifaNo}
+          actualBySlot={actualBySlot}
+          ptsBySlot={ptsBySlot}
+          onPick={s.setMatchWinner}
+          onSetOverride={s.setOverride}
+        />
 
         {/* Stap 1 & 2 — als historische context, ingeklapt */}
         <details className="group bg-surface border border-border rounded-lg overflow-hidden">
