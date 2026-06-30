@@ -246,7 +246,7 @@ export default async function RanglijstPage({
                             )}
                           </td>
                           <td className="px-3 py-3 font-medium text-sm leading-tight">
-                            <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                            <span className="inline-flex items-center gap-1 lg:whitespace-nowrap">
                               {t.dep.replace("Team ", "")}
                               {isMyTeam && <span className="text-xs text-brand font-normal">(jij)</span>}
                               {rocketDepMap.has(t.dep) && <span title="Stijger">{"🚀".repeat(rocketDepMap.get(t.dep)!)}</span>}

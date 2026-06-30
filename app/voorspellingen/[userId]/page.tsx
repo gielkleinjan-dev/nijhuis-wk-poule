@@ -969,13 +969,22 @@ export default async function VoorspellingDetailPage({
                       {answerStr ?? <span className="text-muted italic text-xs not-italic font-normal">niet ingevuld</span>}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 mt-1 sm:mt-0">
-                    <span className="sm:hidden text-[10px] text-muted">Uitslag:</span>
-                    <span className="font-medium tabular-nums">
-                      {actualStr ?? <span className="text-muted">—</span>}
-                    </span>
+                  <div className="mt-1 sm:mt-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="sm:hidden text-[10px] text-muted">Uitslag:</span>
+                        <span className="font-medium tabular-nums">
+                          {actualStr ?? <span className="text-muted">—</span>}
+                        </span>
+                      </div>
+                      {/* Mobiel: punten inline rechts op de uitslag-regel */}
+                      <div className="sm:hidden shrink-0">
+                        {r.pts > 0 ? <PtsChip pts={r.pts} /> : <span className="text-muted text-xs">—</span>}
+                      </div>
+                    </div>
                   </div>
-                  <div className="sm:text-right mt-1 sm:mt-0">
+                  {/* Desktop: punten in eigen kolom rechts (mobiel staat 'ie inline bij Uitslag) */}
+                  <div className="hidden sm:block sm:text-right">
                     {r.pts > 0 ? <PtsChip pts={r.pts} /> : <span className="text-muted text-xs">—</span>}
                   </div>
                 </li>
