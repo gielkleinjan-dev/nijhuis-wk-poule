@@ -166,6 +166,18 @@ function normalizeName(s: string): string {
   return s.trim().toLowerCase().normalize("NFKC");
 }
 
+// Eén of meer geaccepteerde antwoorden, gescheiden door "/" (bv. twee gedeelde
+// topscorers met evenveel goals). Een keuze is goed als 'ie met één van de
+// opgegeven namen overeenkomt.
+export function matchesAnyName(
+  pick: string | null | undefined,
+  actual: string | null | undefined,
+): boolean {
+  if (!pick || !actual) return false;
+  const p = normalizeName(pick);
+  return actual.split("/").some((a) => a.trim() !== "" && normalizeName(a) === p);
+}
+
 function scoreNumeric(
   pick: number | null,
   actual: number | null | undefined,
@@ -197,21 +209,11 @@ export function scoreBonus(
   nlTotalGoals: number;
   nlProgress: number;
 } {
-  const topScorer =
-    picks.top_scorer &&
-    result.topScorer &&
-    normalizeName(picks.top_scorer) === normalizeName(result.topScorer)
-      ? 10
-      : 0;
+  const topScorer = matchesAnyName(picks.top_scorer, result.topScorer) ? 10 : 0;
   const totalGoals = scoreNumeric(picks.total_goals_tiebreak, result.totalGoals, 10, 5);
   const totalYellowCards = scoreNumeric(picks.total_yellow_cards_tiebreak, result.totalYellowCards, 10, 5);
 
-  const nlTopScorer =
-    picks.nl_top_scorer &&
-    result.nlTopScorer &&
-    normalizeName(picks.nl_top_scorer) === normalizeName(result.nlTopScorer)
-      ? 10
-      : 0;
+  const nlTopScorer = matchesAnyName(picks.nl_top_scorer, result.nlTopScorer) ? 10 : 0;
   const nlTotalGoals = scoreNumeric(picks.nl_total_goals ?? null, result.nlTotalGoals, 10, 5);
 
   // nl_progress: all-or-nothing — alleen exact goed = 10pt.

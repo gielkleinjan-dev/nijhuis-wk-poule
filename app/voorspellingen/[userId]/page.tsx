@@ -4,6 +4,7 @@ import Link from "next/link";
 import { flagEmoji } from "@/lib/flags";
 import {
   scoreGroupPrediction,
+  matchesAnyName,
   type BracketRound,
   type NLProgress,
 } from "@/lib/scoring";
@@ -95,10 +96,6 @@ const RANK_BADGE: Record<1 | 2, string> = {
   1: "bg-pitch text-white",
   2: "bg-pitch/70 text-white",
 };
-
-function normalize(s: string | null | undefined): string {
-  return (s ?? "").trim().toLowerCase();
-}
 
 function scoreNumber(pick: number | null | undefined, actual: number | null, exact: number, close: number): number {
   if (pick == null || actual == null) return 0;
@@ -202,10 +199,10 @@ export default async function VoorspellingDetailPage({
     .reduce((s, m) => s + (m.home_score ?? 0) + (m.away_score ?? 0), 0);
 
   // ── Bonus-punten (10/5 + NL all-or-nothing) ───────────────────────────────
-  const bonusTopScorerPts = actualTopScorer && bonusRow?.top_scorer && normalize(bonusRow.top_scorer) === normalize(actualTopScorer) ? 10 : 0;
+  const bonusTopScorerPts = matchesAnyName(bonusRow?.top_scorer, actualTopScorer) ? 10 : 0;
   const bonusYellowPts = scoreNumber(bonusRow?.total_yellow_cards_tiebreak, actualYellowCards, 10, 5);
   const bonusGoalsPts = scoreNumber(bonusRow?.total_goals_tiebreak, actualTotalGoals, 10, 5);
-  const bonusNLTopScorerPts = actualNLTopScorer && bonusRow?.nl_top_scorer && normalize(bonusRow.nl_top_scorer) === normalize(actualNLTopScorer) ? 10 : 0;
+  const bonusNLTopScorerPts = matchesAnyName(bonusRow?.nl_top_scorer, actualNLTopScorer) ? 10 : 0;
   const bonusNLGoalsPts = scoreNumber(bonusRow?.nl_total_goals, actualNLTotalGoals, 10, 5);
   const bonusNLProgressPts = bonusRow?.nl_progress && actualNLProgress && bonusRow.nl_progress === actualNLProgress ? 10 : 0;
 

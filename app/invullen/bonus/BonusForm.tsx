@@ -62,7 +62,11 @@ function TopScorerSection({
         showAllOnFocus={!!restrictToTla}
       />
       {actual && (() => {
-        const correct = value?.trim().toLowerCase() === actual.trim().toLowerCase();
+        // actual kan meerdere goede antwoorden bevatten ("Naam A / Naam B"),
+        // bv. bij twee gedeelde topscorers — één match is genoeg. Zelfde regel
+        // als de telling (lib/scoring matchesAnyName).
+        const norm = (s: string) => s.trim().toLowerCase().normalize("NFKC");
+        const correct = !!value && actual.split("/").some((a) => a.trim() !== "" && norm(a) === norm(value));
         const filled = !!value?.trim();
         return (
           <div className="flex items-center gap-2 pt-1">
