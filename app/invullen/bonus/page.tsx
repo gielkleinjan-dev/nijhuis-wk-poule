@@ -19,7 +19,7 @@ export default async function BonusPage() {
       .single(),
     supabase
       .from("matches")
-      .select("home_score, away_score")
+      .select("stage, home_score, away_score")
       .eq("status", "FINISHED"),
     supabase.from("points").select("points").eq("user_id", user.id).eq("source", "bonus"),
   ]);
@@ -29,10 +29,11 @@ export default async function BonusPage() {
   const lockAt = settings?.lock_at ?? "2026-06-10T15:00:00Z";
   const isLocked = new Date(lockAt) <= new Date();
 
-  const actualTotalGoals = (matchTotals ?? []).reduce(
-    (sum, m) => sum + (m.home_score ?? 0) + (m.away_score ?? 0),
-    0
-  ) || null;
+  // Toernooi-doelpunten (beslisser) pas bekend als de finale gespeeld is.
+  const tournamentComplete = (matchTotals ?? []).some((m) => m.stage === "FINAL");
+  const actualTotalGoals = tournamentComplete
+    ? ((matchTotals ?? []).reduce((sum, m) => sum + (m.home_score ?? 0) + (m.away_score ?? 0), 0) || null)
+    : null;
 
   return (
     <BonusForm

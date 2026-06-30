@@ -194,9 +194,14 @@ export default async function VoorspellingDetailPage({
   const actualNLTopScorer = bonusSettings?.actual_nl_top_scorer ?? null;
   const actualNLTotalGoals = bonusSettings?.actual_nl_total_goals ?? null;
   const actualNLProgress = (bonusSettings?.actual_nl_progress as NLProgress | null) ?? null;
-  const actualTotalGoals = (matchesRaw ?? [])
-    .filter((m) => m.status === "FINISHED" && m.home_score != null && m.away_score != null)
-    .reduce((s, m) => s + (m.home_score ?? 0) + (m.away_score ?? 0), 0);
+  // Toernooi-doelpunten (beslisser) is pas bekend als de finale gespeeld is —
+  // anders zou er gescoord/getoond worden tegen een lopende tussenstand.
+  const tournamentComplete = (matchesRaw ?? []).some((m) => m.stage === "FINAL" && m.status === "FINISHED");
+  const actualTotalGoals = tournamentComplete
+    ? (matchesRaw ?? [])
+        .filter((m) => m.status === "FINISHED" && m.home_score != null && m.away_score != null)
+        .reduce((s, m) => s + (m.home_score ?? 0) + (m.away_score ?? 0), 0)
+    : null;
 
   // ── Bonus-punten (10/5 + NL all-or-nothing) ───────────────────────────────
   const bonusTopScorerPts = matchesAnyName(bonusRow?.top_scorer, actualTopScorer) ? 10 : 0;

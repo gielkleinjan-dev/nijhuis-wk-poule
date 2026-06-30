@@ -86,7 +86,7 @@ export async function GET(req: Request) {
   const [{ data: settings }, { data: finishedMatches }, { data: profiles, error: pErr }] =
     await Promise.all([
       supabase.from("settings").select("actual_top_scorer, actual_yellow_cards, actual_nl_top_scorer, actual_nl_total_goals, actual_nl_progress").eq("id", 1).single(),
-      supabase.from("matches").select("home_score, away_score").eq("status", "FINISHED"),
+      supabase.from("matches").select("stage, home_score, away_score").eq("status", "FINISHED"),
       supabase.from("profiles").select("id"),
     ]);
 
@@ -100,8 +100,12 @@ export async function GET(req: Request) {
   const nlTopScorer = settings?.actual_nl_top_scorer ?? null;
   const nlTotalGoals = settings?.actual_nl_total_goals ?? null;
   const nlProgress = settings?.actual_nl_progress ?? null;
-  const totalGoals = finishedMatches
-    ? finishedMatches.reduce((sum, m) => sum + (m.home_score ?? 0) + (m.away_score ?? 0), 0)
+  // Toernooi-doelpunten (de beslisser) telt pas mee als het toernooi klaar is —
+  // d.w.z. de finale is gespeeld. Anders zou er gescoord worden tegen een
+  // lopende tussenstand die nog verandert.
+  const tournamentComplete = (finishedMatches ?? []).some((m) => m.stage === "FINAL");
+  const totalGoals = tournamentComplete
+    ? (finishedMatches ?? []).reduce((sum, m) => sum + (m.home_score ?? 0) + (m.away_score ?? 0), 0)
     : null;
 
   // 5. Snapshot the CURRENT ranking before we recompute — drives the up/down arrows
